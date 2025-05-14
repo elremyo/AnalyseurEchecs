@@ -4,10 +4,13 @@ from stockfish import Stockfish
 import io
 import pandas as pd
 import plotly.graph_objects as go
+import os
 
+os.system("chmod +x ./bin/stockfish")
 
-stockfish_path = "C:\Program Files (x86)\stockfish\stockfish-windows-x86-64-avx2.exe"
+stockfish_path = "./bin/stockfish"
 stockfish = Stockfish(path=stockfish_path, depth=15)
+
 
 # Fonction pour analyser la partie PGN
 def analyze_game(pgn_text):
