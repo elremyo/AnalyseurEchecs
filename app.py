@@ -17,8 +17,11 @@ def convert_eval_to_cp(e):
     if e["type"] == "cp":
         return e["value"]
     elif e["type"] == "mate":
-        return 1000 if e["value"] > 0 else -1000
+        return 1500 if e["value"] > 0 else -1500
     return 0
+
+
+
 
 # Fonction pour analyser la partie PGN
 def analyze_game(pgn_text,user_depth):
@@ -42,10 +45,13 @@ def analyze_game(pgn_text,user_depth):
         stockfish.set_fen_position(board.fen())
         eval_after = stockfish.get_evaluation()
 
+        #DEBUG
+        st.write(eval_after)
+
         eval_before_cp = convert_eval_to_cp(eval_before)
         eval_after_cp = convert_eval_to_cp(eval_after)
 
-        delta = delta = eval_after_cp - eval_before_cp
+        delta = eval_after_cp - eval_before_cp
 
         quality = "bon coup"
         if abs(delta) > 50:
@@ -58,26 +64,19 @@ def analyze_game(pgn_text,user_depth):
         analysis.append({
             "coup": move.uci(),
             "qualité": quality,
-            "eval": eval_after_cp,
+            "eval": eval_after_cp,             # pour le tracé
+            "raw_eval": eval_after             # pour l'affichage textuel
         })
     return analysis
 
+
 def format_eval(e):
-    # Si c'est déjà un int (ex: 23 centipions), formate en +0.23
-    if isinstance(e, int):
-        val = round(e / 100, 2)
+    if e["type"] == "cp":
+        val = round(e["value"] / 100, 2)
         return f"+{val}" if val > 0 else f"{val}"
-
-    # Si c'est un dict comme retourné par Stockfish
-    if isinstance(e, dict):
-        if e["type"] == "cp":
-            val = round(e["value"] / 100, 2)
-            return f"+{val}" if val > 0 else f"{val}"
-        elif e["type"] == "mate":
-            return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
-
+    elif e["type"] == "mate":
+        return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
     return "?"
-
 
 
 # Session state init
@@ -120,9 +119,8 @@ with col3:
         evals = [coup["eval"] for coup in st.session_state.analysis]
         min_val = min(evals) - 100
 
+        formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
 
-
-        formatted_labels = [format_eval(e) for e in evals]
 
 
         fig = go.Figure()
@@ -182,3 +180,10 @@ with col3:
         st.plotly_chart(fig,use_container_width=True,config={'displayModeBar': False,"staticPlot": False})
         if st.button("Balloooooon !"):
             st.balloons()
+
+
+#DEBUG
+st.write("evals")
+st.write(evals)
+st.write("formatted_labels")
+st.write(formatted_labels)
