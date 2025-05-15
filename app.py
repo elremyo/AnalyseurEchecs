@@ -6,9 +6,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import os
 
-os.system("chmod +x ./bin/stockfish")
+#os.system("chmod +x ./bin/stockfish")
 
-stockfish_path = "./bin/stockfish"
+#stockfish_path = "./bin/stockfish"
+stockfish_path = "C:\Program Files (x86)\stockfish\stockfish-windows-x86-64-avx2.exe"
+
 stockfish = Stockfish(path=stockfish_path, depth=15)
 
 
@@ -21,7 +23,7 @@ def analyze_game(pgn_text):
     game = chess.pgn.read_game(pgn_io)
     board = chess.Board()
     analysis = []
-    
+
 
     # Analyser chaque coup
     for move in game.mainline_moves():
