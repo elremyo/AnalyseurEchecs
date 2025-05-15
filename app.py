@@ -18,6 +18,7 @@ def analyze_game(pgn_text):
     game = chess.pgn.read_game(pgn_io)
     board = chess.Board()
     analysis = []
+    
 
     # Analyser chaque coup
     for move in game.mainline_moves():
