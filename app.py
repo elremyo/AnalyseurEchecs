@@ -2,12 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import os
+from engine.analysis import *
+from engine.utils import *
 
 ASSETS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
-
-
-from engine.analysis import analyze_game
-from engine.utils import format_eval, style_by_quality
 
 # Chemin vers Stockfish à adapter si besoin
 stockfish_path = "C:/Program Files (x86)/stockfish/stockfish-windows-x86-64-avx2.exe"
@@ -28,8 +26,7 @@ if 'black_name' not in st.session_state:
 col1, col2, col3 = st.columns(spec=[2,4,3], gap="small", border=True)
 
 with col1:
-    st.subheader("Importez votre partie")
-    pgn_text = st.text_area("Saisir le PGN", placeholder="Collez ici le PGN de la partie", height=68, label_visibility="collapsed")
+    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=86)
     user_depth = st.slider("Profondeur d'analyse", min_value=5, max_value=20, value=16)
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
@@ -62,15 +59,12 @@ quality_images = {
     "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
 }
 with col2:
-    st.subheader("Analyse des coups")
-
     if st.session_state.analysis:
         df = pd.DataFrame(st.session_state.analysis)
         white = st.session_state.white_name
         black = st.session_state.black_name
         df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
 
-        # Comptage par qualité et joueur
         recap = (
             df.groupby(["qualité", "joueur"])
             .size()
@@ -81,28 +75,14 @@ with col2:
                 "Imprécision", "Erreur", "Gaffe"
             ], fill_value=0)
         )
+
         with st.container(border=True):
-            for qualite, row in recap.iterrows():
-                color = quality_colors.get(qualite, "black")
-                col_quality, col_white, col_icon, col_black = st.columns([8, 3, 2, 3])
-                with col_quality:
-                    st.markdown(f"<div style='text-align:left; color:{color}'>{qualite}</div>", unsafe_allow_html=True)
-                with col_white:
-                    st.markdown(f"<div style='text-align:center; color:{color}'>{row[white]}</div>", unsafe_allow_html=True)
-                with col_icon:
-                    img_path = quality_images.get(qualite)
-                    if img_path and os.path.exists(img_path):
-                        st.image(img_path, width=20)
-                    else:
-                        st.write('🪲')                              
-                    with col_black:
-                        st.markdown(f"<div style='text-align:center; color:{color}'>{row[black]}</div>", unsafe_allow_html=True)
+            render_quality_table(recap, white, black, quality_colors, quality_images)
 
         st.write(df)
 
 with col3:
-    st.subheader("Évolution de l'avantage")
-
+    st.write("Graphe de la partie")
     if st.session_state.analysis:
         evals = [coup["eval"] for coup in st.session_state.analysis]
         formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
