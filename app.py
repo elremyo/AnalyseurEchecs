@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import os
+
+ASSETS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+
 
 from engine.analysis import analyze_game
-from engine.utils import format_eval
+from engine.utils import format_eval, style_by_quality
 
 # Chemin vers Stockfish à adapter si besoin
 stockfish_path = "C:/Program Files (x86)/stockfish/stockfish-windows-x86-64-avx2.exe"
@@ -35,6 +39,28 @@ with col1:
         st.session_state.black_name = black_name
         st.session_state.pgn_last = pgn_text
 
+
+quality_colors = {
+    "Gaffe": "#c93233",
+    "Erreur": "#dc8c2a",
+    "Imprécision": "#e8b443",
+    "Bon": "#78af8b",
+    "Excellent": "#67ac49",
+    "Meilleur": "#98bc49",
+    "Très bon": "#4c8caf",
+    "Brillant": "#1baa9b"
+}
+
+quality_images = {
+    "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
+    "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
+    "Imprécision": os.path.join(ASSETS_PATH, "imprecision.png"),
+    "Bon": os.path.join(ASSETS_PATH, "bon.png"),
+    "Excellent": os.path.join(ASSETS_PATH, "excellent.png"),
+    "Meilleur": os.path.join(ASSETS_PATH, "meilleur.png"),
+    "Très bon": os.path.join(ASSETS_PATH, "tres_bon.png"),
+    "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
+}
 with col2:
     st.subheader("Analyse des coups")
 
@@ -44,6 +70,7 @@ with col2:
         black = st.session_state.black_name
         df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
 
+        # Comptage par qualité et joueur
         recap = (
             df.groupby(["qualité", "joueur"])
             .size()
@@ -54,8 +81,23 @@ with col2:
                 "Imprécision", "Erreur", "Gaffe"
             ], fill_value=0)
         )
+        with st.container(border=True):
+            for qualite, row in recap.iterrows():
+                color = quality_colors.get(qualite, "black")
+                col_quality, col_white, col_icon, col_black = st.columns([8, 3, 2, 3])
+                with col_quality:
+                    st.markdown(f"<div style='text-align:left; color:{color}'>{qualite}</div>", unsafe_allow_html=True)
+                with col_white:
+                    st.markdown(f"<div style='text-align:center; color:{color}'>{row[white]}</div>", unsafe_allow_html=True)
+                with col_icon:
+                    img_path = quality_images.get(qualite)
+                    if img_path and os.path.exists(img_path):
+                        st.image(img_path, width=20)
+                    else:
+                        st.write('🪲')                              
+                    with col_black:
+                        st.markdown(f"<div style='text-align:center; color:{color}'>{row[black]}</div>", unsafe_allow_html=True)
 
-        st.dataframe(recap)
         st.write(df)
 
 with col3:
@@ -109,6 +151,3 @@ with col3:
         )
 
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
-        if st.button("Balloooooon !"):
-            st.balloons()

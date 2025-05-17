@@ -30,3 +30,19 @@ def format_eval(e):
     elif e["type"] == "mate":
         return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
     return "?"
+
+
+quality_colors = {
+"Gaffe": "#c93233",
+"Erreur": "#dc8c2a",
+"Imprécision": "#e8b443",
+"Bon": "#78af8b",
+"Excellent": "#67ac49",
+"Meilleur": "#98bc49",
+"Très bon": "#4c8caf",
+"Brillant": "#1baa9b"
+}
+
+def style_by_quality(row):
+    color = quality_colors.get(row["qualité"], "black")
+    return [f"color: {color}"] * len(row)
