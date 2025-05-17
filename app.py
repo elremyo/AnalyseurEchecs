@@ -2,12 +2,16 @@ import streamlit as st
 from engine.analysis import *
 from engine.utils import *
 import chess
+import os
 
 
 set_page_style()
 
 # Chemin vers Stockfish à adapter si besoin
 stockfish_path = "C:/Program Files (x86)/stockfish/stockfish-windows-x86-64-avx2.exe"
+
+ASSETS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+book_path = os.path.join(ASSETS_PATH, "performance.bin")
 
 # Session state init
 init_session_state()
@@ -20,7 +24,7 @@ with col1:
     user_depth = st.slider("Profondeur d'analyse", min_value=5, max_value=20, value=16)
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
-        analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path)
+        analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)
         st.session_state.analysis = analysis
         st.session_state.white_name = white_name
         st.session_state.black_name = black_name

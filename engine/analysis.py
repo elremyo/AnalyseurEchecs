@@ -1,4 +1,5 @@
 import chess.pgn
+import chess.polyglot
 import io
 from .utils import convert_eval_to_cp, get_quality
 from stockfish import Stockfish
@@ -10,36 +11,71 @@ def load_pgn(pgn: str) -> chess.pgn.Game:
     try:
         pgn_io = io.StringIO(pgn)
         game = chess.pgn.read_game(pgn_io)
+
         if not any(game.mainline_moves()):
             st.error("Le PGN fourni est invalide ou vide.")
         return game
     except Exception as e:
         raise e
 
+def is_theoretical_move(board, move, book_path):
+    try:
+        with chess.polyglot.open_reader(book_path) as reader:
+            entries = list(reader.find_all(board))
+            theoretical_moves = [entry.move for entry in entries]
+            return move in theoretical_moves
+    except FileNotFoundError:
+        return False
 
-def analyze_game(pgn: str, user_depth: int, stockfish_path: str):
+def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str):
     """Analyse une partie PGN et retourne la liste des coups annotés."""
     game = load_pgn(pgn)
     board = chess.Board()
     analysis = []
     white_player = game.headers.get("White", "Blanc")
     black_player = game.headers.get("Black", "Noir")
+
     stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+    stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
+
     for move in game.mainline_moves():
+        # État avant le coup
         stockfish.set_fen_position(board.fen())
         eval_before = stockfish.get_evaluation()
+
+        # Test coup théorique
+        is_theo = False
+        if book_path:
+            is_theo = is_theoretical_move(board, move, book_path)
+        
+        # On joue le coup réel
         board.push(move)
         stockfish.set_fen_position(board.fen())
         eval_after = stockfish.get_evaluation()
+
+        # Calcul du delta
         delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
-        quality = get_quality(delta, eval_before.get("type", "cp"), eval_after.get("type", "cp"))
+
+        best_move = stockfish.get_best_move()
+        is_best = (best_move == move.uci())
+
+        # Attribution de la qualité
+        quality = get_quality(delta, eval_before.get("type", "cp"), eval_after.get("type", "cp"), is_best,is_theo)
+
+        # Ajout à l'analyse
         analysis.append({
             "coup": move.uci(),
             "qualité": quality,
             "eval": convert_eval_to_cp(eval_after),
-            "raw_eval": eval_after
+            "raw_eval": eval_after,
+            "best_move": best_move,
+            "is_best": is_best,
+            "is_theoretical": is_theo
+
         })
+
     return analysis, white_player, black_player
+
 
 def render_svg(svg: str):
     """Affiche un SVG dans Streamlit."""

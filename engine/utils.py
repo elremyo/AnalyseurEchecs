@@ -5,8 +5,6 @@ import base64
 import plotly.graph_objects as go
 import pandas as pd
 
-
-
 ASSETS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 def init_session_state():
@@ -46,26 +44,29 @@ def convert_eval_to_cp(e):
         return 1500 if e["value"] > 0 else -1500
     return 0
 
-def get_quality(delta, eval_type_before, eval_type_after):
+def get_quality(delta, eval_type_before, eval_type_after, is_best,is_theoretical):
     if eval_type_after == "mate" and eval_type_before != "mate":
         return "Brillant"
-    
-    delta_abs = abs(delta)
-
-    if delta_abs <= 1:
-        return "Critique"
-    elif delta_abs <= 40:
+    if is_best:
         return "Meilleur"
-    elif delta_abs <= 60:
+    if is_theoretical:
+        return "Théorique"
+
+
+    delta_abs = abs(delta)
+    if delta_abs < 10:
+        return "Meilleur"
+    if delta_abs < 40:
         return "Excellent"
-    elif delta_abs <= 100:
+    elif delta_abs < 50:
         return "Bon"
-    elif delta_abs <= 200:
+    elif delta_abs < 150:
         return "Imprécision"
-    elif delta_abs <= 400:
+    elif delta_abs < 300:
         return "Erreur"
     else:
         return "Gaffe"
+
 
 def format_eval(e):
     if e["type"] == "cp":
@@ -135,6 +136,7 @@ def display_graph():
 
 def display_quality_table():
     quality_images = {
+    "Théorique": os.path.join(ASSETS_PATH, "theorique.png"),
     "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
     "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
     "Imprécision": os.path.join(ASSETS_PATH, "imprecision.png"),
@@ -146,6 +148,7 @@ def display_quality_table():
     }
 
     quality_colors = {
+    "Théorique": "#a88764",
     "Gaffe": "#c93233",
     "Erreur": "#dc8c2a",
     "Imprécision": "#e8b443",
@@ -167,7 +170,7 @@ def display_quality_table():
         .reindex(columns=[white, black], fill_value=0)
         .reindex(index=[
             "Brillant", "Critique", "Meilleur", "Excellent", "Bon",
-            "Imprécision", "Erreur", "Gaffe"
+            "Imprécision", "Erreur", "Gaffe", "Théorique"
         ], fill_value=0)
         )
 
