@@ -2,8 +2,42 @@ import os
 import streamlit as st
 import textwrap
 import base64
+import plotly.graph_objects as go
+import pandas as pd
+
+
 
 ASSETS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
+def init_session_state():
+    """Initialise les variables de session si besoin."""
+    defaults = {
+        "analysis": None,
+        "pgn_last": "",
+        "white_name": "Blanc",
+        "black_name": "Noir"
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+def set_page_style():
+    """Applique le style global de la page."""
+    st.set_page_config(layout="wide")
+    st.header("Analyseur de parties d'échecs", anchor=False)
+    st.markdown(
+        """
+        <style>
+        html, body, .main, .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            margin-left: 1rem !important;
+            margin-right: 1rem !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 def convert_eval_to_cp(e):
     if e["type"] == "cp":
@@ -17,15 +51,18 @@ def get_quality(delta, eval_type_before, eval_type_after):
         return "Brillant"
     
     delta_abs = abs(delta)
-    if delta_abs == 0:
+
+    if delta_abs <= 1:
+        return "Critique"
+    elif delta_abs <= 40:
         return "Meilleur"
-    elif delta_abs < 20:
+    elif delta_abs <= 60:
         return "Excellent"
-    elif delta_abs < 50:
+    elif delta_abs <= 100:
         return "Bon"
-    elif delta_abs < 150:
+    elif delta_abs <= 200:
         return "Imprécision"
-    elif delta_abs < 300:
+    elif delta_abs <= 400:
         return "Erreur"
     else:
         return "Gaffe"
@@ -43,8 +80,60 @@ def img_to_base64(path):
         data = f.read()
     return base64.b64encode(data).decode("utf-8")
 
-def render_quality_table(recap, white, black):
+def display_graph():
+        if st.session_state.analysis:
 
+            evals = [coup["eval"] for coup in st.session_state.analysis]
+            formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
+            min_val = min(evals) - 100
+
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=list(range(len(evals))),
+                y=[min_val] * len(evals),
+                mode='lines',
+                line=dict(color='white'),
+                fill=None,
+                showlegend=False,
+                hoverinfo="skip"
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=list(range(len(evals))),
+                y=evals,
+                mode='lines',
+                line=dict(color='white'),
+                fill='tonexty',
+                fillcolor='white',
+                showlegend=False,
+                text=[f"Coup {i+1}: {label}" for i, label in enumerate(formatted_labels)],
+                hovertemplate="%{text}<extra></extra>"
+            ))
+
+            fig.add_shape(
+                type="line",
+                x0=0,
+                y0=0,
+                x1=len(evals)-1,
+                y1=0,
+                line=dict(color="gray", width=1),
+                layer="above"
+            )
+
+            fig.update_layout(
+                height=80,
+                margin=dict(l=0, r=0, t=0, b=0),
+                dragmode=False,
+                xaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
+                yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False)
+            )
+
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+
+
+def display_quality_table():
     quality_images = {
     "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
     "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
@@ -52,7 +141,7 @@ def render_quality_table(recap, white, black):
     "Bon": os.path.join(ASSETS_PATH, "bon.png"),
     "Excellent": os.path.join(ASSETS_PATH, "excellent.png"),
     "Meilleur": os.path.join(ASSETS_PATH, "meilleur.png"),
-    "Très bon": os.path.join(ASSETS_PATH, "tres_bon.png"),
+    "Critique": os.path.join(ASSETS_PATH, "tres_bon.png"),
     "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
     }
 
@@ -63,9 +152,24 @@ def render_quality_table(recap, white, black):
     "Bon": "#78af8b",
     "Excellent": "#67ac49",
     "Meilleur": "#98bc49",
-    "Très bon": "#4c8caf",
+    "Critique": "#4c8caf",
     "Brillant": "#1baa9b"
     }
+
+    df = pd.DataFrame(st.session_state.analysis)
+    white = st.session_state.white_name
+    black = st.session_state.black_name
+    df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
+    recap = (
+        df.groupby(["qualité", "joueur"])
+        .size()
+        .unstack(fill_value=0)
+        .reindex(columns=[white, black], fill_value=0)
+        .reindex(index=[
+            "Brillant", "Critique", "Meilleur", "Excellent", "Bon",
+            "Imprécision", "Erreur", "Gaffe"
+        ], fill_value=0)
+        )
 
     """Affiche un tableau d'analyse des coups avec alignement parfait."""
     table_html = textwrap.dedent(f"""
@@ -85,9 +189,8 @@ def render_quality_table(recap, white, black):
             </tr>
         </thead>
         <tbody>
-""")
+    """)
  
-
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
         value_white = row[white]
