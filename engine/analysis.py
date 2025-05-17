@@ -2,13 +2,21 @@ import chess.pgn
 import io
 from .utils import convert_eval_to_cp, get_quality
 from stockfish import Stockfish
+import base64
+import streamlit as st
 
-def analyze_game(pgn_text, user_depth, stockfish_path):
+def load_png(pgn):
+    pgn_text=pgn
     pgn_io = io.StringIO(pgn_text)
     game = chess.pgn.read_game(pgn_io)
     if game is None:
         raise ValueError("Le PGN fourni est invalide ou vide.")
+    return game
 
+
+
+def analyze_game(png, user_depth, stockfish_path):
+    game = load_png(png)
     board = chess.Board()
     analysis = []
 
@@ -35,3 +43,9 @@ def analyze_game(pgn_text, user_depth, stockfish_path):
         })
     
     return analysis, white_player, black_player
+
+def render_svg(svg):
+    """Renders the given svg string."""
+    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
+    st.write(html, unsafe_allow_html=True)

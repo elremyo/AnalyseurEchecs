@@ -3,6 +3,7 @@ import streamlit as st
 import textwrap
 import base64
 
+ASSETS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 def convert_eval_to_cp(e):
     if e["type"] == "cp":
@@ -42,7 +43,30 @@ def img_to_base64(path):
         data = f.read()
     return base64.b64encode(data).decode("utf-8")
 
-def render_quality_table(recap, white, black, quality_colors, quality_images):
+def render_quality_table(recap, white, black):
+
+    quality_images = {
+    "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
+    "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
+    "Imprécision": os.path.join(ASSETS_PATH, "imprecision.png"),
+    "Bon": os.path.join(ASSETS_PATH, "bon.png"),
+    "Excellent": os.path.join(ASSETS_PATH, "excellent.png"),
+    "Meilleur": os.path.join(ASSETS_PATH, "meilleur.png"),
+    "Très bon": os.path.join(ASSETS_PATH, "tres_bon.png"),
+    "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
+    }
+
+    quality_colors = {
+    "Gaffe": "#c93233",
+    "Erreur": "#dc8c2a",
+    "Imprécision": "#e8b443",
+    "Bon": "#78af8b",
+    "Excellent": "#67ac49",
+    "Meilleur": "#98bc49",
+    "Très bon": "#4c8caf",
+    "Brillant": "#1baa9b"
+    }
+
     """Affiche un tableau d'analyse des coups avec alignement parfait."""
     table_html = textwrap.dedent(f"""
     <style>
@@ -51,7 +75,7 @@ def render_quality_table(recap, white, black, quality_colors, quality_images):
             outline: none !important;
         }}
     </style>
-    <table style='max-width:100%; border-collapse: collapse; table-layout: fixed; margin:auto;'>
+    <table style='width:800px;max-width:100%; border-collapse: collapse; table-layout: fixed; margin:auto;'>
         <thead>
             <tr>
                 <th style='text-align:left; width:30%; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'></th>
@@ -62,7 +86,7 @@ def render_quality_table(recap, white, black, quality_colors, quality_images):
         </thead>
         <tbody>
 """)
-
+ 
 
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
@@ -77,7 +101,7 @@ def render_quality_table(recap, white, black, quality_colors, quality_images):
                 f"style='display:block; margin:auto; width:24px; height:24px; height:auto;'>"
             )
         else:
-            img_tag = ""
+            img_tag = "."
 
         table_html += textwrap.dedent(f"""
             <tr>

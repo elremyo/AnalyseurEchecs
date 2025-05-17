@@ -1,17 +1,31 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import os
 from engine.analysis import *
 from engine.utils import *
+import chess
 
-ASSETS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 
 # Chemin vers Stockfish à adapter si besoin
 stockfish_path = "C:/Program Files (x86)/stockfish/stockfish-windows-x86-64-avx2.exe"
 
 st.set_page_config(layout="wide")
-st.title("Analyseur de parties d'échecs")
+st.header("Analyseur de parties d'échecs",anchor=False)
+
+#Bordure plsu fines sur toute la page
+st.markdown(
+    """
+    <style>
+    html, body, .main, .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin-left: 1rem !important;
+        margin-right: 1rem !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Session state init
 if 'analysis' not in st.session_state:
@@ -23,10 +37,11 @@ if 'white_name' not in st.session_state:
 if 'black_name' not in st.session_state:
     st.session_state.black_name = "Noir"
 
-col1, col2, col3 = st.columns(spec=[2,4,3], gap="small", border=True)
+
+col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
 with col1:
-    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=86)
+    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120)
     user_depth = st.slider("Profondeur d'analyse", min_value=5, max_value=20, value=16)
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
@@ -36,50 +51,16 @@ with col1:
         st.session_state.black_name = black_name
         st.session_state.pgn_last = pgn_text
 
-
-quality_colors = {
-    "Gaffe": "#c93233",
-    "Erreur": "#dc8c2a",
-    "Imprécision": "#e8b443",
-    "Bon": "#78af8b",
-    "Excellent": "#67ac49",
-    "Meilleur": "#98bc49",
-    "Très bon": "#4c8caf",
-    "Brillant": "#1baa9b"
-}
-
-quality_images = {
-    "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
-    "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
-    "Imprécision": os.path.join(ASSETS_PATH, "imprecision.png"),
-    "Bon": os.path.join(ASSETS_PATH, "bon.png"),
-    "Excellent": os.path.join(ASSETS_PATH, "excellent.png"),
-    "Meilleur": os.path.join(ASSETS_PATH, "meilleur.png"),
-    "Très bon": os.path.join(ASSETS_PATH, "tres_bon.png"),
-    "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
-}
 with col2:
-    if st.session_state.analysis:
-        df = pd.DataFrame(st.session_state.analysis)
-        white = st.session_state.white_name
-        black = st.session_state.black_name
-        df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
+    game=load_png(pgn_text)
+    board = chess.Board()
 
-        recap = (
-            df.groupby(["qualité", "joueur"])
-            .size()
-            .unstack(fill_value=0)
-            .reindex(columns=[white, black], fill_value=0)
-            .reindex(index=[
-                "Brillant", "Très bon", "Meilleur", "Excellent", "Bon",
-                "Imprécision", "Erreur", "Gaffe"
-            ], fill_value=0)
-        )
+    moves = [move for move in game.mainline_moves()]
+    mv = st.slider("Coup",0,len(moves),len(moves))
 
-        with st.container(border=True):
-            render_quality_table(recap, white, black, quality_colors, quality_images)
-
-        st.write(df)
+    for move in moves[0:mv]:
+        board.push(move)
+    render_svg(chess.svg.board(board))
 
 with col3:
     st.write("Graphe de la partie")
@@ -131,3 +112,23 @@ with col3:
         )
 
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+        if st.session_state.analysis:
+            df = pd.DataFrame(st.session_state.analysis)
+            white = st.session_state.white_name
+            black = st.session_state.black_name
+            df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
+
+            recap = (
+                df.groupby(["qualité", "joueur"])
+                .size()
+                .unstack(fill_value=0)
+                .reindex(columns=[white, black], fill_value=0)
+                .reindex(index=[
+                    "Brillant", "Très bon", "Meilleur", "Excellent", "Bon",
+                    "Imprécision", "Erreur", "Gaffe"
+                ], fill_value=0)
+            )
+
+            with st.container(border=False):
+                render_quality_table(recap, white, black)
