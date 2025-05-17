@@ -22,7 +22,6 @@ def convert_eval_to_cp(e):
 
 
 
-
 # Fonction pour analyser la partie PGN
 def analyze_game(pgn_text,user_depth):
     # Simuler un fichier avec le texte PGN
