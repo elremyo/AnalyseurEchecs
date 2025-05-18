@@ -7,11 +7,14 @@ import os
 
 set_page_style()
 
-# Chemin vers Stockfish à adapter si besoin
-stockfish_path = "C:/Program Files (x86)/stockfish/stockfish-windows-x86-64-avx2.exe"
 
-ASSETS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
-book_path = os.path.join(ASSETS_PATH, "performance.bin")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+assets_path = os.path.join(current_dir, "assets")
+engine_path = os.path.join(current_dir, 'engine')
+
+
+stockfish_path = os.path.join(engine_path, 'stockfish', 'stockfish-windows-x86-64-avx2.exe')
+book_path = os.path.join(assets_path, "performance.bin")
 
 # Session state init
 init_session_state()

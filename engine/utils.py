@@ -5,7 +5,7 @@ import base64
 import plotly.graph_objects as go
 import pandas as pd
 
-ASSETS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 def init_session_state():
     """Initialise les variables de session si besoin."""
@@ -151,15 +151,15 @@ def display_graph(current_index=None):
 
 def display_quality_table():
     quality_images = {
-    "Théorique": os.path.join(ASSETS_PATH, "theorique.png"),
-    "Gaffe": os.path.join(ASSETS_PATH, "gaffe.png"),
-    "Erreur": os.path.join(ASSETS_PATH, "erreur.png"),
-    "Imprécision": os.path.join(ASSETS_PATH, "imprecision.png"),
-    "Bon": os.path.join(ASSETS_PATH, "bon.png"),
-    "Excellent": os.path.join(ASSETS_PATH, "excellent.png"),
-    "Meilleur": os.path.join(ASSETS_PATH, "meilleur.png"),
-    "Critique": os.path.join(ASSETS_PATH, "tres_bon.png"),
-    "Brillant": os.path.join(ASSETS_PATH, "brillant.png")
+    "Théorique": os.path.join(assets_path, "theorique.png"),
+    "Gaffe": os.path.join(assets_path, "gaffe.png"),
+    "Erreur": os.path.join(assets_path, "erreur.png"),
+    "Imprécision": os.path.join(assets_path, "imprecision.png"),
+    "Bon": os.path.join(assets_path, "bon.png"),
+    "Excellent": os.path.join(assets_path, "excellent.png"),
+    "Meilleur": os.path.join(assets_path, "meilleur.png"),
+    "Critique": os.path.join(assets_path, "tres_bon.png"),
+    "Brillant": os.path.join(assets_path, "brillant.png")
     }
 
     quality_colors = {
