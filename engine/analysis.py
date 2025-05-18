@@ -1,5 +1,6 @@
 import chess.pgn
 import chess.polyglot
+import chess.svg
 import io
 from .utils import convert_eval_to_cp, get_quality
 from stockfish import Stockfish
@@ -40,7 +41,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
 
     moves = list(game.mainline_moves())
     total_moves = len(moves)
-    progress_bar = st.progress(0, text="Analyse des coups...")
+    progress_bar = st.progress(0, text="Préparation de l'analyse")
 
     for idx, move in enumerate(moves):
         # État avant le coup
@@ -86,8 +87,9 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     return analysis, white_player, black_player
 
 
-def render_svg(svg: str):
-    """Affiche un SVG dans Streamlit."""
+def render_svg(board: chess.Board, flipped: bool = False):
+    """Affiche un SVG dans Streamlit, retourné si flipped=True."""
+    svg = chess.svg.board(board, flipped=flipped)
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
     st.write(html, unsafe_allow_html=True)

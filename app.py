@@ -21,7 +21,7 @@ col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
 with col1:
     pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120)
-    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
+    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=30, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
         analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)
@@ -29,6 +29,7 @@ with col1:
         st.session_state.white_name = white_name
         st.session_state.black_name = black_name
         st.session_state.pgn_last = pgn_text
+        st.session_state.move_index = 0
 
 
 
@@ -45,7 +46,13 @@ with col2:
                 st.session_state.move_index = 0
 
             # Boutons navigation
-            col_first, col_prev, col_next, col_last = st.columns(4)
+            col_flip, col_first, col_prev, col_next, col_last = st.columns(5)
+            with col_flip:
+                if st.button("", 
+                             icon=":material/swap_vert:",
+                             use_container_width=True,
+                             key="flip_board"):
+                    st.session_state.board_flipped = not st.session_state.board_flipped            
             with col_first:
                 if st.button("",
                              icon=":material/first_page:",
@@ -82,12 +89,13 @@ with col2:
             for move in moves[:st.session_state.move_index]:
                 board.push(move)
             st.caption(f"Coup {st.session_state.move_index} / {max_index}")
-            render_svg(chess.svg.board(board))
+
+            render_svg(board, flipped=st.session_state.board_flipped)
         except ValueError as e:
             st.error(f"Erreur lors du chargement du PGN : {e}")
 
 with col3:       
-    display_graph()
+    display_graph(current_index=st.session_state.get("move_index", 0))
 
 
 

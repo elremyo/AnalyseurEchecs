@@ -13,7 +13,8 @@ def init_session_state():
         "analysis": None,
         "pgn_last": "",
         "white_name": "Blanc",
-        "black_name": "Noir"
+        "black_name": "Noir",
+        "board_flipped": False
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -45,8 +46,8 @@ def convert_eval_to_cp(e):
     return 0
 
 def get_quality(delta, eval_type_before, eval_type_after, is_best,is_theoretical):
-    if eval_type_after == "mate" and eval_type_before != "mate":
-        return "Brillant"
+    #if eval_type_after == "mate" and eval_type_before != "mate":
+    #    return "Brillant"
     if is_best:
         return "Meilleur"
     if is_theoretical:
@@ -81,15 +82,15 @@ def img_to_base64(path):
         data = f.read()
     return base64.b64encode(data).decode("utf-8")
 
-def display_graph():
+def display_graph(current_index=None):
         if st.session_state.analysis:
-
             evals = [coup["eval"] for coup in st.session_state.analysis]
             formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
             min_val = min(evals) - 100
 
             fig = go.Figure()
 
+            # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
             fig.add_trace(go.Scatter(
                 x=list(range(len(evals))),
                 y=[min_val] * len(evals),
@@ -100,6 +101,7 @@ def display_graph():
                 hoverinfo="skip"
             ))
 
+            # Deuxième trace : ligne des évaluations avec remplissage vers le bas jusqu'à la trace précédente
             fig.add_trace(go.Scatter(
                 x=list(range(len(evals))),
                 y=evals,
@@ -112,6 +114,7 @@ def display_graph():
                 hovertemplate="%{text}<extra></extra>"
             ))
 
+            # Ligne grise horizontale à y=0 pour référence
             fig.add_shape(
                 type="line",
                 x0=0,
@@ -122,8 +125,21 @@ def display_graph():
                 layer="above"
             )
 
+            # Ligne rouge verticale indiquant le coup actuellement sélectionné (si fourni)
+            if current_index is not None:
+                fig.add_shape(
+                    type="line",
+                    x0=current_index,
+                    y0=min_val,
+                    x1=current_index,
+                    y1=max(evals),
+                    line=dict(color="red", width=2),
+                    layer="above"
+                )
+
+
             fig.update_layout(
-                height=80,
+                height=90,
                 margin=dict(l=0, r=0, t=0, b=0),
                 dragmode=False,
                 xaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
@@ -169,7 +185,8 @@ def display_quality_table():
         .unstack(fill_value=0)
         .reindex(columns=[white, black], fill_value=0)
         .reindex(index=[
-            "Brillant", "Critique", "Meilleur", "Excellent", "Bon",
+            #"Brillant", 
+            "Critique", "Meilleur", "Excellent", "Bon",
             "Imprécision", "Erreur", "Gaffe", "Théorique"
         ], fill_value=0)
         )
