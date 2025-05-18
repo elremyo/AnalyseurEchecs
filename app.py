@@ -95,7 +95,7 @@ with col2:
             st.error(f"Erreur lors du chargement du PGN : {e}")
 
 with col3:       
-    display_graph(current_index=st.session_state.get("move_index", 0))
+    display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
 
 
 

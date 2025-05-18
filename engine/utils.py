@@ -149,7 +149,6 @@ def display_graph(current_index=None):
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
-
 def display_quality_table():
     quality_images = {
     "Théorique": os.path.join(ASSETS_PATH, "theorique.png"),
@@ -191,25 +190,6 @@ def display_quality_table():
         ], fill_value=0)
         )
 
-    """Affiche un tableau d'analyse des coups avec alignement parfait."""
-    table_html = textwrap.dedent(f"""
-    <style>
-        table, thead, tbody, th, td, tr {{
-            border: none !important;
-            outline: none !important;
-        }}
-    </style>
-    <table style='width:800px;max-width:100%; border-collapse: collapse; table-layout: fixed; margin:auto;'>
-        <thead>
-            <tr>
-                <th style='text-align:left; width:30%; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'></th>
-                <th style='text-align:center; width:25%; font-weight:bold; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{white}</th>
-                <th style='width:10%; font-size:12px;'></th>
-                <th style='text-align:center; width:25%; font-weight:bold; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{black}</th>
-            </tr>
-        </thead>
-        <tbody>
-    """)
  
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
@@ -217,23 +197,25 @@ def display_quality_table():
         value_black = row[black]
         img_path = quality_images.get(qualite)
 
-        if img_path and os.path.exists(img_path):
-            img_b64 = img_to_base64(img_path)
-            img_tag = (
-                f"<img src='data:image/png;base64,{img_b64}' "
-                f"style='display:block; margin:auto; width:24px; height:24px; height:auto;'>"
-            )
-        else:
-            img_tag = "."
-
-        table_html += textwrap.dedent(f"""
-            <tr>
-                <td style='text-align:left; color:{color}; font-weight:bold; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:none;'>{qualite}</td>
-                <td style='text-align:center; color:{color}; border:none;'>{value_white}</td>
-                <td style='text-align:center; border:none;'>{img_tag}</td>
-                <td style='text-align:center; color:{color}; border:none;'>{value_black}</td>
-            </tr>
-        """)
-
-    table_html += "</tbody></table>"
-    st.markdown(table_html, unsafe_allow_html=True)
+        col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
+        with col_quality:
+            st.markdown(f"<span style='color:{color}; font-weight:bold'>{qualite}</span>", unsafe_allow_html=True)
+        with col_white:
+            st.markdown(
+            f"<div style='text-align:center'><span style='color:{color}; font-weight:bold'>{value_white}</span></div>",
+            unsafe_allow_html=True
+        )        
+        with col_image:
+            with open(img_path, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                st.markdown(
+                    f"<div style='text-align:center;'>"
+                    f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;'>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+        with col_black:
+            st.markdown(
+            f"<div style='text-align:center'><span style='color:{color}; font-weight:bold'>{value_black}</span></div>",
+            unsafe_allow_html=True
+        )
