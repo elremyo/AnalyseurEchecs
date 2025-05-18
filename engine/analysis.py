@@ -38,7 +38,11 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     stockfish = Stockfish(path=stockfish_path, depth=user_depth)
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
 
-    for move in game.mainline_moves():
+    moves = list(game.mainline_moves())
+    total_moves = len(moves)
+    progress_bar = st.progress(0, text="Analyse des coups...")
+
+    for idx, move in enumerate(moves):
         # État avant le coup
         stockfish.set_fen_position(board.fen())
         eval_before = stockfish.get_evaluation()
@@ -60,7 +64,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         is_best = (best_move == move.uci())
 
         # Attribution de la qualité
-        quality = get_quality(delta, eval_before.get("type", "cp"), eval_after.get("type", "cp"), is_best,is_theo)
+        quality = get_quality(delta, eval_before.get("type", "cp"), eval_after.get("type", "cp"), is_best, is_theo)
 
         # Ajout à l'analyse
         analysis.append({
@@ -71,8 +75,13 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
             "best_move": best_move,
             "is_best": is_best,
             "is_theoretical": is_theo
-
         })
+
+        # Mise à jour de la barre de progression
+        percent = int(((idx + 1) / total_moves) * 100)
+        progress_bar.progress((idx + 1) / total_moves, text=f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
+
+    progress_bar.empty()  # Retire la barre à la fin
 
     return analysis, white_player, black_player
 

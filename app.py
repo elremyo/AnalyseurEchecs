@@ -30,6 +30,8 @@ with col1:
         st.session_state.black_name = black_name
         st.session_state.pgn_last = pgn_text
 
+
+
 with col2:
     if st.session_state.analysis:
         try:
