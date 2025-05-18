@@ -21,7 +21,7 @@ col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
 with col1:
     pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120)
-    user_depth = st.slider("Profondeur d'analyse", min_value=5, max_value=20, value=16)
+    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
         analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)
@@ -38,16 +38,55 @@ with col2:
             game=load_pgn(pgn_text)
             board = chess.Board()
             moves = [move for move in game.mainline_moves()]
-            mv = st.slider("Coup",min_value=0,max_value=len(moves),value=0)
-            for move in moves[0:mv]:
+            max_index = len(moves)
+
+            # Initialisation de l'index du coup courant
+            if "move_index" not in st.session_state:
+                st.session_state.move_index = 0
+
+            # Boutons navigation
+            col_first, col_prev, col_next, col_last = st.columns(4)
+            with col_first:
+                if st.button("",
+                             icon=":material/first_page:",
+                             help = "Premier coup",
+                             use_container_width=True,
+                             key="first_move") and st.session_state.move_index > 0:
+                    st.session_state.move_index = 0
+            with col_prev:
+                if st.button("",
+                             icon=":material/chevron_left:",
+                             help = "Coup précédent",
+                             use_container_width=True,
+                             key="prev_move") and st.session_state.move_index > 0:
+                    st.session_state.move_index -= 1
+            with col_next:
+                if st.button("",
+                             icon=":material/chevron_right:",
+                             help = "Coup suivant",
+                             use_container_width=True,
+                             key="next_move") and st.session_state.move_index < max_index:
+                    st.session_state.move_index += 1
+            with col_last:
+                if st.button("",
+                             icon=":material/last_page:",
+                             help = "Dernier coup",
+                             use_container_width=True,
+                             key="last_move") and st.session_state.move_index < max_index:
+                    st.session_state.move_index = max_index
+        
+            # Limite l'index dans les bornes
+            st.session_state.move_index = max(0, min(st.session_state.move_index, max_index))
+
+            # Applique les coups jusqu'à l'index courant
+            for move in moves[:st.session_state.move_index]:
                 board.push(move)
+            st.caption(f"Coup {st.session_state.move_index} / {max_index}")
             render_svg(chess.svg.board(board))
         except ValueError as e:
             st.error(f"Erreur lors du chargement du PGN : {e}")
 
-with col3:
-    st.write("Graphe de la partie")
-        
+with col3:       
     display_graph()
 
 
