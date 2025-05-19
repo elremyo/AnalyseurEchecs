@@ -1,9 +1,10 @@
 import os
 import streamlit as st
-import textwrap
 import base64
 import plotly.graph_objects as go
 import pandas as pd
+import math
+
 
 assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 

@@ -94,8 +94,13 @@ with col2:
             st.caption(f"Coup {st.session_state.move_index} / {max_index}")
 
             render_svg(board, flipped=st.session_state.board_flipped)
-        except ValueError as e:
-            st.error(f"Erreur lors du chargement du PGN : {e}")
+
+
+        except Exception as e:
+            st.error(f"Erreur pendant l'analyse : {e}")
+
+
+
 
 with col3:       
     display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
