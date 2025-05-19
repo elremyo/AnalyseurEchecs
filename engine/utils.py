@@ -46,7 +46,7 @@ def convert_eval_to_cp(e):
         return 1500 if e["value"] > 0 else -1500
     return 0
 
-def get_quality(delta, eval_type_before, eval_type_after, is_best,is_theoretical):
+def get_quality(delta, is_best,is_theoretical):
     #if eval_type_after == "mate" and eval_type_before != "mate":
     #    return "Brillant"
     if is_best:
@@ -82,6 +82,58 @@ def img_to_base64(path):
     with open(path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode("utf-8")
+
+def display_move_description():
+    if "analysis" not in st.session_state or not st.session_state.analysis:
+        st.write("Aucune analyse disponible.")
+        return
+
+    move_index = st.session_state.get("move_index", 0)
+
+    if move_index == 0:
+        return
+
+    analysis_index = move_index - 1
+
+    if analysis_index >= len(st.session_state.analysis):
+        st.warning("Aucune analyse disponible pour ce coup.")
+        return
+
+    coup_data = st.session_state.analysis[analysis_index]
+    meilleur_coup_data = st.session_state.analysis[analysis_index-1]
+
+    meilleur_coup = meilleur_coup_data.get("best_move", "Non spécifié")
+    coup_joué = coup_data.get("coup", "Inconnu")
+    qualite = coup_data.get("qualité", "Non précisée")
+    eval_cp = coup_data.get("eval", "N/A")
+    est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
+    est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
+
+    with st.container(border=True):
+        if est_theorique == "Oui":
+            st.write(f"{coup_joué} est un coup théorique")
+        elif qualite == "Excellent" or qualite == "Bon":
+            st.write(f"{coup_joué} est un {qualite.lower()} coup")
+        elif qualite == "Imprécision" or qualite == "Erreur" or qualite == "Gaffe":
+            st.write(f"{coup_joué} est une {qualite.lower()}")
+        elif qualite == "Meilleur":
+            st.write(f"{coup_joué} est le meilleur coup")
+        if est_theorique != "Oui" and est_meilleur != "Oui" and analysis_index>0:
+            st.markdown(f"**:green[{meilleur_coup}]** est le meilleur coup")
+
+    with st.container(border=True):
+        st.markdown(f"""
+        **Analyse du coup {move_index} :**
+        - Coup joué : `{coup_joué}`
+        - Meilleur coup suggéré : `{meilleur_coup}`
+        - Qualité : **{qualite}**
+        - Évaluation (cp) : `{eval_cp}`
+        - Coup théorique : {est_theorique}
+        """)
+
+
+
+
 
 def display_graph(current_index=None):
         if st.session_state.analysis:
@@ -186,7 +238,8 @@ def display_quality_table():
         .reindex(columns=[white, black], fill_value=0)
         .reindex(index=[
             #"Brillant", 
-            "Critique", "Meilleur", "Excellent", "Bon",
+            #"Critique", 
+            "Meilleur", "Excellent", "Bon",
             "Imprécision", "Erreur", "Gaffe", "Théorique"
         ], fill_value=0)
         )

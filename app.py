@@ -24,7 +24,7 @@ col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
 with col1:
     pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120)
-    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=30, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
+    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
         analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)
@@ -105,8 +105,7 @@ with col2:
 with col3:       
     display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
 
+    display_move_description()
 
-
-    with st.container(border=False):
-        if st.session_state.analysis:
-            display_quality_table()
+    if st.session_state.analysis:
+        display_quality_table()

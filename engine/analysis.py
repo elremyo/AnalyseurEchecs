@@ -2,7 +2,7 @@ import chess.pgn
 import chess.polyglot
 import chess.svg
 import io
-from .utils import convert_eval_to_cp, get_quality
+from .utils import *
 from stockfish import Stockfish
 import base64
 import streamlit as st
@@ -65,7 +65,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         is_best = (best_move == move.uci())
 
         # Attribution de la qualité
-        quality = get_quality(delta, eval_before.get("type", "cp"), eval_after.get("type", "cp"), is_best, is_theo)
+        quality = get_quality(delta, is_best, is_theo)
 
         # Ajout à l'analyse
         analysis.append({
