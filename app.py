@@ -34,6 +34,10 @@ with col1:
         st.session_state.pgn_last = pgn_text
         st.session_state.move_index = 0
 
+    if st.session_state.analysis:
+        st.divider()
+        display_quality_table()
+
 
 
 with col2:
@@ -102,10 +106,10 @@ with col2:
 
 
 
-with col3:       
-    display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
-
-    display_move_description()
-
+with col3:
     if st.session_state.analysis:
-        display_quality_table()
+        #Afficher l'histogramme
+        display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
+
+        #Afficher le coup joué et le meilleur coup
+        display_move_description()

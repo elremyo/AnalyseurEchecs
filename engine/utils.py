@@ -244,7 +244,17 @@ def display_quality_table():
         ], fill_value=0)
         )
 
- 
+    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
+    with col_quality:
+        pass        
+    with col_white:
+        st.markdown(f"**{white}**")        
+    with col_image:
+        pass
+    with col_black:
+        st.markdown(f"**{black}**")        
+
+
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
         value_white = row[white]
