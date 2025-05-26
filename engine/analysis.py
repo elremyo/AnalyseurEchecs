@@ -2,7 +2,7 @@ import chess.pgn
 import chess.polyglot
 import chess.svg
 import io
-from .utils import *
+from utils.display import *
 from stockfish import Stockfish
 import base64
 import streamlit as st

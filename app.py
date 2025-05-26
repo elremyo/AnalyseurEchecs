@@ -1,22 +1,15 @@
 import streamlit as st
-from engine.analysis import *
-from engine.utils import *
 import chess
-import os
+
+from engine.analysis import *
+from utils.display import *
+from utils.session import *
+from utils.eval_utils import *
+from utils.display import *
+from utils.assets import *
 
 
 set_page_style()
-
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-assets_path = os.path.join(current_dir, "assets")
-engine_path = os.path.join(current_dir, 'engine')
-
-
-stockfish_path = os.path.join(engine_path, 'stockfish', 'stockfish-windows-x86-64-avx2.exe')
-book_path = os.path.join(assets_path, "performance.bin")
-
-# Session state init
 init_session_state()
 
 

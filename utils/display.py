@@ -1,29 +1,17 @@
 import os
 import streamlit as st
-import base64
 import plotly.graph_objects as go
 import pandas as pd
-import math
+from utils.eval_utils import *
+from utils.assets import *
 
 
-assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
-def init_session_state():
-    """Initialise les variables de session si besoin."""
-    defaults = {
-        "analysis": None,
-        "pgn_last": "",
-        "white_name": "Blanc",
-        "black_name": "Noir",
-        "board_flipped": False
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
+
 
 def set_page_style():
     """Applique le style global de la page."""
-    st.set_page_config(layout="wide")
+    st.set_page_config(layout="wide",page_icon="♟️")
     st.header("Analyseur de parties d'échecs", anchor=False)
     st.markdown(
         """
@@ -39,49 +27,7 @@ def set_page_style():
         unsafe_allow_html=True
     )
 
-def convert_eval_to_cp(e):
-    if e["type"] == "cp":
-        return e["value"]
-    elif e["type"] == "mate":
-        return 1500 if e["value"] > 0 else -1500
-    return 0
 
-def get_quality(delta, is_best,is_theoretical):
-    #if eval_type_after == "mate" and eval_type_before != "mate":
-    #    return "Brillant"
-    if is_best:
-        return "Meilleur"
-    if is_theoretical:
-        return "Théorique"
-
-
-    delta_abs = abs(delta)
-    if delta_abs < 10:
-        return "Meilleur"
-    if delta_abs < 40:
-        return "Excellent"
-    elif delta_abs < 50:
-        return "Bon"
-    elif delta_abs < 150:
-        return "Imprécision"
-    elif delta_abs < 300:
-        return "Erreur"
-    else:
-        return "Gaffe"
-
-
-def format_eval(e):
-    if e["type"] == "cp":
-        val = round(e["value"] / 100, 2)
-        return f"+{val}" if val > 0 else f"{val}"
-    elif e["type"] == "mate":
-        return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
-    return "?"
-
-def img_to_base64(path):
-    with open(path, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode("utf-8")
 
 def display_move_description():
     if "analysis" not in st.session_state or not st.session_state.analysis:
@@ -203,6 +149,8 @@ def display_graph(current_index=None):
 
 
 def display_quality_table():
+    assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
     quality_images = {
     "Théorique": os.path.join(assets_path, "theorique.png"),
     "Gaffe": os.path.join(assets_path, "gaffe.png"),
