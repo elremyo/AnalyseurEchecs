@@ -3,3 +3,7 @@ python-chess
 stockfish
 pandas
 plotly
+chess
+os
+base64
+io

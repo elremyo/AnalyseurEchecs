@@ -2,11 +2,12 @@ import chess.pgn
 import chess.polyglot
 import chess.svg
 import io
+import base64
+import streamlit as st
+
 from utils.display import *
 from utils.eval_utils import *
 from stockfish import Stockfish
-import base64
-import streamlit as st
 
 def load_pgn(pgn: str) -> chess.pgn.Game:
     """Charge un objet Game à partir d'un texte PGN."""
