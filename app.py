@@ -4,9 +4,8 @@ import chess
 from engine.analysis import *
 from utils.display import *
 from utils.session import *
-from utils.eval_utils import *
 from utils.display import *
-from utils.assets import *
+from utils.assets import stockfish_path, book_path
 
 
 set_page_style()

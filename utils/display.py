@@ -2,8 +2,10 @@ import os
 import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
-from utils.eval_utils import *
-from utils.assets import *
+import base64
+
+from utils.eval_utils import format_eval
+from assets import *
 
 
 

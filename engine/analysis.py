@@ -3,6 +3,7 @@ import chess.polyglot
 import chess.svg
 import io
 from utils.display import *
+from utils.eval_utils import *
 from stockfish import Stockfish
 import base64
 import streamlit as st
