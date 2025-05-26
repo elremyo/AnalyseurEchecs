@@ -38,7 +38,8 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     white_player = game.headers.get("White", "Blanc")
     black_player = game.headers.get("Black", "Noir")
 
-    stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+    #stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+    stockfish = Stockfish(path="/usr/games/stockfish")
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
 
     moves = list(game.mainline_moves())
