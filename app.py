@@ -89,8 +89,9 @@ with col2:
                 board.push(move)
             st.caption(f"Coup {st.session_state.move_index} / {max_index}")
 
-            render_svg(board, flipped=st.session_state.board_flipped)
 
+            last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
+            render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
 
         except Exception as e:
             st.error(f"Erreur pendant l'analyse : {e}")

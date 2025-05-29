@@ -3,11 +3,11 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import base64
+import chess.svg  # Assure-toi que c'est bien importé en haut du fichier
+
 
 from utils.eval_utils import format_eval
 from assets import *
-
-
 
 
 
@@ -28,8 +28,6 @@ def set_page_style():
         """,
         unsafe_allow_html=True
     )
-
-
 
 def display_move_description():
     if "analysis" not in st.session_state or not st.session_state.analysis:
@@ -78,10 +76,6 @@ def display_move_description():
         - Évaluation (cp) : `{eval_cp}`
         - Coup théorique : {est_theorique}
         """)
-
-
-
-
 
 def display_graph(current_index=None):
         if st.session_state.analysis:
@@ -148,7 +142,6 @@ def display_graph(current_index=None):
             )
 
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
 
 def display_quality_table():
     assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")

@@ -38,8 +38,8 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     white_player = game.headers.get("White", "Blanc")
     black_player = game.headers.get("Black", "Noir")
 
-    #stockfish = Stockfish(path=stockfish_path, depth=user_depth)
-    stockfish = Stockfish(path="/usr/games/stockfish")
+    stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+    #stockfish = Stockfish(path="/usr/games/stockfish") pour tourner sous linux sur serveur steamlit
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
 
     moves = list(game.mainline_moves())
@@ -56,6 +56,9 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         if book_path:
             is_theo = is_theoretical_move(board, move, book_path)
         
+        # Obtenir la notation algébrique standard AVANT d'exécuter le coup
+        move_san = board.san(move)
+
         # On joue le coup réel
         board.push(move)
         stockfish.set_fen_position(board.fen())
@@ -66,17 +69,18 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
 
         best_move = stockfish.get_best_move()
         is_best = (best_move == move.uci())
+        best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
 
         # Attribution de la qualité
         quality = get_quality(delta, is_best, is_theo)
 
         # Ajout à l'analyse
         analysis.append({
-            "coup": move.uci(),
+            "coup": move_san,
             "qualité": quality,
             "eval": convert_eval_to_cp(eval_after),
             "raw_eval": eval_after,
-            "best_move": best_move,
+            "best_move": best_move_san,
             "is_best": is_best,
             "is_theoretical": is_theo
         })
@@ -90,9 +94,18 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     return analysis, white_player, black_player
 
 
-def render_svg(board: chess.Board, flipped: bool = False):
-    """Affiche un SVG dans Streamlit, retourné si flipped=True."""
-    svg = chess.svg.board(board, flipped=flipped)
+def render_board(board, last_move=None, flipped=False):
+    svg = chess.svg.board(
+        board,
+        lastmove=last_move,
+        flipped=flipped,
+            colors={
+        "square light": "#ebecd0",
+        "square dark": "#739552",
+        "arrow": "#ff0000"
+        }
+        )
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
     st.write(html, unsafe_allow_html=True)
+
