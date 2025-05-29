@@ -34,6 +34,19 @@ quality_colors = {
 "Brillant": "#1baa9b"
 }
 
+quality_board_colors = {
+"Théorique":( "#ccb08c","#ae8763"),
+"Gaffe":("#df8973","#c0604a"),
+"Erreur":( "#e9b373","#cc8a49"),
+"Imprécision":( "#f2cd7f", "#d4a456"),
+"Bon": ("#c4c49f","#a79c77"),
+"Excellent": ("#c5ca80","#a8a257"),
+"Meilleur": ("#c5ca80","#a8a257"),
+"Critique":("#a7b2b2", "#8a8a8a"),
+"Brillant":("#1baa9b", "#1baa9b")  
+}
+
+
 def set_page_style():
     """Applique le style global de la page."""
     st.set_page_config(layout="wide",page_icon="♟️")
@@ -51,6 +64,36 @@ def set_page_style():
         """,
         unsafe_allow_html=True
     )
+
+
+def render_board(board, last_move=None, flipped=False):
+    move_index = st.session_state.get("move_index", 0)
+    if move_index == 0 or "analysis" not in st.session_state or not st.session_state.analysis:
+        qualite = "Non précisée"
+        light_color, dark_color = "#ffffff", "#FFFFFF"
+    else:
+        analysis_index = move_index - 1
+        coup_data = st.session_state.analysis[analysis_index]
+        qualite = coup_data.get("qualité", "Non précisée")
+        light_color, dark_color = quality_board_colors.get(qualite, ("#ff0000", "#000000"))
+
+    svg = chess.svg.board(
+        board,
+        lastmove=last_move,
+        flipped=flipped,
+        colors={
+            "square light": "#ebecd0",
+            "square dark": "#739552",
+            "arrow": "#ff0000",
+            "square light lastmove": light_color,
+            "square dark lastmove": dark_color,
+        },
+
+    )
+    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
+    st.write(html, unsafe_allow_html=True)
+
 
 def display_move_description():
     if "analysis" not in st.session_state or not st.session_state.analysis:
@@ -97,7 +140,7 @@ def display_move_description():
         with open(img_path, "rb") as f:
                 img_b64 = base64.b64encode(f.read()).decode("utf-8")
                 st.markdown(
-                    f"<div style='text-align:center; font-weight:bold;'>"
+                    f"<div style='text-align:left; font-weight:bold;'>"
                     f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
                     f"<span>{description}</span> "
                     f"{meilleur_coup_html}"
@@ -159,7 +202,7 @@ def display_graph(current_index=None):
                 layer="above"
             )
 
-            # Ligne rouge verticale indiquant le coup actuellement sélectionné (si fourni)
+            # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
             if current_index is not None:
                 fig.add_shape(
                     type="line",
@@ -167,7 +210,7 @@ def display_graph(current_index=None):
                     y0=min_val,
                     x1=current_index,
                     y1=max(evals),
-                    line=dict(color="red", width=2),
+                    line=dict(color="#739552", width=2),
                     layer="above"
                 )
 
