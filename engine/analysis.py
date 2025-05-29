@@ -50,6 +50,10 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         # État avant le coup
         stockfish.set_fen_position(board.fen())
         eval_before = stockfish.get_evaluation()
+        best_move = stockfish.get_best_move()
+        best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
+
+
 
         # Test coup théorique
         is_theo = False
@@ -67,9 +71,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         # Calcul du delta
         delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
 
-        best_move = stockfish.get_best_move()
         is_best = (best_move == move.uci())
-        best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
 
         # Attribution de la qualité
         quality = get_quality(delta, is_best, is_theo)
@@ -84,12 +86,15 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
             "is_best": is_best,
             "is_theoretical": is_theo
         })
+        st.write(move_san,is_best)
+
 
         # Mise à jour de la barre de progression
         percent = int(((idx + 1) / total_moves) * 100)
         progress_bar.progress((idx + 1) / total_moves, text=f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
 
     progress_bar.empty()  # Retire la barre à la fin
+
 
     return analysis, white_player, black_player
 

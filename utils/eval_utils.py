@@ -6,15 +6,15 @@ def convert_eval_to_cp(e):
     return 0
 
 def get_quality(delta, is_best, is_theoretical):
-    if is_best:
+    if is_best and not is_theoretical:
         return "Meilleur"
     if is_theoretical:
         return "Théorique"
 
     delta_abs = abs(delta)
-    if delta_abs < 10:
-        return "Meilleur"
-    elif delta_abs < 40:
+    #if delta_abs < 10:
+    #    return "Meilleur"
+    if delta_abs < 40:
         return "Excellent"
     elif delta_abs < 50:
         return "Bon"
