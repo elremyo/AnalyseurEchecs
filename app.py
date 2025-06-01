@@ -15,8 +15,33 @@ init_session_state()
 col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
 with col1:
-    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120)
-    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=16,help="L'analyse sera plus longue avec une profondeur élevée.")
+
+    #DEBUG
+    pgn_exemple = """[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2025.05.29"]
+[Round "?"]
+[White "ElRemyo"]
+[Black "PauloDomingues"]
+[Result "0-1"]
+[TimeControl "300+5"]
+[WhiteElo "794"]
+[BlackElo "840"]
+[Termination "PauloDomingues a gagné par échec et mat"]
+[Link "https://www.chess.com/game/138993809152"]
+
+1. d4 Nf6 2. Bf4 d5 3. Nf3 g6 4. e3 Bg7 5. Bd3 Bg4 6. h3 Bxf3 7. Qxf3 e6 8. Nd2
+O-O 9. c4 c6 10. c5 Nbd7 11. Bg5 Qa5 12. b3 Rab8 13. Bf4 Rbc8 14. a3 Qc3 15. Ke2
+Nh5 16. Bh2 Rfe8 17. Rhc1 Qa5 18. b4 Qd8 19. Bd6 b6 20. Ba6 Ra8 21. Bb7 bxc5 22.
+Bxa8 Qxa8 23. bxc5 Ndf6 24. Rab1 Ne4 25. Nxe4 dxe4 26. Qxe4 Nf6 27. Qd3 Bf8 28.
+Rb4 Bxd6 29. cxd6 Rd8 30. Rcb1 Kg7 31. f3 Nd5 32. Rb7 Nb6 33. Rb4 Qxb7 34. a4
+Qd7 35. a5 Nd5 36. Rb3 Qxd6 37. e4 Nf4+ 38. Ke3 Nxd3 39. Rxd3 Qc7 40. Ra3 c5 41.
+Rc3 Qxa5 42. Rxc5 Qa3+ 43. Kf4 Rxd4 44. g4 Qxc5 45. h4 Qc7+ 46. Ke3 Rc4 47. h5
+Rc3+ 48. Kd4 Qc4+ 49. Ke5 f6+ 50. Kf4 e5+ 51. Kg3 Qd3 52. h6+ Kxh6 53. Kh4 g5+
+54. Kh3 Qxf3+ 55. Kh2 Rc2+ 56. Kg1 Qd1# 0-1 """
+
+    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120,value=pgn_exemple)
+    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10,help="L'analyse sera plus longue avec une profondeur élevée.")
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
         analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)

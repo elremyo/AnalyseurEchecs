@@ -160,70 +160,62 @@ def display_move_description():
         """)
 
 def display_graph(current_index=None):
-        if st.session_state.analysis:
-            evals = [coup["eval"] for coup in st.session_state.analysis]
-            formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
-            min_val = min(evals) - 100
-
-            fig = go.Figure()
-
-            # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
-            fig.add_trace(go.Scatter(
-                x=list(range(len(evals))),
-                y=[min_val] * len(evals),
-                mode='lines',
-                line=dict(color='white'),
-                fill=None,
-                showlegend=False,
-                hoverinfo="skip"
-            ))
-
-            # Deuxième trace : ligne des évaluations avec remplissage vers le bas jusqu'à la trace précédente
-            fig.add_trace(go.Scatter(
-                x=list(range(len(evals))),
-                y=evals,
-                mode='lines',
-                line=dict(color='white'),
-                fill='tonexty',
-                fillcolor='white',
-                showlegend=False,
-                text=[f"Coup {i+1}: {label}" for i, label in enumerate(formatted_labels)],
-                hovertemplate="%{text}<extra></extra>"
-            ))
-
-            # Ligne grise horizontale à y=0 pour référence
+    if st.session_state.analysis:
+        evals = [coup["eval"] for coup in st.session_state.analysis]
+        formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
+        min_val = min(evals) - 100
+        fig = go.Figure()
+        # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
+        fig.add_trace(go.Scatter(
+            x=list(range(len(evals))),
+            y=[min_val] * len(evals),
+            mode='lines',
+            line=dict(color='white'),
+            fill=None,
+            showlegend=False,
+            hoverinfo="skip"
+        ))
+        # Deuxième trace : ligne des évaluations avec remplissage vers le bas jusqu'à la trace précédente
+        fig.add_trace(go.Scatter(
+            x=list(range(len(evals))),
+            y=evals,
+            mode='lines',
+            line=dict(color='white'),
+            fill='tonexty',
+            fillcolor='white',
+            showlegend=False,
+            text=[f"Coup {i+1}: {label}" for i, label in enumerate(formatted_labels)],
+            hovertemplate="%{text}<extra></extra>"
+        ))
+        # Ligne grise horizontale à y=0 pour référence
+        fig.add_shape(
+            type="line",
+            x0=0,
+            y0=0,
+            x1=len(evals)-1,
+            y1=0,
+            line=dict(color="gray", width=1),
+            layer="above"
+        )
+        # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
+        if current_index is not None:
             fig.add_shape(
                 type="line",
-                x0=0,
-                y0=0,
-                x1=len(evals)-1,
-                y1=0,
-                line=dict(color="gray", width=1),
+                x0=current_index,
+                y0=min_val,
+                x1=current_index,
+                y1=max(evals),
+                line=dict(color="#739552", width=2),
                 layer="above"
             )
-
-            # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
-            if current_index is not None:
-                fig.add_shape(
-                    type="line",
-                    x0=current_index,
-                    y0=min_val,
-                    x1=current_index,
-                    y1=max(evals),
-                    line=dict(color="#739552", width=2),
-                    layer="above"
-                )
-
-
-            fig.update_layout(
-                height=90,
-                margin=dict(l=0, r=0, t=0, b=0),
-                dragmode=False,
-                xaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
-                yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False)
-            )
-
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        fig.update_layout(
+            height=90,
+            margin=dict(l=0, r=0, t=0, b=0),
+            dragmode=False,
+            xaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
+            yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False)
+        )
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 def display_quality_table():
 
