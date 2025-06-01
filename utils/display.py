@@ -121,14 +121,16 @@ def display_move_description():
     est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
     color_best = quality_colors.get("Meilleur", "black")
 
+    color_coup = quality_colors.get(qualite, "black")
+
     if est_theorique == "Oui":
-        description=(f"{coup_joué} est un coup théorique")
+        description = f"<span style='color:{color_coup};'>{coup_joué} est un coup théorique</span>"
     elif qualite == "Excellent" or qualite == "Bon":
-        description=(f"{coup_joué} est un {qualite.lower()} coup")
+        description = f"<span style='color:{color_coup};'>{coup_joué} est un {qualite.lower()} coup</span>"
     elif qualite == "Imprécision" or qualite == "Erreur" or qualite == "Gaffe":
-        description=(f"{coup_joué} est une {qualite.lower()}")
+        description = f"<span style='color:{color_coup};'>{coup_joué} est une {qualite.lower()}</span>"
     elif qualite == "Meilleur":
-        description=(f"{coup_joué} est le meilleur coup")
+        description = f"<span style='color:{color_coup};'>{coup_joué} est le meilleur coup</span>"
 
     meilleur_coup_html = ""
     if est_theorique != "Oui" and est_meilleur != "Oui" and analysis_index > 0:
