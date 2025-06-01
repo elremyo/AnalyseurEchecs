@@ -151,7 +151,7 @@ def display_move_description():
                 )
 
 
-    with st.container(border=True):
+    with st.expander("Détail DEBUG"):
         st.markdown(f"""
         **Analyse du coup {move_index} :**
         - Coup joué : `{coup_joué}`
@@ -277,3 +277,75 @@ def display_quality_table():
             f"<div style='text-align:center'><span style='color:{color}; font-weight:bold'>{value_black}</span></div>",
             unsafe_allow_html=True
         )
+
+def display_moves_recap():
+    if "analysis" not in st.session_state or not st.session_state.analysis:
+        st.write("Aucun récapitulatif disponible.")
+        return
+
+    analysis = st.session_state.analysis
+
+    def go_to_move(idx):
+        st.session_state.move_index = idx
+
+    with st.container(border=False,height=400):
+        for i in range(0, len(analysis), 2):
+            cols = st.columns([1, 5, 1, 5, 1])
+            move_number = i // 2 + 1
+
+            with cols[0]:
+                st.markdown(f"{move_number}.")
+
+            # Coup blanc
+            if i < len(analysis):
+                qualite_w = analysis[i].get("qualité", "Non précisée")
+                img_w = quality_images.get(qualite_w)
+                coup_w = analysis[i].get("coup", "")
+                with open(img_w, "rb") as f:
+                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                with cols[1]:
+                    st.markdown(
+                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                        f"<span style='font-family:monospace;font-size:16px'>{coup_w}</span>",
+                        unsafe_allow_html=True
+                    )
+                with cols[2]:
+                    st.button(
+                        ":material/search:",
+                        key=f"move_w_{i}",
+                        help=f"Aller au coup",
+                        on_click=go_to_move,
+                        args=(i + 1,),
+                        use_container_width=True,
+                        type="tertiary"
+                    )
+            else:
+                cols[1].empty()
+                cols[2].empty()
+
+            # Coup noir
+            if i + 1 < len(analysis):
+                qualite_b = analysis[i + 1].get("qualité", "Non précisée")
+                img_b = quality_images.get(qualite_b)
+                coup_b = analysis[i + 1].get("coup", "")
+                with open(img_b, "rb") as f:
+                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                with cols[3]:
+                    st.markdown(
+                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                        f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
+                        unsafe_allow_html=True
+                    )
+                with cols[4]:
+                    st.button(
+                        ":material/search:",
+                        key=f"move_n_{i+1}",
+                        help=f"Aller au coup",
+                        on_click=go_to_move,
+                        args=(i + 2,),
+                        use_container_width=True,
+                        type="tertiary"
+                    )
+            else:
+                cols[3].empty()
+                cols[4].empty()

@@ -131,3 +131,5 @@ with col3:
 
         #Afficher le coup joué et le meilleur coup
         display_move_description()
+
+        display_moves_recap()
