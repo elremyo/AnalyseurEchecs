@@ -7,14 +7,23 @@ from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path
 
-
 set_page_style()
 init_session_state()
 
+st.header("Analyseur de parties d'échecs", anchor=False)
 
-col1, col2, col3 = st.columns(spec=[3,5,4], gap="small", border=True)
 
-with col1:
+if st.button("Options",
+            key="open_parameters",
+            help="Ouvrir les paramètres de l'analyseur",
+            icon=":material/settings:",
+            type="secondary"
+            ):
+    open_parameters()
+
+col_pgn, col_board, col_datas = st.columns(spec=[3,5,4], gap="small", border=True)
+
+with col_pgn:
 
     #DEBUG
     pgn_exemple = """[Event "Live Chess"]
@@ -41,10 +50,9 @@ Rc3+ 48. Kd4 Qc4+ 49. Ke5 f6+ 50. Kf4 e5+ 51. Kg3 Qd3 52. h6+ Kxh6 53. Kh4 g5+
 54. Kh3 Qxf3+ 55. Kh2 Rc2+ 56. Kg1 Qd1# 0-1 """
 
     pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120,value=pgn_exemple)
-    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10,help="L'analyse sera plus longue avec une profondeur élevée.")
     
     if st.button("Analyser", disabled=not pgn_text.strip()):
-        analysis, white_name, black_name = analyze_game(pgn_text, user_depth, stockfish_path,book_path)
+        analysis, white_name, black_name = analyze_game(pgn_text, st.session_state.user_depth, stockfish_path,book_path)
         st.session_state.analysis = analysis
         st.session_state.white_name = white_name
         st.session_state.black_name = black_name
@@ -57,7 +65,7 @@ Rc3+ 48. Kd4 Qc4+ 49. Ke5 f6+ 50. Kf4 e5+ 51. Kg3 Qd3 52. h6+ Kxh6 53. Kh4 g5+
 
 
 
-with col2:
+with col_board:
     if st.session_state.analysis:
         try:
             game=load_pgn(pgn_text)
@@ -91,7 +99,7 @@ with col2:
 
  
 
-with col3:
+with col_datas:
     if st.session_state.analysis:
         #Afficher l'histogramme
         display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))

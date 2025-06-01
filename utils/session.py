@@ -6,7 +6,8 @@ def init_session_state():
         "pgn_last": "",
         "white_name": "Blanc",
         "black_name": "Noir",
-        "board_flipped": False
+        "board_flipped": False,
+        "user_depth": 16,
     }
     for key, value in defaults.items():
         if key not in st.session_state:

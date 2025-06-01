@@ -86,8 +86,6 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
             "is_best": is_best,
             "is_theoretical": is_theo
         })
-        st.write(move_san,is_best)
-
 
         # Mise à jour de la barre de progression
         percent = int(((idx + 1) / total_moves) * 100)

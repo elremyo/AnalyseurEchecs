@@ -49,8 +49,17 @@ quality_board_colors = {
 
 def set_page_style():
     """Applique le style global de la page."""
-    st.set_page_config(layout="wide",page_icon="♟️")
-    st.header("Analyseur de parties d'échecs", anchor=False)
+    st.set_page_config(
+        page_title="ChessBot",
+        layout="wide",
+        page_icon="♟️",
+        initial_sidebar_state ="expanded",
+        menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+        }
+        )
     st.markdown(
         """
         <style>
@@ -64,6 +73,14 @@ def set_page_style():
         """,
         unsafe_allow_html=True
     )
+
+def open_parameters():
+    @st.dialog(title="Options")
+    def dialog():
+        user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
+        st.session_state.user_depth = user_depth
+    dialog()
+
 
 def render_navigation_buttons(max_index):
     col_flip, col_first, col_prev, col_next, col_last = st.columns(5)
