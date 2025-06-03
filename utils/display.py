@@ -3,11 +3,15 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import base64
-import chess.svg  # Assure-toi que c'est bien importé en haut du fichier
+import chess.svg
+import math
 
 
 from utils.eval_utils import format_eval
 from assets import *
+
+
+vertical_size = 700
 
 
 assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
@@ -142,7 +146,7 @@ def render_board(board, last_move=None, flipped=False):
             "square light lastmove": light_color,
             "square dark lastmove": dark_color,
         },
-
+        size=vertical_size,
     )
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
@@ -345,62 +349,128 @@ def display_moves_recap():
 
     with st.container(border=False,height=400):
         for i in range(0, len(analysis), 2):
-            cols = st.columns([1, 5, 1, 5, 1])
+            col_num_coup,col_qual_blanc,col_coup_blanc,col_qual_noir,col_coup_noir = st.columns([1, 4, 1, 4, 1],vertical_alignment="center")
             move_number = i // 2 + 1
 
-            with cols[0]:
+            with col_num_coup:
                 st.markdown(f"{move_number}.")
 
             # Coup blanc
-            if i < len(analysis):
-                qualite_w = analysis[i].get("qualité", "Non précisée")
-                img_w = quality_images.get(qualite_w)
-                coup_w = analysis[i].get("coup", "")
-                with open(img_w, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
-                with cols[1]:
-                    st.markdown(
-                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
-                        f"<span style='font-family:monospace;font-size:16px'>{coup_w}</span>",
-                        unsafe_allow_html=True
-                    )
-                with cols[2]:
-                    st.button(
-                        ":material/search:",
-                        key=f"move_w_{i}",
-                        help=f"Aller au coup",
-                        on_click=go_to_move,
-                        args=(i + 1,),
-                        use_container_width=True,
-                        type="tertiary"
-                    )
-            else:
-                cols[1].empty()
-                cols[2].empty()
+            qualite_w = analysis[i].get("qualité", "Non précisée")
+            img_w = quality_images.get(qualite_w)
+            coup_w = analysis[i].get("coup", "")
+            with open(img_w, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode("utf-8")
+            with col_qual_blanc:
+                st.markdown(
+                    f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                    f"<span style='font-family:monospace;font-size:16px'>{coup_w}</span>",
+                    unsafe_allow_html=True
+                )
+            with col_coup_blanc:
+                st.button(
+                    ":material/search:",
+                    key=f"move_w_{i}",
+                    help=f"Aller au coup",
+                    on_click=go_to_move,
+                    args=(i + 1,),
+                    use_container_width=True,
+                    type="tertiary"
+                )
+
 
             # Coup noir
-            if i + 1 < len(analysis):
-                qualite_b = analysis[i + 1].get("qualité", "Non précisée")
-                img_b = quality_images.get(qualite_b)
-                coup_b = analysis[i + 1].get("coup", "")
-                with open(img_b, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
-                with cols[3]:
-                    st.markdown(
-                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
-                        f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
-                        unsafe_allow_html=True
-                    )
-                with cols[4]:
-                    st.button(
-                        ":material/search:",
-                        key=f"move_n_{i+1}",
-                        help=f"Aller au coup",
-                        on_click=go_to_move,
-                        args=(i + 2,),
-                        use_container_width=True,
-                        type="tertiary"
-                    )
-            else:
-                cols[3].empty()
-                cols[4].empty()
+            qualite_b = analysis[i + 1].get("qualité", "Non précisée")
+            img_b = quality_images.get(qualite_b)
+            coup_b = analysis[i + 1].get("coup", "")
+            with open(img_b, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode("utf-8")
+            with col_qual_noir:
+                st.markdown(
+                    f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                    f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
+                    unsafe_allow_html=True
+                )
+            with col_coup_noir:
+                st.button(
+                    ":material/search:",
+                    key=f"move_n_{i+1}",
+                    help=f"Aller au coup",
+                    on_click=go_to_move,
+                    args=(i + 2,),
+                    use_container_width=True,
+                    type="tertiary"
+                )
+
+
+
+
+def get_win_chance(cp):
+    cp = max(min(cp, 1000), -1000)
+    return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)
+
+
+def render_eval_bar():
+    if not st.session_state.analysis:
+        return
+
+    move_index = st.session_state.get("move_index", 0)
+    if move_index == 0:
+        cp = 0
+    else:
+        cp = st.session_state.analysis[move_index - 1]["eval"]
+
+    white_win_chance = get_win_chance(cp)
+    black_win_chance = 100 - white_win_chance
+
+    fig = go.Figure()
+    flipped = st.session_state.get("board_flipped", False)
+
+    # Toujours ajouter Noir puis Blanc (ordre d'empilement)
+    fig.add_trace(go.Bar(
+        x=[0],
+        y=[white_win_chance],
+        marker_color="#ffffff",
+        hoverinfo="skip",
+        showlegend=False,
+        name="Blancs",
+        width=[0.35],
+        text=[f"{cp/100:.1f}"] if white_win_chance > 50 else [""],
+        textfont=dict(size=16,family="Source Sans Pro, sans-serif")
+    ))
+    fig.add_trace(go.Bar(
+        x=[0],
+        y=[black_win_chance],
+        marker_color="#232325",
+        hoverinfo="skip",
+        showlegend=False,
+        name="Noirs",
+        width=[0.35],
+        text=[f"{-cp/100:.1f}"] if black_win_chance > 50 else [""],
+        textfont=dict(size=16,family="Source Sans Pro, sans-serif")
+
+    ))
+
+
+    fig.update_layout(
+        barmode='stack',
+        height=vertical_size,
+        margin=dict(l=0, r=0, t=0, b=0),
+        xaxis=dict(
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False,
+            fixedrange=True,
+            range=[-0.5, 0.5]
+        ),
+        yaxis=dict(
+            range=[100, 0] if flipped else [0, 100],
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False,
+            fixedrange=True
+        ),
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+
+    st.plotly_chart(fig, use_container_width=False, config={'displayModeBar': False})
