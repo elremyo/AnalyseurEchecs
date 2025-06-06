@@ -4,3 +4,4 @@ stockfish
 pandas
 plotly
 chess
+pyperclip
