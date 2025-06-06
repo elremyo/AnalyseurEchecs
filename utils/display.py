@@ -10,8 +10,8 @@ import math
 from utils.eval_utils import format_eval
 from assets import *
 
+board_size = 900 #in pixels
 
-vertical_size = 700
 
 
 assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
@@ -146,7 +146,7 @@ def render_board(board, last_move=None, flipped=False):
             "square light lastmove": light_color,
             "square dark lastmove": dark_color,
         },
-        size=vertical_size,
+        size=board_size,
     )
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
@@ -454,7 +454,7 @@ def render_eval_bar():
 
     fig.update_layout(
         barmode='stack',
-        height=vertical_size,
+        height=board_size,
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
             showticklabels=False,

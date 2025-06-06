@@ -6,11 +6,12 @@ from utils.display import *
 from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path
+import pyperclip
 
 set_page_style()
 init_session_state()
 
-st.header("Analyseur de parties d'échecs", anchor=False)
+st.header("Road to 1000 ELO", anchor=False)
 
 
 if st.button("Options",
@@ -21,12 +22,8 @@ if st.button("Options",
             ):
     open_parameters()
 
-col_pgn, col_board, col_datas = st.columns(spec=[3,5,4], gap="small", border=True)
-
-with col_pgn:
-
-    #DEBUG
-    pgn_exemple = """[Event "Live Chess"]
+#DEBUG
+pgn_exemple = """[Event "Live Chess"]
 [Site "Chess.com"]
 [Date "2025.05.29"]
 [Round "?"]
@@ -49,9 +46,34 @@ Rc3 Qxa5 42. Rxc5 Qa3+ 43. Kf4 Rxd4 44. g4 Qxc5 45. h4 Qc7+ 46. Ke3 Rc4 47. h5
 Rc3+ 48. Kd4 Qc4+ 49. Ke5 f6+ 50. Kf4 e5+ 51. Kg3 Qd3 52. h6+ Kxh6 53. Kh4 g5+
 54. Kh3 Qxf3+ 55. Kh2 Rc2+ 56. Kg1 Qd1# 0-1 """
 
-    pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=120,value=pgn_exemple)
+
+
+col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
+
+with col_pgn:
+
+    if st.button("Debug : PGN d'exemple", key="copy_example_pgn", icon=":material/content_copy:"):
+        pyperclip.copy(pgn_exemple)
+        st.toast("PGN d'exemple copié dans le presse-papiers !",icon="✅")
+        st.rerun()
+
+
+    clipboard_content = pyperclip.paste()
+    if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event"):
+        pgn_clipboard = clipboard_content.strip()
+    else:
+        pgn_clipboard = ""
+
+    with st.popover("Coller le PGN à analyser",
+                    use_container_width=True,
+                    help="Si un PGN est copié dans le presse papier, il est automatiquement utilisé."):
+        pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=420, value=pgn_clipboard)
     
-    if st.button("Analyser", disabled=not pgn_text.strip()):
+    if st.button("Analyser",
+                 disabled=not pgn_text.strip(),
+                 type="primary",
+                 icon=":material/monitoring:",
+                 use_container_width=True):
         analysis, white_name, black_name = analyze_game(pgn_text, st.session_state.user_depth, stockfish_path,book_path)
         st.session_state.analysis = analysis
         st.session_state.white_name = white_name
