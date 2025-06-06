@@ -1,6 +1,5 @@
 import streamlit as st
 import chess
-import pyperclip
 
 
 from engine.analysis import *
@@ -54,12 +53,15 @@ col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=Tru
 
 with col_pgn:
 
-    if st.button("Debug : PGN d'exemple", key="copy_example_pgn", icon=":material/content_copy:"):
-        pyperclip.copy(pgn_exemple)
-        st.toast("PGN d'exemple copié dans le presse-papiers !",icon="✅")
-        st.rerun()
+    if can_use_clipboard():
+        import pyperclip
+        if st.button("Debug : PGN d'exemple", key="copy_example_pgn", icon=":material/content_copy:"):
+            pyperclip.copy(pgn_exemple)
+            st.toast("PGN d'exemple copié dans le presse-papiers !",icon="✅")
+            st.rerun()
 
     if can_use_clipboard():
+        import pyperclip
         clipboard_content = pyperclip.paste()
         if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event"):
             pgn_clipboard = clipboard_content.strip()
