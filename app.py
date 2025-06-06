@@ -1,12 +1,14 @@
 import streamlit as st
 import chess
+import pyperclip
+
 
 from engine.analysis import *
 from utils.display import *
 from utils.session import *
 from utils.display import *
-from utils.assets import stockfish_path, book_path
-import pyperclip
+from utils.assets import stockfish_path, book_path, can_use_clipboard
+
 
 set_page_style()
 init_session_state()
@@ -57,12 +59,15 @@ with col_pgn:
         st.toast("PGN d'exemple copié dans le presse-papiers !",icon="✅")
         st.rerun()
 
-
-    clipboard_content = pyperclip.paste()
-    if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event"):
-        pgn_clipboard = clipboard_content.strip()
+    if can_use_clipboard():
+        clipboard_content = pyperclip.paste()
+        if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event"):
+            pgn_clipboard = clipboard_content.strip()
+        else:
+            pgn_clipboard = ""
     else:
         pgn_clipboard = ""
+        st.warning("Le presse-papiers n'est pas accessible. Veuillez coller le PGN manuellement.", icon="⚠️")
 
     with st.popover("Coller le PGN à analyser",
                     use_container_width=True,

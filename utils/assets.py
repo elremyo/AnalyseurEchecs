@@ -18,7 +18,11 @@ else:
 
 book_path = os.path.join(assets_path, "performance.bin")
 
-def img_to_base64(path):
-    with open(path, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode("utf-8")
+
+def can_use_clipboard():
+    try:
+        import pyperclip
+        test = pyperclip.paste()
+        return True
+    except:
+        return False
