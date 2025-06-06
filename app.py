@@ -7,6 +7,9 @@ from utils.display import *
 from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path, can_use_clipboard
+from utils.famous_games import *
+from utils.gif_images import *
+
 
 
 set_page_style()
@@ -69,11 +72,9 @@ with col_pgn:
             pgn_clipboard = ""
     else:
         pgn_clipboard = ""
-        st.warning("Le presse-papiers n'est pas accessible. Veuillez coller le PGN manuellement.", icon="⚠️")
 
     with st.popover("Coller le PGN à analyser",
-                    use_container_width=True,
-                    help="Si un PGN est copié dans le presse papier, il est automatiquement utilisé."):
+                    use_container_width=True):
         pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=420, value=pgn_clipboard)
     
     if st.button("Analyser",
@@ -91,13 +92,35 @@ with col_pgn:
     if st.session_state.analysis:
         st.divider()
         display_quality_table()
+    else:
+        st.divider()
+        st.subheader("✨ Coller un PGN pour commencer l'analyse", anchor=False)
+        st.markdown(
+            "Vous pouvez copier un PGN depuis [Chess.com](https://www.chess.com/) ou [Lichess.org](https://lichess.org/) et le coller ici pour l'analyser.",
+            unsafe_allow_html=True
+        )
+        with st.expander("Comment copier un PGN ?", expanded=False, icon=":material/help:"):
+            st.markdown(
+                "1. Ouvrez la partie sur Chess.com ou Lichess.org.\n"
+                "2. Cliquez sur le bouton **Partager** ou **Exporter**.\n"
+                "3. Sélectionnez l'option **Copier le PGN**.\n"
+                "4. Collez-le dans le champ ci-dessus."
+            )
+        st.markdown(":material/info: **Bon à savoir !**")
+        st.markdown("Si un PGN est déjà copié dans votre presse-papiers, il est automatiquement détecté et collé dans le champ ci-dessus. Il ne reste plus qu'à analyser !")
+
+        st.session_state.analysis = None
+        st.session_state.white_name = None
+        st.session_state.black_name = None
+        st.session_state.pgn_last = None
 
 
 
 with col_board:
     if st.session_state.analysis:
         try:
-            game=load_pgn(pgn_text)
+            pgn_to_use = st.session_state.get("pgn_last", pgn_text)
+            game=load_pgn(pgn_to_use)
             board = chess.Board()
             moves = [move for move in game.mainline_moves()]
             max_index = len(moves)
@@ -140,3 +163,21 @@ with col_datas:
         display_move_description()
 
         display_moves_recap()
+    else:
+        st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
+        st.image(get_random_gif(), use_container_width=True)
+        st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")
+        st.caption("Ou découvrez une partie célèbre :")
+
+        if st.button("🎓 Charger une partie célèbre", use_container_width=True):
+            selected_game = get_random_game()
+            example_pgn = selected_game["pgn"]
+
+
+            st.session_state.pgn_last = example_pgn
+            st.session_state.analysis, st.session_state.white_name, st.session_state.black_name = analyze_game(
+                example_pgn, st.session_state.user_depth, stockfish_path, book_path
+            )
+            st.session_state.move_index = 0
+            st.rerun()
+
