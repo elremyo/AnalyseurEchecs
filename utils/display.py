@@ -411,6 +411,8 @@ def render_eval_bar():
     if move_index == 0:
         cp = 0
         eval_text = "0.0"
+        white_win_chance = 50
+        black_win_chance = 50
     else:
         coup = st.session_state.analysis[move_index - 1]
         cp = coup["eval"]
@@ -427,8 +429,17 @@ def render_eval_bar():
 
         eval_text = format_eval_bar(raw_eval)
 
-    white_win_chance = get_win_chance(cp)
-    black_win_chance = 100 - white_win_chance
+        # Gestion spéciale du mat
+        if raw_eval["type"] == "mate":
+            if raw_eval["value"] > 0:
+                white_win_chance = 100
+                black_win_chance = 0
+            else:
+                white_win_chance = 0
+                black_win_chance = 100
+        else:
+            white_win_chance = get_win_chance(cp)
+            black_win_chance = 100 - white_win_chance
 
     fig = go.Figure()
     flipped = st.session_state.get("board_flipped", False)
