@@ -280,13 +280,16 @@ def display_graph(current_index=None):
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
+            qualite = st.session_state.analysis[current_index].get("qualité", "Meilleur")
+            color = quality_colors.get(qualite, "#739552")
+
             fig.add_shape(
                 type="line",
                 x0=current_index,
                 y0=y_min,
                 x1=current_index,
                 y1=y_max,
-                line=dict(color="#739552", width=2),
+                line=dict(color=color, width=2),
                 layer="above"
             )
         fig.update_layout(
