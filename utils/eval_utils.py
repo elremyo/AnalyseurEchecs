@@ -1,3 +1,5 @@
+import math
+
 def convert_eval_to_cp(e):
     if e["type"] == "cp":
         return e["value"]
@@ -32,3 +34,7 @@ def format_eval(e):
     elif e["type"] == "mate":
         return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
     return "?"
+
+def get_win_chance(cp):
+    cp = max(min(cp, 1000), -1000)
+    return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)

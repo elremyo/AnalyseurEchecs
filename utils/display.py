@@ -4,10 +4,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import base64
 import chess.svg
-import math
 
-
-from utils.eval_utils import format_eval
+from utils.eval_utils import *
 from assets import *
 
 board_size = 900 #in pixels
@@ -405,11 +403,6 @@ def display_moves_recap():
 
 
 
-def get_win_chance(cp):
-    cp = max(min(cp, 1000), -1000)
-    return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)
-
-
 def render_eval_bar():
     if not st.session_state.analysis:
         return
@@ -417,8 +410,22 @@ def render_eval_bar():
     move_index = st.session_state.get("move_index", 0)
     if move_index == 0:
         cp = 0
+        eval_text = "0.0"
     else:
-        cp = st.session_state.analysis[move_index - 1]["eval"]
+        coup = st.session_state.analysis[move_index - 1]
+        cp = coup["eval"]
+        raw_eval = coup.get("raw_eval", {"type": "cp", "value": cp})
+
+        # Fonction locale pour formatage positif sans signe
+        def format_eval_bar(e):
+            if e["type"] == "cp":
+                val = abs(round(e["value"] / 100, 2))
+                return f"{val}"
+            elif e["type"] == "mate":
+                return f"M{abs(e['value'])}"
+            return "?"
+
+        eval_text = format_eval_bar(raw_eval)
 
     white_win_chance = get_win_chance(cp)
     black_win_chance = 100 - white_win_chance
@@ -435,8 +442,8 @@ def render_eval_bar():
         showlegend=False,
         name="Blancs",
         width=[0.35],
-        text=[f"{cp/100:.1f}"] if white_win_chance > 50 else [""],
-        textfont=dict(size=16,family="Source Sans Pro, sans-serif")
+        text=[eval_text] if white_win_chance > 50 else [""],
+        textfont=dict(size=16, family="Source Sans Pro, sans-serif")
     ))
     fig.add_trace(go.Bar(
         x=[0],
@@ -446,9 +453,8 @@ def render_eval_bar():
         showlegend=False,
         name="Noirs",
         width=[0.35],
-        text=[f"{-cp/100:.1f}"] if black_win_chance > 50 else [""],
-        textfont=dict(size=16,family="Source Sans Pro, sans-serif")
-
+        text=[eval_text] if black_win_chance > 50 else [""],
+        textfont=dict(size=16, family="Source Sans Pro, sans-serif")
     ))
 
 

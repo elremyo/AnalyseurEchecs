@@ -1,5 +1,4 @@
 import os
-import base64
 import platform
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
