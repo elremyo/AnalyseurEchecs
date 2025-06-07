@@ -4,7 +4,7 @@ def convert_eval_to_cp(e):
     if e["type"] == "cp":
         return e["value"]
     elif e["type"] == "mate":
-        return 1500 if e["value"] > 0 else -1500
+        return 1200 if e["value"] >= 0 else -1200
     return 0
 
 def get_quality(delta, is_best, is_theoretical):

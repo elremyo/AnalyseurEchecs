@@ -219,16 +219,39 @@ def display_move_description():
 
 def display_graph(current_index=None):
     if st.session_state.analysis:
-        evals = [coup["eval"] for coup in st.session_state.analysis]
+        y_min, y_max = -1300, 1300
+
+        def eval_to_y(i, coup):
+            raw = coup.get("raw_eval", {"type": "cp", "value": coup.get("eval", 0)})
+            if raw["type"] == "mate":
+                if raw["value"] > 0:
+                    return y_max
+                elif raw["value"] < 0:
+                    return y_min
+                else:  # M0, il faut déterminer qui a maté
+                    # On regarde le coup précédent pour savoir le signe du mat
+                    prev_eval = None
+                    for prev_coup in reversed(st.session_state.analysis[:i]):
+                        prev_raw = prev_coup.get("raw_eval", {})
+                        if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
+                            prev_eval = prev_raw["value"]
+                            break
+                    if prev_eval is not None and prev_eval > 0:
+                        return y_max
+                    else:
+                        return y_min
+            return max(min(raw.get("value", 0), y_max), y_min)
+
+        evals = [eval_to_y(i, coup) for i, coup in enumerate(st.session_state.analysis)]
         formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
-        min_val = min(evals) - 100
+
         fig = go.Figure()
         # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
         fig.add_trace(go.Scatter(
             x=list(range(len(evals))),
-            y=[min_val] * len(evals),
+            y=[y_min] * len(evals),
             mode='lines',
-            line=dict(color='white'),
+            line=dict(color="#252423", width=0),
             fill=None,
             showlegend=False,
             hoverinfo="skip"
@@ -238,7 +261,7 @@ def display_graph(current_index=None):
             x=list(range(len(evals))),
             y=evals,
             mode='lines',
-            line=dict(color='white'),
+            line=dict(color='blue', width=0),
             fill='tonexty',
             fillcolor='white',
             showlegend=False,
@@ -252,17 +275,17 @@ def display_graph(current_index=None):
             y0=0,
             x1=len(evals)-1,
             y1=0,
-            line=dict(color="gray", width=1),
+            line=dict(color="gray", width=2),
             layer="above"
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
-        if current_index is not None:
+        if current_index is not None and current_index < len(evals):
             fig.add_shape(
                 type="line",
                 x0=current_index,
-                y0=min_val,
+                y0=y_min,
                 x1=current_index,
-                y1=max(evals),
+                y1=y_max,
                 line=dict(color="#739552", width=2),
                 layer="above"
             )
@@ -434,9 +457,22 @@ def render_eval_bar():
             if raw_eval["value"] > 0:
                 white_win_chance = 100
                 black_win_chance = 0
-            else:
+            elif raw_eval["value"] < 0:
                 white_win_chance = 0
                 black_win_chance = 100
+            else:  # M0, il faut déterminer qui a maté
+                prev_eval = None
+                for prev_coup in reversed(st.session_state.analysis[:move_index-1]):
+                    prev_raw = prev_coup.get("raw_eval", {})
+                    if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
+                        prev_eval = prev_raw["value"]
+                        break
+                if prev_eval is not None and prev_eval > 0:
+                    white_win_chance = 100
+                    black_win_chance = 0
+                else:
+                    white_win_chance = 0
+                    black_win_chance = 100
         else:
             white_win_chance = get_win_chance(cp)
             black_win_chance = 100 - white_win_chance
