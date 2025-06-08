@@ -18,11 +18,11 @@ def get_quality(delta, is_best, is_theoretical):
     #    return "Meilleur"
     if delta_abs < 40:
         return "Excellent"
-    elif delta_abs < 50:
+    elif delta_abs < 80:
         return "Bon"
-    elif delta_abs < 150:
+    elif delta_abs < 200:
         return "Imprécision"
-    elif delta_abs < 300:
+    elif delta_abs < 400:
         return "Erreur"
     else:
         return "Gaffe"
