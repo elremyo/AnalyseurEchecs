@@ -439,27 +439,28 @@ def display_moves_recap():
 
 
             # Coup noir
-            qualite_b = analysis[i + 1].get("qualité", "Non précisée")
-            img_b = quality_images.get(qualite_b)
-            coup_b = analysis[i + 1].get("coup", "")
-            with open(img_b, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode("utf-8")
-            with col_qual_noir:
-                st.markdown(
-                    f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
-                    f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
-                    unsafe_allow_html=True
-                )
-            with col_coup_noir:
-                st.button(
-                    ":material/search:",
-                    key=f"move_n_{i+1}",
-                    help=f"Aller au coup",
-                    on_click=go_to_move,
-                    args=(i + 2,),
-                    use_container_width=True,
-                    type="tertiary"
-                )
+            if i + 1 < len(analysis):
+                qualite_b = analysis[i + 1].get("qualité", "Non précisée")
+                img_b = quality_images.get(qualite_b)
+                coup_b = analysis[i + 1].get("coup", "")
+                with open(img_b, "rb") as f:
+                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                with col_qual_noir:
+                    st.markdown(
+                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                        f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
+                        unsafe_allow_html=True
+                    )
+                with col_coup_noir:
+                    st.button(
+                        ":material/search:",
+                        key=f"move_n_{i+1}",
+                        help=f"Aller au coup",
+                        on_click=go_to_move,
+                        args=(i + 2,),
+                        use_container_width=True,
+                        type="tertiary"
+                    )
 
 
 
