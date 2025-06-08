@@ -252,17 +252,6 @@ def display_move_description():
                     unsafe_allow_html=True
                 )
 
-
-    with st.expander("Détail DEBUG"):
-        st.markdown(f"""
-        **Analyse du coup {move_index} :**
-        - Coup joué : `{coup_joué}`
-        - Meilleur coup suggéré : `{meilleur_coup}`
-        - Qualité : **{qualite}**
-        - Évaluation (cp) : `{eval_cp}`
-        - Coup théorique : {est_theorique}
-        """)
-
 def display_graph(current_index=None):
     if st.session_state.analysis:
         y_min, y_max = -1300, 1300
@@ -493,7 +482,7 @@ def render_eval_bar():
         # Fonction locale pour formatage positif sans signe
         def format_eval_bar(e):
             if e["type"] == "cp":
-                val = abs(round(e["value"] / 100, 2))
+                val = abs(round(e["value"] / 100, 1))
                 return f"{val}"
             elif e["type"] == "mate":
                 return f"M{abs(e['value'])}"
@@ -529,50 +518,70 @@ def render_eval_bar():
     fig = go.Figure()
     flipped = st.session_state.get("board_flipped", False)
 
-    # Toujours ajouter Noir puis Blanc (ordre d'empilement)
+    # Ajoute toujours les traces dans le même ordre : Blancs puis Noirs
     fig.add_trace(go.Bar(
-        x=[0],
-        y=[white_win_chance],
+        y=["Évaluation"],
+        x=[white_win_chance],
+        orientation='h',
         marker_color="#ffffff",
         hoverinfo="skip",
         showlegend=False,
         name="Blancs",
-        width=[0.35],
-        text=[eval_text] if white_win_chance > 50 else [""],
-        textfont=dict(size=16, family="Source Sans Pro, sans-serif")
+        text=[eval_text if white_win_chance > 50 else ""],
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(size=16, family="Source Sans Pro, sans-serif", color="black"),
     ))
     fig.add_trace(go.Bar(
-        x=[0],
-        y=[black_win_chance],
+        y=["Évaluation"],
+        x=[black_win_chance],
+        orientation='h',
         marker_color="#232325",
         hoverinfo="skip",
         showlegend=False,
         name="Noirs",
-        width=[0.35],
-        text=[eval_text] if black_win_chance > 50 else [""],
-        textfont=dict(size=16, family="Source Sans Pro, sans-serif")
+        text=[eval_text if black_win_chance > 50 else ""],
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(size=16, family="Source Sans Pro, sans-serif", color="white"),
     ))
 
 
+    flipped = st.session_state.get("board_flipped", False)
+
     fig.update_layout(
         barmode='stack',
-        height=board_size,
+        height=48,
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
+            range=[100, 0] if flipped else [0, 100],  # <-- Ici on inverse le range
             showticklabels=False,
             showgrid=False,
             zeroline=False,
             fixedrange=True,
-            range=[-0.5, 0.5]
         ),
         yaxis=dict(
-            range=[100, 0] if flipped else [0, 100],
             showticklabels=False,
             showgrid=False,
             zeroline=False,
-            fixedrange=True
+            fixedrange=True,
         ),
         plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
     )
 
-    st.plotly_chart(fig, use_container_width=False, config={'displayModeBar': False})
+    # Ajoute ce bloc pour limiter la hauteur du conteneur
+    st.markdown(
+        f"""
+        <style>
+        .eval-bar-container {{
+            max-height: 400px;
+            overflow: hidden;
+        }}
+        </style>
+        <div class="eval-bar-container">
+        """,
+        unsafe_allow_html=True
+    )
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("</div>", unsafe_allow_html=True)

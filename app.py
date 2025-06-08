@@ -140,11 +140,8 @@ with col_board:
 
             last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
             
-            col_bar, col_board2 = st.columns([1, 6], gap="small", border=False)
-            with col_bar:
-                render_eval_bar()
-            with col_board2:
-                render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
+            render_eval_bar()
+            render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
 
         except Exception as e:
             st.error(f"Erreur pendant l'analyse : {e}")
