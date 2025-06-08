@@ -68,6 +68,13 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         stockfish.set_fen_position(board.fen())
         eval_after = stockfish.get_evaluation()
 
+        #Ajout du calcul des menaces
+        threats = []
+        top_moves = stockfish.get_top_moves(2)
+        threats = [m['Move'] for m in top_moves if m['Move'] != best_move][:1]
+
+
+
         # Calcul du delta
         delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
 
@@ -91,8 +98,10 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
             "eval": convert_eval_to_cp(eval_after),
             "raw_eval": eval_after,
             "best_move": best_move_san,
+            "best_move_uci": best_move, 
             "is_best": is_best,
-            "is_theoretical": is_theo
+            "is_theoretical": is_theo,
+            "threats": threats
         })
 
         # Mise à jour de la barre de progression

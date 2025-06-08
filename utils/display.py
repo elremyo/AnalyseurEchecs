@@ -3,7 +3,6 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import base64
-import re 
 import chess.svg
 
 from utils.eval_utils import *
@@ -82,6 +81,13 @@ def open_parameters():
     def dialog():
         user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
         st.session_state.user_depth = user_depth
+
+        show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
+        st.session_state.show_best_arrow = show_best_arrow
+
+        show_threat_arrows = st.toggle("Afficher la meilleure continuation", value=st.session_state.get("show_threat_arrows", False))
+        st.session_state.show_threat_arrows = show_threat_arrows
+
     dialog()
 
 
@@ -162,6 +168,58 @@ def inject_quality_on_square(svg, square, quality_path, flipped=False):
 
 def render_board(board, last_move=None, flipped=False):
     move_index = st.session_state.get("move_index", 0)
+
+    arrows = []
+
+    # Ajout des flèches selon les options
+    if (
+        move_index > 0
+        and "analysis" in st.session_state
+        and st.session_state.analysis
+    ):
+
+        coup_data = st.session_state.analysis[move_index - 1]
+        qualite = coup_data.get("qualité", "Non précisée")
+        # Flèche pour le meilleur coup si le coup joué n'est ni théorique ni le meilleur
+        if (
+            st.session_state.get("show_best_arrow", True)
+            and qualite not in ("Théorique", "Meilleur")
+            and "best_move" in coup_data
+            and coup_data.get("best_move_uci")
+        ):
+            best_move_uci = coup_data["best_move_uci"]
+
+            try:
+                best_move = chess.Move.from_uci(best_move_uci)
+                arrows.append(
+                    chess.svg.Arrow(
+                        best_move.from_square,
+                        best_move.to_square,
+                        color="#98bc499e" 
+                    )
+                )
+            except Exception:
+                pass
+
+        # Flèches pour les menaces
+        if (
+            st.session_state.get("show_threat_arrows", True)
+            and "threats" in coup_data
+        ):
+            for threat_uci in coup_data["threats"]:
+                try:
+                    threat_move = chess.Move.from_uci(threat_uci)
+                    arrows.append(
+                        chess.svg.Arrow(
+                            threat_move.from_square,
+                            threat_move.to_square,
+                            color="#c02424b9" 
+                        )
+                    )
+                except Exception:
+                    pass
+
+
     if move_index == 0 or "analysis" not in st.session_state or not st.session_state.analysis:
         qualite = "Non précisée"
         light_color, dark_color = "#ffffff", "#FFFFFF"
@@ -185,7 +243,8 @@ def render_board(board, last_move=None, flipped=False):
             "square dark lastmove": dark_color,
         },
         size=board_size,
-        coordinates=True
+        coordinates=True,
+        arrows=arrows
     )
 
     # Ajoute l'icône sur la case cible du dernier coup joué
@@ -414,12 +473,12 @@ def display_moves_recap():
             with col_num_coup:
                 st.markdown(f"{move_number}.")
 
-            # Coup blanc
             qualite_w = analysis[i].get("qualité", "Non précisée")
             img_w = quality_images.get(qualite_w)
             coup_w = analysis[i].get("coup", "")
             with open(img_w, "rb") as f:
                 img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
             with col_qual_blanc:
                 st.markdown(
                     f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
