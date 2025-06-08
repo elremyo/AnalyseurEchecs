@@ -7,6 +7,7 @@ import chess.svg
 
 from utils.eval_utils import *
 from assets import *
+from utils.session import *
 
 board_size = 800 #in pixels
 

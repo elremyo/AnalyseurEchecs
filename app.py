@@ -8,6 +8,7 @@ from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.famous_games import *
+from utils.debug_pgn_samples import *
 from utils.gif_images import *
 
 
@@ -26,42 +27,31 @@ if st.button("Options",
             ):
     open_parameters()
 
-#DEBUG
-pgn_exemple = """[Event "Live Chess"]
-[Site "Chess.com"]
-[Date "2025.05.29"]
-[Round "?"]
-[White "ElRemyo"]
-[Black "PauloDomingues"]
-[Result "0-1"]
-[TimeControl "300+5"]
-[WhiteElo "794"]
-[BlackElo "840"]
-[Termination "PauloDomingues a gagné par échec et mat"]
-[Link "https://www.chess.com/game/138993809152"]
-
-1. d4 Nf6 2. Bf4 d5 3. Nf3 g6 4. e3 Bg7 5. Bd3 Bg4 6. h3 Bxf3 7. Qxf3 e6 8. Nd2
-O-O 9. c4 c6 10. c5 Nbd7 11. Bg5 Qa5 12. b3 Rab8 13. Bf4 Rbc8 14. a3 Qc3 15. Ke2
-Nh5 16. Bh2 Rfe8 17. Rhc1 Qa5 18. b4 Qd8 19. Bd6 b6 20. Ba6 Ra8 21. Bb7 bxc5 22.
-Bxa8 Qxa8 23. bxc5 Ndf6 24. Rab1 Ne4 25. Nxe4 dxe4 26. Qxe4 Nf6 27. Qd3 Bf8 28.
-Rb4 Bxd6 29. cxd6 Rd8 30. Rcb1 Kg7 31. f3 Nd5 32. Rb7 Nb6 33. Rb4 Qxb7 34. a4
-Qd7 35. a5 Nd5 36. Rb3 Qxd6 37. e4 Nf4+ 38. Ke3 Nxd3 39. Rxd3 Qc7 40. Ra3 c5 41.
-Rc3 Qxa5 42. Rxc5 Qa3+ 43. Kf4 Rxd4 44. g4 Qxc5 45. h4 Qc7+ 46. Ke3 Rc4 47. h5
-Rc3+ 48. Kd4 Qc4+ 49. Ke5 f6+ 50. Kf4 e5+ 51. Kg3 Qd3 52. h6+ Kxh6 53. Kh4 g5+
-54. Kh3 Qxf3+ 55. Kh2 Rc2+ 56. Kg1 Qd1# 0-1 """
-
-
 
 col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
 
 with col_pgn:
 
-    if can_use_clipboard():
-        import pyperclip
-        if st.button("Debug : PGN d'exemple", key="copy_example_pgn", icon=":material/content_copy:"):
-            pyperclip.copy(pgn_exemple)
-            st.toast("PGN d'exemple copié dans le presse-papiers !",icon="✅")
-            st.rerun()
+ # Sélecteur de partie d'exemple
+    sample_labels = []
+    for idx, pgn in enumerate(sample_games):
+        # On extrait les noms des joueurs et la date pour l'affichage
+        lines = pgn.strip().splitlines()
+        white = next((l.split('"')[1] for l in lines if l.startswith('[White ')), f"White {idx+1}")
+        black = next((l.split('"')[1] for l in lines if l.startswith('[Black ')), f"Black {idx+1}")
+        date = next((l.split('"')[1] for l in lines if l.startswith('[Date ')), "")
+        sample_labels.append(f"{white} vs {black} ({date})")
+
+    selected_idx = st.selectbox(
+        "Sélectionner une partie d'exemple",
+        options=list(range(len(sample_games))),
+        format_func=lambda i: sample_labels[i],
+        key="sample_game_select"
+    )
+
+    selected_pgn = sample_games[selected_idx].strip()
+    if st.session_state.get("pgn_last", "") != selected_pgn:
+        st.session_state.pgn_last = selected_pgn
 
     if can_use_clipboard():
         import pyperclip
@@ -73,10 +63,13 @@ with col_pgn:
     else:
         pgn_clipboard = ""
 
-    with st.popover("Coller le PGN à analyser",
-                    use_container_width=True):
-        pgn_text = st.text_area("PGN de la partie :", placeholder="Collez ici le PGN de la partie", height=420, value=pgn_clipboard)
-    
+    with st.popover("Coller le PGN à analyser",use_container_width=True):
+        pgn_text = st.text_area(
+            "PGN de la partie :",
+            placeholder="Collez ici le PGN de la partie",
+            height=420,
+            value=st.session_state.get("pgn_last", pgn_clipboard)
+        )    
     if st.button("Analyser",
                  disabled=not pgn_text.strip(),
                  type="primary",
