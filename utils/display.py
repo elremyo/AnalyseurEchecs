@@ -3,12 +3,13 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import base64
+import re 
 import chess.svg
 
 from utils.eval_utils import *
 from assets import *
 
-board_size = 900 #in pixels
+board_size = 800 #in pixels
 
 
 
@@ -122,16 +123,55 @@ def render_navigation_buttons(max_index):
             st.session_state.move_index = max_index
 
 
+
+
+def inject_quality_on_square(svg, square, quality_path, flipped=False):
+
+    #Magic numbers found by trial and error
+    marging_coordinates = 10
+    square_size = 45.7
+
+    file = chess.square_file(square)
+    rank = chess.square_rank(square)
+
+    if not flipped:
+        x = (file + 1) * square_size
+        y = (7-rank)*square_size
+    else:
+        x = (8-file)*square_size
+        y = rank*square_size
+
+    with open(quality_path, "rb") as f:
+        img_b64 = base64.b64encode(f.read()).decode("utf-8")
+    
+    quality_size = int(20)
+    quality_x = marging_coordinates + x - quality_size/2
+    quality_y = marging_coordinates + 2 + y - quality_size/2
+
+    img_tag = (
+        f'<image href="data:image/png;base64,{img_b64}" '
+        f'x="{quality_x}" y="{quality_y}" width="{quality_size}" height="{quality_size}" />'
+    )
+
+    if "</svg>" in svg:
+        svg = svg.replace("</svg>", img_tag + "</svg>")
+    else:
+        svg += img_tag
+    return svg
+
+
 def render_board(board, last_move=None, flipped=False):
     move_index = st.session_state.get("move_index", 0)
     if move_index == 0 or "analysis" not in st.session_state or not st.session_state.analysis:
         qualite = "Non précisée"
         light_color, dark_color = "#ffffff", "#FFFFFF"
+        quality_path = None
     else:
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis[analysis_index]
         qualite = coup_data.get("qualité", "Non précisée")
         light_color, dark_color = quality_board_colors.get(qualite, ("#ff0000", "#000000"))
+        quality_path = quality_images.get(qualite)
 
     svg = chess.svg.board(
         board,
@@ -145,7 +185,13 @@ def render_board(board, last_move=None, flipped=False):
             "square dark lastmove": dark_color,
         },
         size=board_size,
+        coordinates=True
     )
+
+    # Ajoute l'icône sur la case cible du dernier coup joué
+    if last_move and quality_path:
+        svg = inject_quality_on_square(svg, last_move.to_square, quality_path, flipped)
+
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
     st.write(html, unsafe_allow_html=True)
