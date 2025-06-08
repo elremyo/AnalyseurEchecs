@@ -450,9 +450,9 @@ def display_moves_recap():
 
 
             # Coup noir
-            qualite_b = analysis[i + 0].get("qualité", "Non précisée")
+            qualite_b = analysis[i + 1].get("qualité", "Non précisée")
             img_b = quality_images.get(qualite_b)
-            coup_b = analysis[i + 0].get("coup", "")
+            coup_b = analysis[i + 1].get("coup", "")
             with open(img_b, "rb") as f:
                 img_b64 = base64.b64encode(f.read()).decode("utf-8")
             with col_qual_noir:
