@@ -235,7 +235,7 @@ def display_move_description():
         description = f"<span style='color:{color_coup};'>{coup_joué} est le meilleur coup</span>"
 
     meilleur_coup_html = ""
-    if est_theorique != "Oui" and est_meilleur != "Oui" and analysis_index > 0:
+    if est_theorique != "Oui" and est_meilleur != "Oui" and qualite!="Meilleur" and analysis_index > 0:
         meilleur_coup_html = f"<div style='margin-top:8px; color:{color_best}; font-weight:bold;'>{meilleur_coup} est le meilleur coup</div>"
 
 

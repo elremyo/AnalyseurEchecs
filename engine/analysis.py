@@ -74,7 +74,15 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         is_best = (best_move == move.uci())
 
         # Attribution de la qualité
-        quality = get_quality(delta, is_best, is_theo)
+        quality = get_quality(
+            delta=delta,
+            is_best=is_best,
+            is_theoretical=is_theo,
+            prev_eval=eval_before,
+            curr_eval=eval_after,
+            prev_cp=convert_eval_to_cp(eval_before),
+            curr_cp=convert_eval_to_cp(eval_after)
+            )
 
         # Ajout à l'analyse
         analysis.append({
