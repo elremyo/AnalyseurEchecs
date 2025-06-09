@@ -130,7 +130,21 @@ def render_navigation_buttons(max_index):
                      key="last_move") and st.session_state.move_index < max_index:
             st.session_state.move_index = max_index
 
+def display_moves_slider(max_index):
+    if "analysis" not in st.session_state or not st.session_state.analysis:
+        return
 
+    if max_index == 0:
+        return
+
+    st.slider(
+        "Sélectionnez un coup",
+        min_value=0,
+        max_value=max_index - 1,
+        key="move_index",  # <-- Lier le slider à la session_state
+        step=1,
+        label_visibility="collapsed"
+    )
 
 
 def inject_quality_on_square(svg, square, quality_path, flipped=False):
@@ -311,6 +325,7 @@ def display_move_description():
                     f"</div>",
                     unsafe_allow_html=True
                 )
+
 
 def display_graph(current_index=None):
     if st.session_state.analysis:

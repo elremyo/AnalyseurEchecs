@@ -108,6 +108,7 @@ with col_pgn:
 
 
 with col_board:
+
     if st.session_state.analysis:
         try:
             pgn_to_use = st.session_state.get("pgn_last", pgn_text)
@@ -144,6 +145,9 @@ with col_board:
 
 with col_datas:
     if st.session_state.analysis:
+        #Afficher le sélecteur de coups
+        display_moves_slider(max_index)
+
         #Afficher l'histogramme
         display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
 
