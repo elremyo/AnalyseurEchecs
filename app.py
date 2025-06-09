@@ -132,6 +132,14 @@ with col_board:
 
             last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
             
+            # Synchronisation slider <-> move_index
+            if "move_index_slider" in st.session_state:
+                slider_value = st.session_state.move_index_slider - 1
+                # On ne synchronise QUE si le slider a changé depuis le dernier run
+                if st.session_state.get("_last_slider_value", None) != slider_value:
+                    st.session_state.move_index = slider_value
+                st.session_state._last_slider_value = slider_value
+
             render_eval_bar()
             render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
 
@@ -145,17 +153,22 @@ with col_board:
 
 with col_datas:
     if st.session_state.analysis:
-        #Afficher le sélecteur de coups
-        display_moves_slider(max_index)
+        # Afficher le sélecteur de coups
+        slider_value = display_moves_slider(max_index)
 
-        #Afficher l'histogramme
+        # Synchronisation slider <-> move_index
+        if "move_index_slider" in st.session_state:
+            slider_value = st.session_state.move_index_slider - 1
+            # Si le slider a changé, on pilote move_index
+            if st.session_state.get("_last_slider_value", None) != slider_value:
+                st.session_state.move_index = slider_value
+            # Sinon, on pilote le slider avec move_index
+            elif st.session_state.move_index != slider_value:
+                st.session_state.move_index_slider = st.session_state.move_index + 1
+            st.session_state._last_slider_value = st.session_state.move_index_slider - 1
+
+        # Afficher l'histogramme
         display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
-
-        #Afficher le coup joué et le meilleur coup
+        # Afficher le coup joué et le meilleur coup
         display_move_description()
-
         display_moves_recap()
-    else:
-        st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
-        st.image(get_random_gif(), use_container_width=True)
-        st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")

@@ -133,18 +133,20 @@ def render_navigation_buttons(max_index):
 def display_moves_slider(max_index):
     if "analysis" not in st.session_state or not st.session_state.analysis:
         return
-
     if max_index == 0:
         return
 
-    st.slider(
+    # Le slider suit move_index, mais affiche 1-based
+    slider_value = st.slider(
         "Sélectionnez un coup",
-        min_value=0,
-        max_value=max_index - 1,
-        key="move_index",  # <-- Lier le slider à la session_state
+        min_value=1,
+        max_value=max_index,
+        value=st.session_state.get("move_index", 0) + 1,
         step=1,
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="move_index_slider"
     )
+    return slider_value
 
 
 def inject_quality_on_square(svg, square, quality_path, flipped=False):
