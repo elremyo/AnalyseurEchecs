@@ -21,13 +21,12 @@ def load_pgn(pgn: str) -> chess.pgn.Game:
     except Exception as e:
         raise e
 
-def is_theoretical_move(board, move, book_path):
+def is_theoretical_move(board, move, reader):
     try:
-        with chess.polyglot.open_reader(book_path) as reader:
-            entries = list(reader.find_all(board))
-            theoretical_moves = [entry.move for entry in entries]
-            return move in theoretical_moves
-    except FileNotFoundError:
+        entries = list(reader.find_all(board))
+        theoretical_moves = [entry.move for entry in entries]
+        return move in theoretical_moves
+    except Exception:
         return False
 
 def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str):
@@ -39,12 +38,19 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     black_player = game.headers.get("Black", "Noir")
 
     stockfish = Stockfish(path=stockfish_path, depth=user_depth)
-    #stockfish = Stockfish(path="/usr/games/stockfish") pour tourner sous linux sur serveur steamlit
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
 
     moves = list(game.mainline_moves())
     total_moves = len(moves)
     progress_bar = st.progress(0, text="Préparation de l'analyse")
+
+    # Ouvre le book une seule fois ici
+    book_reader = None
+    if book_path:
+        try:
+            book_reader = chess.polyglot.open_reader(book_path)
+        except FileNotFoundError:
+            book_reader = None
 
     for idx, move in enumerate(moves):
         # État avant le coup
@@ -53,14 +59,11 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         best_move = stockfish.get_best_move()
         best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
 
-
-
         # Test coup théorique
         is_theo = False
-        if book_path:
-            is_theo = is_theoretical_move(board, move, book_path)
-        
-        # Obtenir la notation algébrique standard AVANT d'exécuter le coup
+        if book_reader:
+            is_theo = is_theoretical_move(board, move, book_reader)
+
         move_san = board.san(move)
 
         # On joue le coup réel
@@ -89,7 +92,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
             curr_eval=eval_after,
             prev_cp=convert_eval_to_cp(eval_before),
             curr_cp=convert_eval_to_cp(eval_after)
-            )
+        )
 
         # Ajout à l'analyse
         analysis.append({
@@ -110,6 +113,9 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
 
     progress_bar.empty()  # Retire la barre à la fin
 
+    # Ferme le book à la fin
+    if book_reader:
+        book_reader.close()
 
     return analysis, white_player, black_player
 
