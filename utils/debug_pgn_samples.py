@@ -186,6 +186,71 @@ Rf7 48. e5 fxe5 49. fxe5 Re7 50. e6 Kg7 51. Kg5 Re8 52. Rb7+ Kg8 53. Kf6 Rf8+
 1. d4 { [%eval 0.17] [%clk 0:05:00] } 1... d5 { [%eval 0.24] [%clk 0:05:00] } 2. Bf4 { [%eval 0.0] [%clk 0:05:01] } { D00 Queen's Pawn Game: Accelerated London System } 2... Bg4 { [%eval 0.44] [%clk 0:04:59] } 3. Nf3 { [%eval 0.25] [%clk 0:04:38] } 3... Nc6 { [%eval 0.37] [%clk 0:04:48] } 4. e3 { [%eval 0.35] [%clk 0:04:35] } 4... e6 { [%eval 0.34] [%clk 0:04:45] } 5. c4 { [%eval 0.25] [%clk 0:04:32] } 5... Bb4+ { [%eval 0.37] [%clk 0:04:42] } 6. Nbd2 { [%eval 0.32] [%clk 0:04:30] } 6... Bxd2+ { [%eval 0.52] [%clk 0:04:24] } 7. Qxd2 { [%eval 0.56] [%clk 0:04:26] } 7... Bxf3 { [%eval 0.75] [%clk 0:04:25] } 8. gxf3 { [%eval 0.75] [%clk 0:04:27] } 8... Nf6 { [%eval 0.74] [%clk 0:04:22] } 9. O-O-O { [%eval 0.48] [%clk 0:04:15] } 9... O-O { [%eval 0.98] [%clk 0:04:21] } 10. Bg5 { [%eval 0.92] [%clk 0:04:11] } 10... h6 { [%eval 0.97] [%clk 0:04:17] } 11. Bh4 { [%eval 0.77] [%clk 0:04:13] } 11... Re8?! { (0.77 → 1.61) Inaccuracy. Ne4 was best. } { [%eval 1.61] [%clk 0:04:14] } (11... Ne4 12. fxe4 Qxh4 13. exd5 exd5 14. cxd5 Ne7 15. f3 Nxd5 16. Rg1 Ne7 17. Rg4) 12. Rg1 { [%eval 1.7] [%clk 0:04:12] } 12... e5?? { (1.70 → 3.88) Blunder. Kh8 was best. } { [%eval 3.88] [%clk 0:03:55] } (12... Kh8 13. cxd5 exd5 14. Bd3 Qd6 15. Bg3 Qd7 16. Kb1 Nh5 17. a3 Rab8 18. Qc2) 13. Bd3?? { (3.88 → 1.76) Blunder. cxd5 was best. } { [%eval 1.76] [%clk 0:03:24] } (13. cxd5 Nb8 14. e4 Kh8 15. dxe5 Rxe5 16. Bg3 Nbd7 17. Bxe5 Nxe5 18. Qe3 Qe7) 13... exd4?? { (1.76 → 5.59) Blunder. g5 was best. } { [%eval 5.59] [%clk 0:03:44] } (13... g5 14. Bc2 exd4 15. exd4 Kf8 16. Bg3 dxc4 17. h4 Nd5 18. hxg5 hxg5 19. Be4) 14. exd4 { [%eval 5.4] [%clk 0:03:25] } 14... Nxd4?! { (5.40 → 7.87) Inaccuracy. Nh5 was best. } { [%eval 7.87] [%clk 0:03:33] } (14... Nh5 15. Bxd8 dxc4 16. Bxc4 Raxd8 17. Qxh6 Ne5 18. dxe5 Rxd1+ 19. Kxd1 Rxe5) 15. Qxh6 { [%eval 7.59] [%clk 0:03:05] } 15... Ne2+? { (7.59 → Mate in 23) Checkmate is now unavoidable. Ne6 was best. } { [%eval #23] [%clk 0:02:40] } (15... Ne6 16. Rxg7+ Kf8 17. Rgg1+ Ke7 18. Bxf6+ Kd6 19. Be4 Kc6 20. Rxd5) 16. Bxe2 { [%eval #22] [%clk 0:03:05] } 16... Nh5 { [%eval #4] [%clk 0:02:33] } 17. Bxd8? { (Mate in 4 → 7.76) Lost forced checkmate sequence. Rxg7+ was best. } { [%eval 7.76] [%clk 0:03:00] } (17. Rxg7+ Nxg7 18. Rg1 Qg5+ 19. Qxg5 Rxe2 20. Qxg7#) 17... Raxd8 { [%eval 7.79] [%clk 0:02:19] } 18. Bd3 { [%eval 7.6] [%clk 0:02:40] } 18... Kf8 { [%eval 7.96] [%clk 0:02:14] } 19. Qxh5 { [%eval 7.87] [%clk 0:02:33] } 19... Ke7? { (7.87 → Mate in 5) Checkmate is now unavoidable. Re6 was best. } { [%eval #5] [%clk 0:01:55] } (19... Re6 20. Qh8+ Ke7 21. Qh4+ Kd7 22. Rxg7 Rde8 23. Bf5 Kc8 24. Bxe6+ fxe6 25. Qf4) 20. Rge1+ { [%eval #4] [%clk 0:02:29] } 20... Kd7 { [%eval #4] [%clk 0:01:56] } 21. Rxe8 { [%eval #6] [%clk 0:02:29] } 21... Rxe8 { [%eval #5] [%clk 0:01:57] } 22. Qxd5+ { [%eval #4] [%clk 0:02:27] } 22... Kc8 { [%eval #3] [%clk 0:01:55] } 23. Bf5+ { [%eval #2] [%clk 0:02:24] } 23... Kb8 { [%eval #2] [%clk 0:01:51] } 24. Qd8+ { [%eval #1] [%clk 0:02:25] } 24... Rxd8 { [%eval #1] [%clk 0:01:50] } 25. Rxd8# { [%clk 0:02:25] } { White wins by checkmate. } 1-0
 
 """
+,
+"""
+[Event "Immortal Game"]
+[Site "London"]
+[Date "1851.06.21"]
+[Round "?"]
+[White "Adolf Anderssen"]
+[Black "Lionel Kieseritzky"]
+[Result "1-0"]
 
+1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ 4.Kf1 b5 5.Bxb5 Nf6 6.Nf3 Qh6 7.d3 Nh5 8.Nh4 Qg5
+9.Nf5 c6 10.g4 Nf6 11.Rg1 cxb5 12.h4 Qg6 13.h5 Qg5 14.Qf3 Ng8 15.Bxf4 Qf6
+16.Nc3 Bc5 17.Nd5 Qxb2 18.Bd6 Bxg1 19.e5 Qxa1+ 20.Ke2 Na6 21.Nxg7+ Kd8
+22.Qf6+ Nxf6 23.Be7# 1-0
+    """,
+"""
+[Event "Opera Game"]
+[Site "Paris"]
+[Date "1858.??.??"]
+[Round "?"]
+[White "Paul Morphy"]
+[Black "Duke of Brunswick & Count Isouard"]
+[Result "1-0"]
 
+1.e4 e5 2.Nf3 d6 3.d4 Bg4 4.dxe5 Bxf3 5.Qxf3 dxe5 6.Bc4 Nf6 7.Qb3 Qe7 8.Nc3 c6
+9.Bg5 b5 10.Nxb5 cxb5 11.Bxb5+ Nbd7 12.O-O-O Rd8 13.Rxd7 Rxd7 14.Rd1 Qe6
+15.Bxd7+ Nxd7 16.Qb8+ Nxb8 17.Rd8# 1-0
+    """,
+ """
+[Event "World Championship"]
+[Site "Reykjavik"]
+[Date "1972.07.23"]
+[Round "6"]
+[White "Robert James Fischer"]
+[Black "Boris Spassky"]
+[Result "1-0"]
+
+1.c4 e6 2.Nc3 d5 3.d4 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 b6 8.cxd5 Nxd5
+9.Bxe7 Qxe7 10.Nxd5 exd5 11.Rc1 Be6 12.Qa4 c5 13.Qa3 Rc8 14.Bb5 a6 15.dxc5
+bxc5 16.O-O Ra7 17.Be2 Nd7 18.Nd4 Qf8 19.Nxe6 fxe6 20.e4 d4 21.f4 Qe7
+22.e5 Rb8 23.Bc4 Kh8 24.Qh3 Nf8 25.b3 a5 26.a4 Rd7 27.Rf3 Rbd8 28.Rd1 Qf7
+29.f5 Qe8 30.f6 Qg6 31.Bd3 Qg5 32.Re1 Qd2 33.Ref1 Qg5 34.Re1 Qd2 35.Ref1
+Qg5 36.Rg3 Qxe5 37.fxg7+ Rxg7 38.Qxh6+ Nh7 39.Rxg7 Qxg7 40.Qxe6 Rg8
+41.g3 Qg5 42.Rf4 Qh5 43.Be2 Qg5 44.Bd3 Qh5 45.Kg2 Re8 46.Qd7 Nf8 47.Qd6
+Kg8 48.Bc4+ Kg7 49.Qf6+ Kh7 50.Rh4 Qxh4 51.Qxh4+ Kg7 52.Qf6+ Kh7
+53.Bd3+ Kg8 54.Bc4+ 1-0
+    """
+    ,
+ """
+[Event "IBM Man-Machine"]
+[Site "New York, NY USA"]
+[Date "1997.05.11"]
+[EventDate "?"]
+[Round "6"]
+[Result "1-0"]
+[White "Deep Blue (Computer)"]
+[Black "Garry Kasparov"]
+[ECO "B17"]
+[WhiteElo "?"]
+[BlackElo "?"]
+[PlyCount "37"]
+
+1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7 5.Ng5 Ngf6 6.Bd3 e6
+7.N1f3 h6 8.Nxe6 Qe7 9.O-O fxe6 10.Bg6+ Kd8 11.Bf4 b5 12.a4
+Bb7 13.Re1 Nd5 14.Bg3 Kc8 15.axb5 cxb5 16.Qd3 Bc6 17.Bf5 exf5
+18.Rxe7 Bxe7 19.c4 1-0
+        """
 ]

@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import base64
 import chess.svg
+import re
 
 from utils.eval_utils import *
 from assets import *
@@ -396,15 +397,15 @@ def display_graph(current_index=None):
         )
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
+
+
 def display_quality_table():
 
     df = pd.DataFrame(st.session_state.analysis)
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
-    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "Inconnu"
-    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "Inconnu"
-
-
+    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
+    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
 
     df["joueur"] = [white_name if i % 2 == 0 else black_name for i in range(len(df))]
     recap = (
@@ -655,17 +656,64 @@ def render_eval_bar():
 def display_game_result():
     if "pgn_last" not in st.session_state or not st.session_state.pgn_last:
         return
-    result = st.session_state.pgn_last.split("[Result \"")[1].split("\"]")[0] if "[Result \"" in st.session_state.pgn_last else "?"
+    
+    pgn = st.session_state.pgn_last
+
+    # Résultat : recherche la balise [Result "..."] ou la ligne "1-0", "0-1", "1/2-1/2"
+    result = None
+    m = re.search(r'\[Result\s+"([^"]+)"\]', pgn)
+    if m:
+        result = m.group(1)
+    else:
+        # Fallback : cherche la dernière occurrence de 1-0, 0-1, 1/2-1/2 dans le texte
+        m = re.findall(r'(1-0|0-1|1/2-1/2)', pgn)
+        if m:
+            result = m[-1]
+        else:
+            result = "?"
+
     if result == "1-0":
         winner_color = "⬜"
     elif result == "0-1":
         winner_color = "⬛"
-    else:
+    elif result in ("1/2-1/2", "½-½"):
         winner_color = "🟰"
-    termination = st.session_state.pgn_last.split("[Termination \"")[1].split("\"]")[0] if "[Termination \"" in st.session_state.pgn_last else "Inconnu"
-    chess_com_link = st.session_state.pgn_last.split("[Link \"")[1].split("\"]")[0] if "[Link \"" in st.session_state.pgn_last else None
+    else:
+        winner_color = "❓"
 
+    # Affichage de la terminaison
+    termination = None
+    is_chesscom = "chess.com" in pgn.lower()
+    m = re.search(r'\[Termination\s+"([^"]+)"\]', pgn)
+    if is_chesscom and m:
+        termination = m.group(1)
+    else:
+        # Pour tout le reste (lichess, parties historiques, etc.), on reconstruit à partir du résultat
+        if result == "1-0":
+            termination = "Victoire des Blancs"
+        elif result == "0-1":
+            termination = "Victoire des Noirs"
+        elif result in ("1/2-1/2", "½-½"):
+            termination = "Partie nulle"
+        else:
+            termination = "Résultat inconnu"
+
+    # Lien Chess.com ou Lichess
+    link = None
+    m = re.search(r'\[Link\s+"([^"]+)"\]', pgn)
+    if m:
+        link = m.group(1)
+    else:
+        # Lichess Site "https://lichess.org/FLYtItYV"] ou [GameId "FLYtItYV"]: [
+        m = re.search(r'\[Site\s+"(https?://lichess\.org/[\w\d]+)"\]', pgn)
+        if m:
+            link = m.group(1)
+        else:
+            m = re.search(r'\[GameId\s+"([\w\d]+)"\]', pgn)
+            if m:
+                link = f"https://lichess.org/{m.group(1)}"
+    
     with st.container(border=False):
         st.markdown(f"{winner_color}**{termination}**", unsafe_allow_html=False)
-        st.page_link(label=":blue[Lien de la partie]",page=chess_com_link,use_container_width=True,icon=":material/open_in_new:") if chess_com_link else None
-
+        if link:
+            st.page_link(label=":blue[Lien de la partie]", page=link, use_container_width=True, icon=":material/open_in_new:")

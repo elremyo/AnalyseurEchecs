@@ -7,7 +7,6 @@ from utils.display import *
 from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path, can_use_clipboard
-from utils.famous_games import *
 from utils.debug_pgn_samples import *
 from utils.gif_images import *
 
@@ -19,20 +18,19 @@ init_session_state()
 st.header("Road to 1000 ELO", anchor=False)
 
 
-if st.button("Options",
-            key="open_parameters",
-            help="Ouvrir les paramètres de l'analyseur",
-            icon=":material/settings:",
-            type="secondary"
-            ):
-    open_parameters()
-
-
 col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
 
 with col_pgn:
 
- # Sélecteur de partie d'exemple
+    if st.button("Options",
+                key="open_parameters",
+                help="Ouvrir les paramètres de l'analyseur",
+                icon=":material/settings:",
+                type="secondary"
+                ):
+        open_parameters()
+
+    # Sélecteur de partie d'exemple
     sample_labels = []
     for idx, pgn in enumerate(sample_games):
         # On extrait les noms des joueurs et la date pour l'affichage
@@ -85,7 +83,6 @@ with col_pgn:
     if st.session_state.analysis:
         st.divider()
         display_game_result()
-        st.divider()
         display_quality_table()
     else:
         st.divider()
@@ -101,8 +98,7 @@ with col_pgn:
                 "3. Sélectionnez l'option **Copier le PGN**.\n"
                 "4. Collez-le dans le champ ci-dessus."
             )
-        st.markdown(":material/info: **Bon à savoir !**")
-        st.markdown("Si un PGN est déjà copié dans votre presse-papiers, il est automatiquement détecté et collé dans le champ ci-dessus. Il ne reste plus qu'à analyser !")
+
 
         st.session_state.analysis = None
         st.session_state.white_name = None
@@ -159,17 +155,3 @@ with col_datas:
         st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
         st.image(get_random_gif(), use_container_width=True)
         st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")
-        st.caption("Ou découvrez une partie célèbre :")
-
-        if st.button("🎓 Charger une partie célèbre", use_container_width=True):
-            selected_game = get_random_game()
-            example_pgn = selected_game["pgn"]
-
-
-            st.session_state.pgn_last = example_pgn
-            st.session_state.analysis, st.session_state.white_name, st.session_state.black_name = analyze_game(
-                example_pgn, st.session_state.user_depth, stockfish_path, book_path
-            )
-            st.session_state.move_index = 0
-            st.rerun()
-
