@@ -278,7 +278,6 @@ def display_move_description():
     coup_joué = coup_data.get("coup", "Inconnu")
     qualite = coup_data.get("qualité", "Non précisée")
     img_path = quality_images.get(qualite)
-    eval_cp = coup_data.get("eval", "N/A")
     est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
     est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
     color_best = quality_colors.get("Meilleur", "black")
