@@ -473,11 +473,11 @@ def display_moves_recap():
 
     with st.container(border=False,height=400):
         for i in range(0, len(analysis), 2):
-            col_num_coup,col_qual_blanc,col_coup_blanc,col_qual_noir,col_coup_noir = st.columns([1, 4, 1, 4, 1],vertical_alignment="center")
+            col_num_coup,col_qual_blanc,col_coup_blanc,col_qual_noir,col_coup_noir = st.columns([1, 3, 1, 3, 1],vertical_alignment="center")
             move_number = i // 2 + 1
 
             with col_num_coup:
-                st.markdown(f"{move_number}.")
+                st.markdown(f"&nbsp;:small[{move_number}].",unsafe_allow_html=True)
 
             qualite_w = analysis[i].get("qualité", "Non précisée")
             img_w = quality_images.get(qualite_w)
