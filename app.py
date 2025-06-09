@@ -84,6 +84,8 @@ with col_pgn:
 
     if st.session_state.analysis:
         st.divider()
+        display_game_result()
+        st.divider()
         display_quality_table()
     else:
         st.divider()

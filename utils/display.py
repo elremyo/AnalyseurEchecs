@@ -400,14 +400,19 @@ def display_graph(current_index=None):
 def display_quality_table():
 
     df = pd.DataFrame(st.session_state.analysis)
-    white = st.session_state.white_name
-    black = st.session_state.black_name
-    df["joueur"] = [white if i % 2 == 0 else black for i in range(len(df))]
+    white_name = st.session_state.white_name
+    black_name = st.session_state.black_name
+    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "Inconnu"
+    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "Inconnu"
+
+
+
+    df["joueur"] = [white_name if i % 2 == 0 else black_name for i in range(len(df))]
     recap = (
         df.groupby(["qualité", "joueur"])
         .size()
         .unstack(fill_value=0)
-        .reindex(columns=[white, black], fill_value=0)
+        .reindex(columns=[white_name, black_name], fill_value=0)
         .reindex(index=[
             #"Brillant", 
             #"Critique", 
@@ -416,21 +421,22 @@ def display_quality_table():
         ], fill_value=0)
         )
 
-    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
+    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False,vertical_alignment="bottom")
     with col_quality:
         pass        
     with col_white:
-        st.markdown(f"**{white}**")        
+        st.markdown(f"◻️**{white_name}** :small[:grey[({white_elo})]]")
+        
     with col_image:
         pass
     with col_black:
-        st.markdown(f"**{black}**")        
+        st.markdown(f"◼️**{black_name}** \n :small[:grey[({black_elo})]]")    
 
 
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
-        value_white = row[white]
-        value_black = row[black]
+        value_white = row[white_name]
+        value_black = row[black_name]
         img_path = quality_images.get(qualite)
 
         col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
@@ -646,3 +652,21 @@ def render_eval_bar():
     )
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
+
+def display_game_result():
+    if "pgn_last" not in st.session_state or not st.session_state.pgn_last:
+        return
+    result = st.session_state.pgn_last.split("[Result \"")[1].split("\"]")[0] if "[Result \"" in st.session_state.pgn_last else "?"
+    if result == "1-0":
+        winner_color = "⬜"
+    elif result == "0-1":
+        winner_color = "⬛"
+    else:
+        winner_color = "🟰"
+    termination = st.session_state.pgn_last.split("[Termination \"")[1].split("\"]")[0] if "[Termination \"" in st.session_state.pgn_last else "Inconnu"
+    chess_com_link = st.session_state.pgn_last.split("[Link \"")[1].split("\"]")[0] if "[Link \"" in st.session_state.pgn_last else None
+
+    with st.container(border=False):
+        st.markdown(f"{winner_color}**{termination}**", unsafe_allow_html=False)
+        st.page_link(label=":blue[Lien de la partie]",page=chess_com_link,use_container_width=True,icon=":material/open_in_new:") if chess_com_link else None
+
