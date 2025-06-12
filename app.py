@@ -172,3 +172,8 @@ with col_datas:
         # Afficher le coup joué et le meilleur coup
         display_move_description()
         display_moves_recap()
+
+    else:
+            st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
+            st.image(get_random_gif(), use_container_width=True)
+            st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")

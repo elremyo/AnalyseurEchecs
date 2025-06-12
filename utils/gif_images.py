@@ -1,5 +1,9 @@
 import random
 import requests
+import os
+
+assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
 
 chess_gifs = [
     "https://gifdb.com/images/high/cute-cats-fighting-over-chess-game-zpyt9q36qznawkc1.webp",
@@ -23,4 +27,4 @@ def get_random_gif():
                 return gif
         except:
             continue
-    return "https://gifdb.com/images/high/chess-checkmate-natasha-lyonne-yhuv4j4bowlr0e0k.webp" 
+    return os.path.join(assets_path, 'checkmate_gif.gif')
