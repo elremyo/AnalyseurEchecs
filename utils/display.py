@@ -5,6 +5,7 @@ import pandas as pd
 import base64
 import chess.svg
 import re
+from streamlit_avatar import avatar
 
 from utils.eval_utils import *
 from assets import *
@@ -97,6 +98,34 @@ def open_parameters():
         st.session_state.show_threat_arrows = show_threat_arrows
 
     dialog()
+
+def display_players_name_for_board(color="white", height=50):
+
+    if "analysis" not in st.session_state or not st.session_state.analysis:
+        return
+    if color == "white":
+        with st.container(border=False,height=height):
+            avatar([{
+                "url": "https://raw.githubusercontent.com/elremyo/chess-assets/refs/heads/main/white_king.png",
+                "size": 35,
+                "title": f"{white_name}",
+                "caption": f"({white_elo})",
+                "key": "avatar1",
+            }])
+            #st.markdown(f"◻️ {white_name} :grey[({white_elo})]")
+    elif color == "black":
+        with st.container(border=False,height=height):
+            avatar([{
+                "url": "https://raw.githubusercontent.com/elremyo/chess-assets/refs/heads/main/black_king.png",
+                "size": 35,
+                "title": f"{black_name}",
+                "caption": f"({black_elo})",
+                "key": "avatar1",
+            }])
+            #st.markdown(f"◼️ {black_name} :grey[({black_elo})]")
+    else:
+        st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
+    
 
 
 def render_navigation_buttons(max_index):
@@ -277,18 +306,6 @@ def render_board(board, last_move=None, flipped=False):
     # Ajoute l'icône sur la case cible du dernier coup joué
     if last_move and quality_path:
         svg = inject_quality_on_square(svg, last_move.to_square, quality_path, flipped)
-
-    def display_players_name_for_board(color="white", height=21):
-        if "analysis" not in st.session_state or not st.session_state.analysis:
-            return
-        if color == "white":
-            with st.container(border=False,height=height):
-                st.markdown(f"◻️ {white_name} :grey[({white_elo})]")
-        elif color == "black":
-            with st.container(border=False,height=height):
-                st.markdown(f"◼️ {black_name} :grey[({black_elo})]")
-        else:
-            st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
 
     if st.session_state.analysis:
         if flipped:
@@ -764,6 +781,7 @@ def display_game_result():
                 link = f"https://lichess.org/{m.group(1)}"
     
     with st.container(border=False):
-        st.markdown(f"{winner_color}**{termination}**", unsafe_allow_html=False)
         if link:
-            st.page_link(label=":blue[Lien de la partie]", page=link, use_container_width=True, icon=":material/open_in_new:")
+            st.markdown(f"{winner_color}**{termination}** (:material/open_in_new: [Lien de la partie]({link}))")
+        else:
+            st.markdown(f"{winner_color}**{termination}**")
