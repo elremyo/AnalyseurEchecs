@@ -43,6 +43,9 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     moves = list(game.mainline_moves())
     total_moves = len(moves)
     progress_bar = st.progress(0, text="Préparation de l'analyse")
+    caption_placeholder = st.empty()
+    caption_placeholder.caption("Si l'analyse est trop longue, vous pouvez diminuer la profondeur d'analyse dans les options.")
+
 
     # Ouvre le book une seule fois ici
     book_reader = None
@@ -112,6 +115,8 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         progress_bar.progress((idx + 1) / total_moves, text=f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
 
     progress_bar.empty()  # Retire la barre à la fin
+    caption_placeholder.empty()
+
 
     # Ferme le book à la fin
     if book_reader:
