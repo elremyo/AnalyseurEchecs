@@ -50,6 +50,12 @@ quality_board_colors = {
 "Brillant":("#1baa9b", "#1baa9b")  
 }
 
+white_name = st.session_state.white_name
+black_name = st.session_state.black_name
+white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
+black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
+
+
 
 def set_page_style():
     """Applique le style global de la page."""
@@ -184,7 +190,10 @@ def inject_quality_on_square(svg, square, quality_path, flipped=False):
     return svg
 
 
+
+
 def render_board(board, last_move=None, flipped=False):
+
     move_index = st.session_state.get("move_index", 0)
 
     arrows = []
@@ -269,9 +278,36 @@ def render_board(board, last_move=None, flipped=False):
     if last_move and quality_path:
         svg = inject_quality_on_square(svg, last_move.to_square, quality_path, flipped)
 
+    def display_players_name_for_board(color="white", height=21):
+        if "analysis" not in st.session_state or not st.session_state.analysis:
+            return
+        if color == "white":
+            with st.container(border=False,height=height):
+                st.markdown(f"◻️ {white_name} :grey[({white_elo})]")
+        elif color == "black":
+            with st.container(border=False,height=height):
+                st.markdown(f"◼️ {black_name} :grey[({black_elo})]")
+        else:
+            st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
+
+    if st.session_state.analysis:
+        if flipped:
+            display_players_name_for_board("white")
+        else:
+            display_players_name_for_board("black")
+    
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
     st.write(html, unsafe_allow_html=True)
+
+    if st.session_state.analysis:
+        if flipped:
+            display_players_name_for_board("black")
+        else:
+            display_players_name_for_board("white")
+
+
+
 
 
 def display_move_description():
@@ -419,11 +455,8 @@ def display_graph(current_index=None):
 def display_quality_table():
 
     df = pd.DataFrame(st.session_state.analysis)
-    white_name = st.session_state.white_name
-    black_name = st.session_state.black_name
-    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
-    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
 
+ 
     df["joueur"] = [white_name if i % 2 == 0 else black_name for i in range(len(df))]
     recap = (
         df.groupby(["qualité", "joueur"])
@@ -437,17 +470,17 @@ def display_quality_table():
             "Imprécision", "Erreur", "Gaffe", "Théorique"
         ], fill_value=0)
         )
-
-    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False,vertical_alignment="bottom")
+    
+    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False,vertical_alignment="center")
     with col_quality:
         pass        
     with col_white:
-        st.markdown(f"◻️**{white_name}** :small[:grey[({white_elo})]]")
+        st.markdown(f"**{white_name}**")
         
     with col_image:
         pass
     with col_black:
-        st.markdown(f"◼️**{black_name}** \n :small[:grey[({black_elo})]]")    
+        st.markdown(f"**{black_name}**")    
 
 
     for qualite, row in recap.iterrows():
