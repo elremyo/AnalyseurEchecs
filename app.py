@@ -1,10 +1,11 @@
 import streamlit as st
 import chess
 
+from utils.session import *
+init_session_state()
 
 from engine.analysis import *
 from utils.display import *
-from utils.session import *
 from utils.display import *
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.debug_pgn_samples import *
@@ -13,7 +14,6 @@ from utils.gif_images import *
 
 
 set_page_style()
-init_session_state()
 
 st.header("Road to 1000 ELO", anchor=False)
 
