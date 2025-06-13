@@ -5,7 +5,6 @@ import io
 import base64
 import streamlit as st
 
-from utils.display import *
 from utils.eval_utils import *
 from stockfish import Stockfish
 

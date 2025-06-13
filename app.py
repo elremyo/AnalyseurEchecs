@@ -2,20 +2,34 @@ import streamlit as st
 import chess
 
 from utils.session import *
+
 init_session_state()
 
-from engine.analysis import *
-from utils.display import *
-from utils.display import *
+from display.style import set_page_style
+from display.board import render_board
+from display.navigation import render_navigation_buttons, display_moves_slider
+from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality
+from display.graph import render_moves_graph, render_score_bar
+from display.result import display_game_result
+from engine.analysis import load_pgn, analyze_game
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.debug_pgn_samples import *
 from utils.gif_images import *
 
 
-
 set_page_style()
-
 st.header("Road to 1000 ELO", anchor=False)
+
+def open_parameters():
+    @st.dialog(title="Options")
+    def dialog():
+        user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
+        st.session_state.user_depth = user_depth
+        show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
+        st.session_state.show_best_arrow = show_best_arrow
+        show_threat_arrows = st.toggle("Afficher la meilleure continuation", value=st.session_state.get("show_threat_arrows", False))
+        st.session_state.show_threat_arrows = show_threat_arrows
+    dialog()
 
 
 col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
@@ -83,7 +97,7 @@ with col_pgn:
     if st.session_state.analysis:
         st.divider()
         display_game_result()
-        display_quality_table()
+        display_total_moves_by_quality()
     else:
         st.divider()
         st.subheader("✨ Coller un PGN pour commencer l'analyse", anchor=False)
@@ -137,7 +151,7 @@ with col_board:
                     st.session_state.move_index = slider_value
                 st.session_state._last_slider_value = slider_value
 
-            render_eval_bar()
+            render_score_bar()
             render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
 
         except Exception as e:
@@ -165,10 +179,10 @@ with col_datas:
             st.session_state._last_slider_value = st.session_state.move_index_slider - 1
 
         # Afficher l'histogramme
-        display_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
+        render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
         # Afficher le coup joué et le meilleur coup
         display_move_description()
-        display_moves_recap()
+        display_all_moves_recap()
 
     else:
             st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
