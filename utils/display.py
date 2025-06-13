@@ -52,11 +52,6 @@ quality_board_colors = {
 "Brillant":("#1baa9b", "#1baa9b")  
 }
 
-white_name = st.session_state.white_name
-black_name = st.session_state.black_name
-white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
-black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
-
 
 
 def set_page_style():
@@ -101,6 +96,12 @@ def open_parameters():
     dialog()
 
 def display_players_name_for_board(color="white", height=50):
+
+    white_name = st.session_state.white_name
+    black_name = st.session_state.black_name
+    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
+    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
+
 
     if "analysis" not in st.session_state or not st.session_state.analysis:
         return
@@ -473,6 +474,8 @@ def display_graph(current_index=None):
 def display_quality_table():
 
     df = pd.DataFrame(st.session_state.analysis)
+    white_name = st.session_state.white_name
+    black_name = st.session_state.black_name
 
  
     df["joueur"] = [white_name if i % 2 == 0 else black_name for i in range(len(df))]
