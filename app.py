@@ -11,8 +11,9 @@ from display.navigation import render_navigation_buttons, display_moves_slider
 from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import load_pgn, analyze_game, find_key_moments
+from engine.analysis import load_pgn, analyze_game
 from utils.assets import stockfish_path, book_path, can_use_clipboard
+from utils.eval_utils import get_winner
 from utils.debug_pgn_samples import *
 from utils.gif_images import *
 
@@ -81,7 +82,12 @@ with col_pgn:
             placeholder="Collez ici le PGN de la partie",
             height=420,
             value=st.session_state.get("pgn_last", pgn_clipboard)
-        )    
+        )
+
+    winner=get_winner(pgn_text) if pgn_text else None
+
+
+
     if st.button("Analyser",
                  disabled=not pgn_text.strip(),
                  type="primary",
@@ -180,7 +186,7 @@ with col_datas:
 
         render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
         display_move_description()
-        display_key_moments()
+        display_key_moments(winner=winner)
         st.divider()
         display_all_moves_recap()
 

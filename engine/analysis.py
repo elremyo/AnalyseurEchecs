@@ -118,24 +118,64 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     return analysis, white_player, black_player
 
 
-def find_key_moments(analysis, threshold):
-    """
-    Retourne la liste des indices des coups où l'évaluation change de manière décisive.
-    threshold: centipawns (ex: 500 = 5 points d'écart)
-    """
-    key_moments = []
+def find_key_moments(analysis, threshold=500, min_gap_between_moments=2, winner=None):
+    determinants = []
+    critiques = []
     prev_eval = None
+
     for idx, move_info in enumerate(analysis):
         curr_eval = move_info.get("eval", 0)
+        curr_raw_eval = move_info.get("raw_eval", {})
+
+        # Ne pas considérer un coup qui mène directement au mat
+        if curr_raw_eval.get("type") == "mate" and curr_raw_eval.get("value") == 0:
+            prev_eval = curr_eval
+            continue
+
         if prev_eval is not None:
-            ecart_important = abs(curr_eval - prev_eval) > threshold
-            inversion_score = curr_eval * prev_eval < 0
-            score_quasi_egal = abs(curr_eval * prev_eval)<10000
-            ecart_moyen = abs(curr_eval - prev_eval) > threshold/2
+            delta = curr_eval - prev_eval
+            abs_delta = abs(delta)
 
-            if (ecart_important and inversion_score) or (score_quasi_egal and ecart_moyen):
-                if curr_eval !=1200:
-                    key_moments.append(idx)
+            # sustained_change vérifie que le changement d'évaluation est durable, 
+            # pour éviter de signaler des variations temporaires corrigées immédiatement après
+            sustained_change = True
+            if idx + 1 < len(analysis):
+                next_eval = analysis[idx + 1].get("eval", curr_eval)
+                delta_next = next_eval - curr_eval
+                if abs(delta_next) > abs_delta * 0.5:
+                    sustained_change = False
+
+            # Blunder extrême même s'il est corrigé ensuite
+            is_extreme_blunder = abs_delta > threshold * 2.5 or (prev_eval > 600 and curr_eval < -400)
+
+            is_blunder = (
+                (curr_eval * prev_eval < 0 and abs_delta > threshold)
+                or (abs(prev_eval) < threshold / 2 and abs(curr_eval) > threshold)
+                or (abs_delta > threshold * 1.5)
+                or is_extreme_blunder
+            ) 
+
+            if is_blunder and (sustained_change or is_extreme_blunder):
+                if winner:
+                    winning_eval_sign = 1 if winner == "white" else -1
+                    # Si l'erreur va à l'encontre du résultat final => critique
+                    if curr_eval * winning_eval_sign > 0:
+                        determinants.append(idx)
+                    else:
+                        critiques.append(idx)
+                else:
+                    determinants.append(idx)
+
         prev_eval = curr_eval
-    return key_moments
 
+    def filter_moments(moment_list):
+        filtered = []
+        for i in range(len(moment_list)):
+            if i == 0 or moment_list[i] - filtered[-1] >= min_gap_between_moments:
+                filtered.append(moment_list[i])
+        return filtered
+
+    return {
+        "moments_determinants": filter_moments(determinants),
+        "moments_critiques": filter_moments(critiques)
+    }
