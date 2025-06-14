@@ -8,10 +8,10 @@ init_session_state()
 from display.style import set_page_style
 from display.board import render_board
 from display.navigation import render_navigation_buttons, display_moves_slider
-from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality
+from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import load_pgn, analyze_game
+from engine.analysis import load_pgn, analyze_game, find_key_moments
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.debug_pgn_samples import *
 from utils.gif_images import *
@@ -178,11 +178,12 @@ with col_datas:
                 st.session_state.move_index_slider = st.session_state.move_index + 1
             st.session_state._last_slider_value = st.session_state.move_index_slider - 1
 
-        # Afficher l'histogramme
         render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
-        # Afficher le coup joué et le meilleur coup
         display_move_description()
+        display_key_moments()
+        st.divider()
         display_all_moves_recap()
+
 
     else:
             st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)

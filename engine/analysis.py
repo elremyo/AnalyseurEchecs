@@ -1,11 +1,9 @@
 import chess.pgn
 import chess.polyglot
-import chess.svg
 import io
-import base64
 import streamlit as st
 
-from utils.eval_utils import *
+from utils.eval_utils import convert_eval_to_cp, get_quality, get_winner
 from stockfish import Stockfish
 
 def load_pgn(pgn: str) -> chess.pgn.Game:
@@ -45,8 +43,7 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     caption_placeholder = st.empty()
     caption_placeholder.caption("Si l'analyse est trop longue, vous pouvez diminuer la profondeur d'analyse dans les options.")
 
-
-    # Ouvre le book une seule fois ici
+    #Ouverture du livre des coups théoriques
     book_reader = None
     if book_path:
         try:
@@ -77,8 +74,6 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         threats = []
         top_moves = stockfish.get_top_moves(2)
         threats = [m['Move'] for m in top_moves if m['Move'] != best_move][:1]
-
-
 
         # Calcul du delta
         delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
@@ -113,16 +108,34 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         percent = int(((idx + 1) / total_moves) * 100)
         progress_bar.progress((idx + 1) / total_moves, text=f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
 
-    progress_bar.empty()  # Retire la barre à la fin
+    progress_bar.empty()  
     caption_placeholder.empty()
 
-
-    # Ferme le book à la fin
+    #Fermeture du livre des coups théoriques
     if book_reader:
         book_reader.close()
 
     return analysis, white_player, black_player
 
 
+def find_key_moments(analysis, threshold):
+    """
+    Retourne la liste des indices des coups où l'évaluation change de manière décisive.
+    threshold: centipawns (ex: 500 = 5 points d'écart)
+    """
+    key_moments = []
+    prev_eval = None
+    for idx, move_info in enumerate(analysis):
+        curr_eval = move_info.get("eval", 0)
+        if prev_eval is not None:
+            ecart_important = abs(curr_eval - prev_eval) > threshold
+            inversion_score = curr_eval * prev_eval < 0
+            score_quasi_egal = abs(curr_eval * prev_eval)<10000
+            ecart_moyen = abs(curr_eval - prev_eval) > threshold/2
 
+            if (ecart_important and inversion_score) or (score_quasi_egal and ecart_moyen):
+                if curr_eval !=1200:
+                    key_moments.append(idx)
+        prev_eval = curr_eval
+    return key_moments
 

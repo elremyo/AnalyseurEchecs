@@ -3,6 +3,7 @@ import base64
 import pandas as pd
 
 from display.constants import quality_images, quality_colors
+from engine.analysis import find_key_moments
 
 
 
@@ -118,8 +119,8 @@ def display_move_description():
                 st.markdown(
                     f"<div style='text-align:left; font-weight:bold;'>"
                     f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
-                    f"<span>{description}</span> "
-                    f"{meilleur_coup_html}"
+                    f"<span>{description}</span>"
+                    f"<span>{meilleur_coup_html}</span>"
                     f"</div>",
                     unsafe_allow_html=True
                 )
@@ -190,3 +191,22 @@ def display_all_moves_recap():
                         use_container_width=True,
                         type="tertiary"
                     )
+
+def display_key_moments(threshold=400):
+    # Moments marquants
+    key_moments = find_key_moments(st.session_state.analysis,threshold)
+
+    st.markdown("⚡ **Moments marquants de la partie**")
+    if key_moments:
+        for idx in key_moments:
+            move_info = st.session_state.analysis[idx]
+            move_num = idx + 1
+            coup = move_info["coup"]
+            eval_cp = move_info["eval"]
+            quality = move_info["qualité"]
+            st.markdown(
+                f"- **Coup {move_num} ({coup})** : Bascule décisive ({eval_cp/100:+}, {quality})"
+            )
+    else:
+        st.markdown("_Aucune bascule décisive détectée._")
+    

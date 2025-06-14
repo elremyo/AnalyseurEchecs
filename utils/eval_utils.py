@@ -81,3 +81,28 @@ def format_eval(e):
 def get_win_chance(cp):
     cp = max(min(cp, 1000), -1000)
     return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)
+
+def get_winner(pgn: str):
+    """
+    Retourne 'white', 'black', 'draw' ou None selon le résultat du PGN.
+    """
+    import re
+    # Recherche la balise [Result "..."] ou la dernière occurrence dans le texte
+    m = re.search(r'\[Result\s+"([^"]+)"\]', pgn)
+    if m:
+        result = m.group(1)
+    else:
+        m = re.findall(r'(1-0|0-1|1/2-1/2|½-½)', pgn)
+        if m:
+            result = m[-1]
+        else:
+            result = "?"
+
+    if result == "1-0":
+        return "white"
+    elif result == "0-1":
+        return "black"
+    elif result in ("1/2-1/2", "½-½"):
+        return "draw"
+    else:
+        return None
