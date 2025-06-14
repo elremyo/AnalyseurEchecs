@@ -192,12 +192,12 @@ def display_all_moves_recap():
                         type="tertiary"
                     )
 
-def display_key_moments(winner):
+def display_key_moments1(winner):
     analysis = st.session_state.analysis
-    user_name = st.session_state.get("user_name", "Vous")
+    username = st.session_state.get("username", "Vous")
     white = st.session_state.get("white_name", "Blanc")
 
-    user_color = "white" if user_name.lower() == white.lower() else "black"
+    user_color = "white" if username.lower() == white.lower() else "black"
 
     key_moments = find_key_moments(analysis, threshold= 500,min_gap_between_moments=2, winner=winner)
 
@@ -210,20 +210,89 @@ def display_key_moments(winner):
 
     if determinants:
         if winner == user_color:
-            st.markdown("✅ Tu gagnes la partie ici :")
+            st.markdown("✅ **Tu gagnes la partie ici :**")
         else:
-            st.markdown("❌ Tu perds la partie ici :")
+            st.markdown("❌ **Tu perds la partie ici :**")
 
         for idx in determinants:
             move_info = analysis[idx]
-            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : Bascule décisive ({move_info['eval']/100:+.1f}, {move_info['qualité']})")
+            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
 
     if critiques:
         if winner == user_color:
-            st.markdown("⚠️ Tu as failli tout perdre ici :")
+            st.markdown("⚠️ **Tu as failli tout perdre ici :**")
         else:
-            st.markdown("💥 Tu aurais pu gagner ici :")
+            st.markdown("💥 **Tu aurais pu gagner ici :**")
 
         for idx in critiques:
             move_info = analysis[idx]
-            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : Moment critique ({move_info['eval']/100:+.1f}, {move_info['qualité']})")
+            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
+
+def display_key_moments(winner): 
+    analysis = st.session_state.analysis
+    username = st.session_state.get("username", "Vous")
+    white = st.session_state.get("white_name", "Blanc")
+
+    user_color = "white" if username.lower() == white.lower() else "black"
+
+    key_moments = find_key_moments(
+        analysis,
+        threshold=500,
+        min_gap_between_moments=2,
+        winner=winner
+    )
+
+    determinants = key_moments["moments_determinants"]
+    critiques = key_moments["moments_critiques"]
+
+    def go_to_move(idx):
+        st.session_state.move_index = idx
+
+    if not determinants and not critiques:
+        st.markdown("_Aucun moment décisif détecté._")
+        return
+
+    if determinants:
+        if winner == user_color:
+            st.markdown("✅ **Tu gagnes la partie ici :**")
+        else:
+            st.markdown("❌ **Tu perds la partie ici :**")
+
+        for idx in determinants:
+            move_info = analysis[idx]
+            cols = st.columns([10, 1])
+            with cols[0]:
+                st.markdown(f"- **Coup {idx+2} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
+            with cols[1]:
+                st.button(
+                    ":material/search:",
+                    key=f"goto_det_{idx}",
+                    help="Aller au coup",
+                    on_click=go_to_move,
+                    args=(idx + 1,),
+                    use_container_width=True,
+                    type="tertiary"
+                )
+
+    if critiques:
+        if winner == user_color:
+            st.markdown("⚠️ **Tu as failli tout perdre ici :**")
+        else:
+            st.markdown("💥 **Tu aurais pu gagner ici :**")
+
+        for idx in critiques:
+            move_info = analysis[idx]
+            cols = st.columns([10, 1])
+            with cols[0]:
+                st.markdown(f"- **Coup {idx+2} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
+            with cols[1]:
+                st.button(
+                    ":material/search:",
+                    key=f"goto_crit_{idx}",
+                    help="Aller au coup",
+                    on_click=go_to_move,
+                    args=(idx + 1,),
+                    use_container_width=True,
+                    type="tertiary"
+                )
+

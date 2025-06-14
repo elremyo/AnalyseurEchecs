@@ -41,7 +41,8 @@ with col_pgn:
                 key="open_parameters",
                 help="Ouvrir les paramètres de l'analyseur",
                 icon=":material/settings:",
-                type="secondary"
+                type="secondary",
+                use_container_width=True
                 ):
         open_parameters()
 
@@ -103,6 +104,8 @@ with col_pgn:
     if st.session_state.analysis:
         st.divider()
         display_game_result()
+        display_key_moments(winner=winner)
+        st.divider()
         display_total_moves_by_quality()
     else:
         st.divider()
@@ -186,8 +189,6 @@ with col_datas:
 
         render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
         display_move_description()
-        display_key_moments(winner=winner)
-        st.divider()
         display_all_moves_recap()
 
 
