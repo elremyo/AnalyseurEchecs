@@ -2,10 +2,11 @@ import streamlit as st
 import re
 
 def display_game_result():
-    if "pgn_last" not in st.session_state or not st.session_state.pgn_last:
+
+    if "pgn_last_analyzed" not in st.session_state or not st.session_state.pgn_last_analyzed:
         return
     
-    pgn = st.session_state.pgn_last
+    pgn = st.session_state.pgn_last_analyzed
 
     # Résultat : recherche la balise [Result "..."] ou la ligne "1-0", "0-1", "1/2-1/2"
     result = None

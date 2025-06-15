@@ -4,6 +4,7 @@ def init_session_state():
     defaults = {
         "analysis": None,
         "pgn_last": "",
+        "pgn_last_analyzed": "",
         "white_name": "Blanc",
         "black_name": "Noir",
         "board_flipped": False,

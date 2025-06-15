@@ -99,6 +99,7 @@ with col_pgn:
         st.session_state.white_name = white_name
         st.session_state.black_name = black_name
         st.session_state.pgn_last = pgn_text
+        st.session_state.pgn_last_analyzed = pgn_text
         st.session_state.move_index = 0
 
     if st.session_state.analysis:
@@ -125,17 +126,18 @@ with col_pgn:
         st.session_state.white_name = None
         st.session_state.black_name = None
         st.session_state.pgn_last = None
+        st.session_state.pgn_last_analyzed = None
 
 
 with col_board:
 
     if st.session_state.analysis:
         try:
-            pgn_to_use = st.session_state.get("pgn_last", pgn_text)
+            max_index = len(st.session_state.analysis)
+            pgn_to_use = st.session_state.get("pgn_last_analyzed", pgn_text)
             game=load_pgn(pgn_to_use)
             board = chess.Board()
             moves = [move for move in game.mainline_moves()]
-            max_index = len(moves)
 
             # Initialisation de l'index du coup courant
             if "move_index" not in st.session_state:
