@@ -134,7 +134,9 @@ with col_board:
     if st.session_state.analysis:
         try:
             max_index = len(st.session_state.analysis)
-            pgn_to_use = st.session_state.get("pgn_last_analyzed", pgn_text)
+            pgn_to_use = st.session_state.get("pgn_last_analyzed", None)
+            if not pgn_to_use:
+                st.error("Aucune partie analysée à afficher.")
             game=load_pgn(pgn_to_use)
             board = chess.Board()
             moves = [move for move in game.mainline_moves()]
