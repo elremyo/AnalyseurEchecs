@@ -21,6 +21,8 @@ from utils.gif_images import *
 set_page_style()
 st.header("Road to 1000 ELO", anchor=False)
 
+dev_mode = False
+
 def open_parameters():
     @st.dialog(title="Options")
     def dialog():
@@ -46,26 +48,28 @@ with col_pgn:
                 ):
         open_parameters()
 
-    # Sélecteur de partie d'exemple
-    sample_labels = []
-    for idx, pgn in enumerate(sample_games):
-        # On extrait les noms des joueurs et la date pour l'affichage
-        lines = pgn.strip().splitlines()
-        white = next((l.split('"')[1] for l in lines if l.startswith('[White ')), f"White {idx+1}")
-        black = next((l.split('"')[1] for l in lines if l.startswith('[Black ')), f"Black {idx+1}")
-        date = next((l.split('"')[1] for l in lines if l.startswith('[Date ')), "")
-        sample_labels.append(f"{white} vs {black} ({date})")
 
-    selected_idx = st.selectbox(
-        "Sélectionner une partie d'exemple",
-        options=list(range(len(sample_games))),
-        format_func=lambda i: sample_labels[i],
-        key="sample_game_select"
-    )
+    if dev_mode:
+        # Sélecteur de partie d'exemple
+        sample_labels = []
+        for idx, pgn in enumerate(sample_games):
+            # On extrait les noms des joueurs et la date pour l'affichage
+            lines = pgn.strip().splitlines()
+            white = next((l.split('"')[1] for l in lines if l.startswith('[White ')), f"White {idx+1}")
+            black = next((l.split('"')[1] for l in lines if l.startswith('[Black ')), f"Black {idx+1}")
+            date = next((l.split('"')[1] for l in lines if l.startswith('[Date ')), "")
+            sample_labels.append(f"{white} vs {black} ({date})")
 
-    selected_pgn = sample_games[selected_idx].strip()
-    if st.session_state.get("pgn_last", "") != selected_pgn:
-        st.session_state.pgn_last = selected_pgn
+        selected_idx = st.selectbox(
+            "Sélectionner une partie d'exemple",
+            options=list(range(len(sample_games))),
+            format_func=lambda i: sample_labels[i],
+            key="sample_game_select"
+        )
+
+        selected_pgn = sample_games[selected_idx].strip()
+        if st.session_state.get("pgn_last", "") != selected_pgn:
+            st.session_state.pgn_last = selected_pgn
 
     if can_use_clipboard():
         import pyperclip
@@ -77,20 +81,20 @@ with col_pgn:
     else:
         pgn_clipboard = ""
 
-    with st.popover("Coller le PGN à analyser",use_container_width=True):
-        pgn_text = st.text_area(
-            "PGN de la partie :",
-            placeholder="Collez ici le PGN de la partie",
-            height=420,
-            value=st.session_state.get("pgn_last", pgn_clipboard)
-        )
+    pgn_text = st.text_area(
+        "PGN de la partie :",
+        placeholder="Collez ici le PGN de la partie",
+        height=150,
+        value=pgn_clipboard
+    )
+
 
     winner=get_winner(pgn_text) if pgn_text else None
 
 
 
     if st.button("Analyser",
-                 disabled=not pgn_text.strip(),
+                 disabled=not (pgn_text and pgn_text.strip()),
                  type="primary",
                  icon=":material/monitoring:",
                  use_container_width=True):
