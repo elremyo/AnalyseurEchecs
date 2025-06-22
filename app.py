@@ -145,6 +145,15 @@ with col_board:
             if "move_index" not in st.session_state:
                 st.session_state.move_index = 0
 
+            # --- Synchronisation slider <-> move_index AVANT d'afficher le board ---
+            if "move_index_slider" in st.session_state:
+                slider_value = st.session_state.move_index_slider - 1
+                if st.session_state.get("_last_slider_value", None) != slider_value:
+                    st.session_state.move_index = slider_value
+                elif st.session_state.move_index != slider_value:
+                    st.session_state.move_index_slider = st.session_state.move_index + 1
+                st.session_state._last_slider_value = st.session_state.move_index_slider - 1
+
             render_navigation_buttons(max_index)
             
             # Limite l'index dans les bornes
@@ -155,17 +164,10 @@ with col_board:
                 board.push(move)
 
             last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
-            
-            # Synchronisation slider <-> move_index
-            if "move_index_slider" in st.session_state:
-                slider_value = st.session_state.move_index_slider - 1
-                # On ne synchronise QUE si le slider a changé depuis le dernier run
-                if st.session_state.get("_last_slider_value", None) != slider_value:
-                    st.session_state.move_index = slider_value
-                st.session_state._last_slider_value = slider_value
 
             render_score_bar()
             render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
+
 
         except Exception as e:
             st.error(f"Erreur pendant l'analyse : {e}")
@@ -194,7 +196,6 @@ with col_datas:
         render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
         display_move_description()
         display_all_moves_recap()
-
 
     else:
             st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
