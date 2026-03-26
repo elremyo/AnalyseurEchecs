@@ -163,7 +163,7 @@ def display_all_moves_recap():
                     help=f"Aller au coup",
                     on_click=go_to_move,
                     args=(i + 1,),
-                    use_container_width=True,
+                    width='stretch',
                     type="tertiary"
                 )
 
@@ -188,7 +188,7 @@ def display_all_moves_recap():
                         help=f"Aller au coup",
                         on_click=go_to_move,
                         args=(i + 2,),
-                        use_container_width=True,
+                        width='stretch',
                         type="tertiary"
                     )
 
@@ -270,7 +270,7 @@ def display_key_moments(winner):
                     help="Aller au coup",
                     on_click=go_to_move,
                     args=(idx + 1,),
-                    use_container_width=True,
+                    width='stretch',
                     type="tertiary"
                 )
 
@@ -292,7 +292,7 @@ def display_key_moments(winner):
                     help="Aller au coup",
                     on_click=go_to_move,
                     args=(idx + 1,),
-                    use_container_width=True,
+                    width='stretch',
                     type="tertiary"
                 )
 

@@ -125,7 +125,7 @@ def render_score_bar():
         """,
         unsafe_allow_html=True
     )
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -213,5 +213,5 @@ def render_moves_graph(current_index=None):
             yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
             plot_bgcolor="#252423"
         )
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
 

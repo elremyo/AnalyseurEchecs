@@ -44,7 +44,7 @@ with col_pgn:
                 help="Ouvrir les paramètres de l'analyseur",
                 icon=":material/settings:",
                 type="secondary",
-                use_container_width=True
+                width='stretch'
                 ):
         open_parameters()
 
@@ -97,7 +97,7 @@ with col_pgn:
                  disabled=not (pgn_text and pgn_text.strip()),
                  type="primary",
                  icon=":material/monitoring:",
-                 use_container_width=True):
+                 width='stretch'):
         analysis, white_name, black_name = analyze_game(pgn_text, st.session_state.user_depth, stockfish_path,book_path)
         st.session_state.analysis = analysis
         st.session_state.white_name = white_name
@@ -203,5 +203,5 @@ with col_datas:
 
     else:
             st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
-            st.image(get_random_gif(), use_container_width=True)
+            st.image(get_random_gif(), width='stretch')
             st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")

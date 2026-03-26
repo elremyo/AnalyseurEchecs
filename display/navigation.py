@@ -6,35 +6,35 @@ def render_navigation_buttons(max_index):
     with col_flip:
         if st.button("", 
                      icon=":material/swap_vert:",
-                     use_container_width=True,
+                     width='stretch',
                      key="flip_board"):
             st.session_state.board_flipped = not st.session_state.board_flipped            
     with col_first:
         if st.button("",
                      icon=":material/first_page:",
                      help = "Premier coup",
-                     use_container_width=True,
+                     width='stretch',
                      key="first_move") and st.session_state.move_index > 0:
             st.session_state.move_index = 0
     with col_prev:
         if st.button("",
                      icon=":material/chevron_left:",
                      help = "Coup précédent",
-                     use_container_width=True,
+                     width='stretch',
                      key="prev_move") and st.session_state.move_index > 0:
             st.session_state.move_index -= 1
     with col_next:
         if st.button("",
                      icon=":material/chevron_right:",
                      help = "Coup suivant",
-                     use_container_width=True,
+                     width='stretch',
                      key="next_move") and st.session_state.move_index < max_index:
             st.session_state.move_index += 1
     with col_last:
         if st.button("",
                      icon=":material/last_page:",
                      help = "Dernier coup",
-                     use_container_width=True,
+                     width='stretch',
                      key="last_move") and st.session_state.move_index < max_index:
             st.session_state.move_index = max_index
 
