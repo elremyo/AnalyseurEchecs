@@ -23,16 +23,14 @@ st.header("Road to 1000 ELO", anchor=False)
 
 dev_mode = False
 
+@st.dialog(title="Options")
 def open_parameters():
-    @st.dialog(title="Options")
-    def dialog():
-        user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
-        st.session_state.user_depth = user_depth
-        show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
-        st.session_state.show_best_arrow = show_best_arrow
-        show_threat_arrows = st.toggle("Afficher la meilleure continuation", value=st.session_state.get("show_threat_arrows", False))
-        st.session_state.show_threat_arrows = show_threat_arrows
-    dialog()
+    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
+    st.session_state.user_depth = user_depth
+    show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
+    st.session_state.show_best_arrow = show_best_arrow
+    show_threat_arrows = st.toggle("Afficher la meilleure continuation", value=st.session_state.get("show_threat_arrows", False))
+    st.session_state.show_threat_arrows = show_threat_arrows
 
 
 col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
