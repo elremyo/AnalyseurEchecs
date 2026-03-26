@@ -1,9 +1,9 @@
 import streamlit as st
-import base64
 import pandas as pd
 
 from display.constants import quality_images, quality_colors
 from engine.analysis import find_key_moments
+from utils.image_utils import load_quality_images_b64
 
 
 
@@ -55,13 +55,13 @@ def display_total_moves_by_quality():
             unsafe_allow_html=True
         )        
         with col_image:
-            with open(img_path, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode("utf-8")
-                st.markdown(
-                    f"<div style='text-align:center;'>"
-                    f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;'>"
-                    f"</div>",
-                    unsafe_allow_html=True
+            images_b64 = load_quality_images_b64()
+            img_b64 = images_b64.get(qualite)
+            st.markdown(
+                f"<div style='text-align:center;'>"
+                f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;'>"
+                f"</div>",
+                unsafe_allow_html=True
                 )
         with col_black:
             st.markdown(
@@ -114,16 +114,16 @@ def display_move_description():
 
     
     with st.container(border=True):
-        with open(img_path, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode("utf-8")
-                st.markdown(
-                    f"<div style='text-align:left; font-weight:bold;'>"
-                    f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
-                    f"<span>{description}</span>"
-                    f"<span>{meilleur_coup_html}</span>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
+        images_b64 = load_quality_images_b64()
+        img_b64 = images_b64.get(qualite)
+        st.markdown(
+            f"<div style='text-align:left; font-weight:bold;'>"
+            f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
+            f"<span>{description}</span>"
+            f"<span>{meilleur_coup_html}</span>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
 
 def display_all_moves_recap():
@@ -147,8 +147,8 @@ def display_all_moves_recap():
             qualite_w = analysis[i].get("qualité", "Non précisée")
             img_w = quality_images.get(qualite_w)
             coup_w = analysis[i].get("coup", "")
-            with open(img_w, "rb") as f:
-                img_b64 = base64.b64encode(f.read()).decode("utf-8")
+            images_b64 = load_quality_images_b64()
+            img_b64 = images_b64.get(qualite_w)
 
             with col_qual_blanc:
                 st.markdown(
@@ -173,8 +173,8 @@ def display_all_moves_recap():
                 qualite_b = analysis[i + 1].get("qualité", "Non précisée")
                 img_b = quality_images.get(qualite_b)
                 coup_b = analysis[i + 1].get("coup", "")
-                with open(img_b, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode("utf-8")
+                images_b64 = load_quality_images_b64()
+                img_b64 = images_b64.get(qualite_b)
                 with col_qual_noir:
                     st.markdown(
                         f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
