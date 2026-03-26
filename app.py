@@ -149,15 +149,6 @@ with col_board:
             if "move_index" not in st.session_state:
                 st.session_state.move_index = 0
 
-            # --- Synchronisation slider <-> move_index AVANT d'afficher le board ---
-            if "move_index_slider" in st.session_state:
-                slider_value = st.session_state.move_index_slider - 1
-                if st.session_state.get("_last_slider_value", None) != slider_value:
-                    st.session_state.move_index = slider_value
-                elif st.session_state.move_index != slider_value:
-                    st.session_state.move_index_slider = st.session_state.move_index + 1
-                st.session_state._last_slider_value = st.session_state.move_index_slider - 1
-
             render_navigation_buttons(max_index)
             
             # Limite l'index dans les bornes
@@ -184,18 +175,7 @@ with col_board:
 with col_datas:
     if st.session_state.analysis:
         # Afficher le sélecteur de coups
-        slider_value = display_moves_slider(max_index)
-
-        # Synchronisation slider <-> move_index
-        if "move_index_slider" in st.session_state:
-            slider_value = st.session_state.move_index_slider - 1
-            # Si le slider a changé, on pilote move_index
-            if st.session_state.get("_last_slider_value", None) != slider_value:
-                st.session_state.move_index = slider_value
-            # Sinon, on pilote le slider avec move_index
-            elif st.session_state.move_index != slider_value:
-                st.session_state.move_index_slider = st.session_state.move_index + 1
-            st.session_state._last_slider_value = st.session_state.move_index_slider - 1
+        display_moves_slider(max_index)
 
         render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
         display_move_description()

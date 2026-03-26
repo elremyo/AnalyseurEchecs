@@ -38,20 +38,24 @@ def render_navigation_buttons(max_index):
                      key="last_move") and st.session_state.move_index < max_index:
             st.session_state.move_index = max_index
 
+def _on_slider_change():
+    st.session_state.move_index = st.session_state.move_index_slider - 1
+
 def display_moves_slider(max_index):
     if "analysis" not in st.session_state or not st.session_state.analysis:
         return
     if max_index == 0:
         return
 
-    # Le slider suit move_index, mais affiche 1-based
-    slider_value = st.slider(
+    # On force la valeur du slider AVANT son rendu → pas de décalage
+    st.session_state["move_index_slider"] = st.session_state.get("move_index", 0) + 1
+
+    st.slider(
         "Sélectionnez un coup",
         min_value=1,
         max_value=max_index,
-        value=st.session_state.get("move_index", 0) + 1,
         step=1,
         label_visibility="collapsed",
-        key="move_index_slider"
+        key="move_index_slider",
+        on_change=_on_slider_change,
     )
-    return slider_value
