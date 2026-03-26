@@ -192,41 +192,6 @@ def display_all_moves_recap():
                         type="tertiary"
                     )
 
-def display_key_moments1(winner):
-    analysis = st.session_state.analysis
-    username = st.session_state.get("username", "Vous")
-    white = st.session_state.get("white_name", "Blanc")
-
-    user_color = "white" if username.lower() == white.lower() else "black"
-
-    key_moments = find_key_moments(analysis, threshold= 500,min_gap_between_moments=2, winner=winner)
-
-    determinants = key_moments["moments_determinants"]
-    critiques = key_moments["moments_critiques"]
-
-    if not determinants and not critiques:
-        st.markdown("_Aucun moment décisif détecté._")
-        return
-
-    if determinants:
-        if winner == user_color:
-            st.markdown("✅ **Tu gagnes la partie ici :**")
-        else:
-            st.markdown("❌ **Tu perds la partie ici :**")
-
-        for idx in determinants:
-            move_info = analysis[idx]
-            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
-
-    if critiques:
-        if winner == user_color:
-            st.markdown("⚠️ **Tu as failli tout perdre ici :**")
-        else:
-            st.markdown("💥 **Tu aurais pu gagner ici :**")
-
-        for idx in critiques:
-            move_info = analysis[idx]
-            st.markdown(f"- **Coup {idx+1} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
 
 def display_key_moments(winner): 
     analysis = st.session_state.analysis
