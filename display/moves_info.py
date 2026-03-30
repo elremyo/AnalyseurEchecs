@@ -14,12 +14,14 @@ def display_total_moves_by_quality():
     black_name = st.session_state.black_name
 
  
-    df["joueur"] = [white_name if i % 2 == 0 else black_name for i in range(len(df))]
+    # Clés fixes W/B : si les deux noms PGN sont identiques (ex. "?"), pandas aurait
+    # deux colonnes du même nom et row[nom] renverrait une Series au lieu d'un entier.
+    df["_côté"] = ["W" if i % 2 == 0 else "B" for i in range(len(df))]
     recap = (
-        df.groupby(["qualité", "joueur"])
+        df.groupby(["qualité", "_côté"])
         .size()
         .unstack(fill_value=0)
-        .reindex(columns=[white_name, black_name], fill_value=0)
+        .reindex(columns=["W", "B"], fill_value=0)
         .reindex(index=[
             #"Brillant", 
             #"Critique", 
@@ -42,8 +44,8 @@ def display_total_moves_by_quality():
 
     for qualite, row in recap.iterrows():
         color = quality_colors.get(qualite, "black")
-        value_white = row[white_name]
-        value_black = row[black_name]
+        value_white = int(row["W"])
+        value_black = int(row["B"])
         img_path = quality_images.get(qualite)
 
         col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)

@@ -55,8 +55,16 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     game = load_pgn(pgn)
     board = chess.Board()
     analysis = []
-    white_player = game.headers.get("White", "Blanc")
-    black_player = game.headers.get("Black", "Noir")
+    def _header_player_name(raw, fallback: str) -> str:
+        if raw is None:
+            return fallback
+        s = str(raw).strip()
+        if not s or s == "?":
+            return fallback
+        return s
+
+    white_player = _header_player_name(game.headers.get("White"), "Blanc")
+    black_player = _header_player_name(game.headers.get("Black"), "Noir")
 
     stockfish = Stockfish(path=stockfish_path, depth=user_depth)
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
