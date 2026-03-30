@@ -3,9 +3,7 @@ import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
-from display.style import *
-from display.navigation import *
-from display.moves_info import *
+from display.style import set_page_style
 from display.constants import board_size, quality_images, quality_board_colors
 
 def display_players_name_for_board(color="white", height=50):
