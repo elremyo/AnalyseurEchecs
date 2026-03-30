@@ -106,6 +106,8 @@ def display_move_description():
         description = f"<span style='color:{color_coup};'>{coup_joué} est une {qualite.lower()}</span>"
     elif qualite == "Meilleur":
         description = f"<span style='color:{color_coup};'>{coup_joué} est le meilleur coup</span>"
+    else:
+        description = f"<span style='color:{color_coup};'>{coup_joué} ({qualite})</span>"
 
     meilleur_coup_html = ""
     if est_theorique != "Oui" and est_meilleur != "Oui" and qualite!="Meilleur" and analysis_index > 0:

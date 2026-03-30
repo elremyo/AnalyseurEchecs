@@ -124,11 +124,7 @@ with col_pgn:
                 "3. Sélectionnez l'option **Copier le PGN**.\n"
                 "4. Collez-le dans le champ ci-dessus."
             )
-        st.session_state.analysis = None
-        st.session_state.white_name = None
-        st.session_state.black_name = None
-        st.session_state.pgn_last = None
-        st.session_state.pgn_last_analyzed = None
+
 
 
 with col_board:
