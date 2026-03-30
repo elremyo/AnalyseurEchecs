@@ -1,5 +1,27 @@
-import streamlit as st
 import re
+from urllib.parse import urlparse
+
+import streamlit as st
+
+
+def _safe_game_link(url: str):
+    """N'accepte que des liens https vers chess.com ou lichess.org."""
+    if not url or not isinstance(url, str):
+        return None
+    u = url.strip()
+    if not u.startswith("https://"):
+        return None
+    try:
+        parsed = urlparse(u)
+        host = (parsed.hostname or "").lower()
+    except ValueError:
+        return None
+    if host == "lichess.org" or host.endswith(".lichess.org"):
+        return u
+    if host == "chess.com" or host.endswith(".chess.com"):
+        return u
+    return None
+
 
 def display_game_result():
 
@@ -61,7 +83,9 @@ def display_game_result():
             m = re.search(r'\[GameId\s+"([\w\d]+)"\]', pgn)
             if m:
                 link = f"https://lichess.org/{m.group(1)}"
-    
+
+    link = _safe_game_link(link) if link else None
+
     with st.container(border=False):
         if link:
             st.markdown(f"{winner_color}**{termination}** (:material/open_in_new: [Lien de la partie]({link}))")

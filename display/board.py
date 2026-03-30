@@ -3,7 +3,6 @@ import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
-from display.style import set_page_style
 from display.constants import board_size, quality_images, quality_board_colors
 
 def display_players_name_for_board(color="white", height=50):
@@ -113,7 +112,7 @@ def render_board(board, last_move=None, flipped=False):
 
         # Flèches pour les menaces
         if (
-            st.session_state.get("show_threat_arrows", True)
+            st.session_state.get("show_threat_arrows", False)
             and "threats" in coup_data
         ):
             for threat_uci in coup_data["threats"]:

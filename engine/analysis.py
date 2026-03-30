@@ -3,26 +3,44 @@ import chess.polyglot
 import io
 import streamlit as st
 
-from utils.eval_utils import convert_eval_to_cp, get_quality, get_winner
+from utils.eval_utils import convert_eval_to_cp, get_quality
 from stockfish import Stockfish
+
+
+class InvalidPgnError(ValueError):
+    """PGN illisible, vide ou sans ligne principale."""
+
 
 def load_pgn(pgn: str) -> chess.pgn.Game:
     """Charge un objet Game à partir d'un texte PGN."""
+    if not pgn or not str(pgn).strip():
+        raise InvalidPgnError("PGN vide.")
     try:
-        pgn_io = io.StringIO(pgn)
-        game = chess.pgn.read_game(pgn_io)
-
-        if not any(game.mainline_moves()):
-            st.error("Le PGN fourni est invalide ou vide.")
-        return game
+        game = chess.pgn.read_game(io.StringIO(pgn))
     except Exception as e:
-        raise e
+        raise InvalidPgnError(f"PGN illisible : {e}") from e
+    if game is None:
+        raise InvalidPgnError("PGN illisible (aucune partie reconnue).")
+    if not any(game.mainline_moves()):
+        raise InvalidPgnError("PGN invalide ou sans coups sur la ligne principale.")
+    return game
+
 
 @st.cache_data
 def get_moves_from_pgn(pgn_text: str) -> list[chess.Move]:
     """Parse le PGN et retourne la liste des coups. Résultat mis en cache par PGN."""
-    game = chess.pgn.read_game(io.StringIO(pgn_text))
-    return list(game.mainline_moves())
+    if not pgn_text or not str(pgn_text).strip():
+        raise InvalidPgnError("Aucun PGN à afficher.")
+    try:
+        game = chess.pgn.read_game(io.StringIO(pgn_text))
+    except Exception as e:
+        raise InvalidPgnError(f"PGN illisible : {e}") from e
+    if game is None:
+        raise InvalidPgnError("PGN illisible (aucune partie reconnue).")
+    moves = list(game.mainline_moves())
+    if not moves:
+        raise InvalidPgnError("PGN sans coups sur la ligne principale.")
+    return moves
 
 def is_theoretical_move(board, move, reader):
     try:

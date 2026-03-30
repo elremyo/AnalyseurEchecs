@@ -1,7 +1,7 @@
 import streamlit as st
 import chess
 
-from utils.session import *
+from utils.session import init_session_state
 
 init_session_state()
 
@@ -11,11 +11,11 @@ from display.navigation import render_navigation_buttons, display_moves_slider
 from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import load_pgn, analyze_game, get_moves_from_pgn
+from engine.analysis import InvalidPgnError, analyze_game, get_moves_from_pgn
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.eval_utils import get_winner
-from utils.debug_pgn_samples import *
-from utils.gif_images import *
+from utils.debug_pgn_samples import sample_games
+from utils.gif_images import get_random_gif
 
 
 set_page_style()
@@ -25,7 +25,13 @@ dev_mode = False
 
 @st.dialog(title="Options")
 def open_parameters():
-    user_depth = st.slider("Profondeur d'analyse", min_value=10, max_value=20, value=10, step=1)
+    user_depth = st.slider(
+        "Profondeur d'analyse",
+        min_value=10,
+        max_value=20,
+        value=st.session_state.get("user_depth", 10),
+        step=1,
+    )
     st.session_state.user_depth = user_depth
     show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
     st.session_state.show_best_arrow = show_best_arrow
@@ -79,15 +85,18 @@ with col_pgn:
     else:
         pgn_clipboard = ""
 
+    pgn_widget_key = "pgn_text_input"
+    if pgn_widget_key not in st.session_state:
+        st.session_state[pgn_widget_key] = pgn_clipboard or ""
+
     pgn_text = st.text_area(
         "PGN de la partie :",
         placeholder="Collez ici le PGN de la partie",
         height=150,
-        value=pgn_clipboard
+        key=pgn_widget_key,
     )
 
-
-    winner=get_winner(pgn_text) if pgn_text else None
+    winner = get_winner(pgn_text) if pgn_text else None
 
 
 
@@ -96,13 +105,21 @@ with col_pgn:
                  type="primary",
                  icon=":material/monitoring:",
                  width='stretch'):
-        analysis, white_name, black_name = analyze_game(pgn_text, st.session_state.user_depth, stockfish_path,book_path)
-        st.session_state.analysis = analysis
-        st.session_state.white_name = white_name
-        st.session_state.black_name = black_name
-        st.session_state.pgn_last = pgn_text
-        st.session_state.pgn_last_analyzed = pgn_text
-        st.session_state.move_index = 0
+        try:
+            analysis, white_name, black_name = analyze_game(
+                pgn_text, st.session_state.user_depth, stockfish_path, book_path
+            )
+        except InvalidPgnError as err:
+            st.error(str(err))
+        except Exception as err:
+            st.error(f"Erreur pendant l'analyse : {err}")
+        else:
+            st.session_state.analysis = analysis
+            st.session_state.white_name = white_name
+            st.session_state.black_name = black_name
+            st.session_state.pgn_last = pgn_text
+            st.session_state.pgn_last_analyzed = pgn_text
+            st.session_state.move_index = 0
 
     if st.session_state.analysis:
         st.divider()
@@ -135,31 +152,27 @@ with col_board:
             pgn_to_use = st.session_state.get("pgn_last_analyzed", None)
             if not pgn_to_use:
                 st.error("Aucune partie analysée à afficher.")
+                render_board(board=chess.Board())
+            else:
+                moves = get_moves_from_pgn(pgn_to_use)
+                board = chess.Board()
 
-            moves = get_moves_from_pgn(pgn_to_use)
-            board = chess.Board()
+                if "move_index" not in st.session_state:
+                    st.session_state.move_index = 0
 
-            # Initialisation de l'index du coup courant
-            if "move_index" not in st.session_state:
-                st.session_state.move_index = 0
+                render_navigation_buttons(max_index)
+                st.session_state.move_index = max(0, min(st.session_state.move_index, max_index))
 
-            render_navigation_buttons(max_index)
-            
-            # Limite l'index dans les bornes
-            st.session_state.move_index = max(0, min(st.session_state.move_index, max_index))
+                for move in moves[:st.session_state.move_index]:
+                    board.push(move)
 
-            # Applique les coups jusqu'à l'index courant
-            for move in moves[:st.session_state.move_index]:
-                board.push(move)
+                last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
 
-            last_move = moves[st.session_state.move_index - 1] if st.session_state.move_index > 0 else None
-
-            render_score_bar()
-            render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
-
+                render_score_bar()
+                render_board(board, last_move=last_move, flipped=st.session_state.board_flipped)
 
         except Exception as e:
-            st.error(f"Erreur pendant l'analyse : {e}")
+            st.error(f"Erreur pendant l'affichage du plateau : {e}")
     else:
         #Afficher un échiquier vide
         render_board(board=chess.Board())
