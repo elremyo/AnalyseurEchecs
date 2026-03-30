@@ -107,7 +107,11 @@ with col_pgn:
                  width='stretch'):
         try:
             analysis, white_name, black_name = analyze_game(
-                pgn_text, st.session_state.user_depth, stockfish_path, book_path
+                pgn_text,
+                st.session_state.user_depth,
+                stockfish_path,
+                book_path,
+                compute_threats=st.session_state.get("show_threat_arrows", False),
             )
         except InvalidPgnError as err:
             st.error(str(err))

@@ -4,7 +4,7 @@ import pandas as pd
 from display.constants import quality_images, quality_colors
 from engine.analysis import find_key_moments
 from utils.image_utils import load_quality_images_b64
-
+from utils.safe_html import escape_html
 
 
 def display_total_moves_by_quality():
@@ -34,12 +34,12 @@ def display_total_moves_by_quality():
     with col_quality:
         pass        
     with col_white:
-        st.markdown(f"**{white_name}**")
-        
+        st.markdown(f"<b>{escape_html(white_name)}</b>", unsafe_allow_html=True)
+
     with col_image:
         pass
     with col_black:
-        st.markdown(f"**{black_name}**")    
+        st.markdown(f"<b>{escape_html(black_name)}</b>", unsafe_allow_html=True)
 
 
     for qualite, row in recap.iterrows():
@@ -50,26 +50,30 @@ def display_total_moves_by_quality():
 
         col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
         with col_quality:
-            st.markdown(f"<span style='color:{color}; font-weight:bold'>{qualite}</span>", unsafe_allow_html=True)
+            st.markdown(
+                f"<span style='color:{escape_html(color)}; font-weight:bold'>{escape_html(qualite)}</span>",
+                unsafe_allow_html=True,
+            )
         with col_white:
             st.markdown(
-            f"<div style='text-align:center'><span style='color:{color}; font-weight:bold'>{value_white}</span></div>",
-            unsafe_allow_html=True
-        )        
+                f"<div style='text-align:center'><span style='color:{escape_html(color)}; font-weight:bold'>{value_white}</span></div>",
+                unsafe_allow_html=True,
+            )
         with col_image:
             images_b64 = load_quality_images_b64()
             img_b64 = images_b64.get(qualite)
-            st.markdown(
-                f"<div style='text-align:center;'>"
-                f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;'>"
-                f"</div>",
-                unsafe_allow_html=True
+            if img_b64:
+                st.markdown(
+                    f"<div style='text-align:center;'>"
+                    f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;'>"
+                    f"</div>",
+                    unsafe_allow_html=True,
                 )
         with col_black:
             st.markdown(
-            f"<div style='text-align:center'><span style='color:{color}; font-weight:bold'>{value_black}</span></div>",
-            unsafe_allow_html=True
-        )
+                f"<div style='text-align:center'><span style='color:{escape_html(color)}; font-weight:bold'>{value_black}</span></div>",
+                unsafe_allow_html=True,
+            )
 
 
 
@@ -100,33 +104,45 @@ def display_move_description():
 
     color_coup = quality_colors.get(qualite, "black")
 
+    ec = escape_html(color_coup)
+    ej = escape_html(coup_joué)
+    eq = escape_html(qualite)
     if est_theorique == "Oui":
-        description = f"<span style='color:{color_coup};'>{coup_joué} est un coup théorique</span>"
+        description = f"<span style='color:{ec};'>{ej} est un coup théorique</span>"
     elif qualite == "Excellent" or qualite == "Bon":
-        description = f"<span style='color:{color_coup};'>{coup_joué} est un {qualite.lower()} coup</span>"
+        description = f"<span style='color:{ec};'>{ej} est un {escape_html(qualite.lower())} coup</span>"
     elif qualite == "Imprécision" or qualite == "Erreur" or qualite == "Gaffe":
-        description = f"<span style='color:{color_coup};'>{coup_joué} est une {qualite.lower()}</span>"
+        description = f"<span style='color:{ec};'>{ej} est une {escape_html(qualite.lower())}</span>"
     elif qualite == "Meilleur":
-        description = f"<span style='color:{color_coup};'>{coup_joué} est le meilleur coup</span>"
+        description = f"<span style='color:{ec};'>{ej} est le meilleur coup</span>"
     else:
-        description = f"<span style='color:{color_coup};'>{coup_joué} ({qualite})</span>"
+        description = f"<span style='color:{ec};'>{ej} ({eq})</span>"
 
     meilleur_coup_html = ""
-    if est_theorique != "Oui" and est_meilleur != "Oui" and qualite!="Meilleur" and analysis_index > 0:
-        meilleur_coup_html = f"<div style='margin-top:8px; color:{color_best}; font-weight:bold;'>{meilleur_coup} est le meilleur coup</div>"
+    if est_theorique != "Oui" and est_meilleur != "Oui" and qualite != "Meilleur" and analysis_index > 0:
+        meilleur_coup_html = (
+            f"<div style='margin-top:8px; color:{escape_html(color_best)}; font-weight:bold;'>"
+            f"{escape_html(meilleur_coup)} est le meilleur coup</div>"
+        )
 
 
     
     with st.container(border=True):
         images_b64 = load_quality_images_b64()
         img_b64 = images_b64.get(qualite)
+        img_tag = ""
+        if img_b64:
+            img_tag = (
+                f"<img src='data:image/png;base64,{img_b64}' "
+                f"style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
+            )
         st.markdown(
             f"<div style='text-align:left; font-weight:bold;'>"
-            f"<img src='data:image/png;base64,{img_b64}' style='height:24px; max-width:24px; display:inline-block;margin-right:8px;margin-bottom:8px;'>"
+            f"{img_tag}"
             f"<span>{description}</span>"
             f"<span>{meilleur_coup_html}</span>"
             f"</div>",
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
 
@@ -140,25 +156,30 @@ def display_all_moves_recap():
     def go_to_move(idx):
         st.session_state.move_index = idx
 
-    with st.container(border=False,height=400):
+    with st.container(border=False, height=400):
         for i in range(0, len(analysis), 2):
             col_num_coup,col_qual_blanc,col_coup_blanc,col_qual_noir,col_coup_noir = st.columns([1, 3, 1, 3, 1],vertical_alignment="center")
             move_number = i // 2 + 1
 
             with col_num_coup:
-                st.markdown(f"&nbsp;:small[{move_number}].",unsafe_allow_html=True)
+                st.markdown(f"&nbsp;:small[{move_number}].", unsafe_allow_html=True)
 
             qualite_w = analysis[i].get("qualité", "Non précisée")
-            img_w = quality_images.get(qualite_w)
             coup_w = analysis[i].get("coup", "")
             images_b64 = load_quality_images_b64()
             img_b64 = images_b64.get(qualite_w)
 
             with col_qual_blanc:
+                img_w_tag = ""
+                if img_b64:
+                    img_w_tag = (
+                        f"<img src='data:image/png;base64,{img_b64}' "
+                        f"style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                    )
                 st.markdown(
-                    f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
-                    f"<span style='font-family:monospace;font-size:16px'>{coup_w}</span>",
-                    unsafe_allow_html=True
+                    f"{img_w_tag}"
+                    f"<span style='font-family:monospace;font-size:16px'>{escape_html(coup_w)}</span>",
+                    unsafe_allow_html=True,
                 )
             with col_coup_blanc:
                 st.button(
@@ -175,15 +196,20 @@ def display_all_moves_recap():
             # Coup noir
             if i + 1 < len(analysis):
                 qualite_b = analysis[i + 1].get("qualité", "Non précisée")
-                img_b = quality_images.get(qualite_b)
                 coup_b = analysis[i + 1].get("coup", "")
                 images_b64 = load_quality_images_b64()
                 img_b64 = images_b64.get(qualite_b)
                 with col_qual_noir:
+                    img_b_tag = ""
+                    if img_b64:
+                        img_b_tag = (
+                            f"<img src='data:image/png;base64,{img_b64}' "
+                            f"style='height:20px;vertical-align:middle;margin-right:6px;'>"
+                        )
                     st.markdown(
-                        f"<img src='data:image/png;base64,{img_b64}' style='height:20px;vertical-align:middle;margin-right:6px;'>"
-                        f"<span style='font-family:monospace;font-size:16px'>{coup_b}</span>",
-                        unsafe_allow_html=True
+                        f"{img_b_tag}"
+                        f"<span style='font-family:monospace;font-size:16px'>{escape_html(coup_b)}</span>",
+                        unsafe_allow_html=True,
                     )
                 with col_coup_noir:
                     st.button(
@@ -231,7 +257,10 @@ def display_key_moments(winner):
             move_info = analysis[idx]
             cols = st.columns([10, 1])
             with cols[0]:
-                st.markdown(f"- **Coup {idx+2} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
+                st.write(
+                    f"Coup {idx + 2} ({move_info['coup']}) : "
+                    f"{move_info['eval'] / 100:+.1f}, {move_info['qualité']}"
+                )
             with cols[1]:
                 st.button(
                     ":material/search:",
@@ -253,7 +282,10 @@ def display_key_moments(winner):
             move_info = analysis[idx]
             cols = st.columns([10, 1])
             with cols[0]:
-                st.markdown(f"- **Coup {idx+2} ({move_info['coup']})** : {move_info['eval']/100:+.1f}, {move_info['qualité']}")
+                st.write(
+                    f"Coup {idx + 2} ({move_info['coup']}) : "
+                    f"{move_info['eval'] / 100:+.1f}, {move_info['qualité']}"
+                )
             with cols[1]:
                 st.button(
                     ":material/search:",

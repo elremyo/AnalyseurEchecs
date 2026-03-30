@@ -4,6 +4,7 @@ import io
 import streamlit as st
 
 from utils.eval_utils import convert_eval_to_cp, get_quality
+from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
 from stockfish import Stockfish
 
 
@@ -50,8 +51,22 @@ def is_theoretical_move(board, move, reader):
     except Exception:
         return False
 
-def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str):
-    """Analyse une partie PGN et retourne la liste des coups annotés."""
+def analyze_game(
+    pgn: str,
+    user_depth: int,
+    stockfish_path: str,
+    book_path: str,
+    *,
+    compute_threats: bool = False,
+):
+    """Analyse une partie PGN et retourne la liste des coups annotés.
+
+    Si compute_threats est False, n'appelle pas get_top_moves (flèches menaces désactivées).
+    """
+    if len(pgn) > MAX_PGN_CHARACTERS:
+        raise InvalidPgnError(
+            f"PGN trop volumineux (max {MAX_PGN_CHARACTERS:,} caractères)."
+        )
     game = load_pgn(pgn)
     board = chess.Board()
     analysis = []
@@ -70,6 +85,10 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
     stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
 
     moves = list(game.mainline_moves())
+    if len(moves) > MAX_MAINLINE_HALFMOVES:
+        raise InvalidPgnError(
+            f"Partie trop longue (max {MAX_MAINLINE_HALFMOVES} demi-coups)."
+        )
     total_moves = len(moves)
     progress_bar = st.progress(0, text="Préparation de l'analyse")
     caption_placeholder = st.empty()
@@ -102,10 +121,11 @@ def analyze_game(pgn: str, user_depth: int, stockfish_path: str, book_path: str)
         stockfish.set_fen_position(board.fen())
         eval_after = stockfish.get_evaluation()
 
-        #Ajout du calcul des menaces
-        threats = []
-        top_moves = stockfish.get_top_moves(2)
-        threats = [m['Move'] for m in top_moves if m['Move'] != best_move][:1]
+        if compute_threats:
+            top_moves = stockfish.get_top_moves(2)
+            threats = [m["Move"] for m in top_moves if m.get("Move") != best_move][:1]
+        else:
+            threats = []
 
         # Calcul du delta
         delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
