@@ -32,7 +32,7 @@ def display_players_name_for_board(color="white", height=50):
                 "size": 35,
                 "title": f"{black_name}",
                 "caption": f"({black_elo})",
-                "key": "avatar1",
+                "key": "avatar2",
             }])
             #st.markdown(f"◼️ {black_name} :grey[({black_elo})]")
     else:
