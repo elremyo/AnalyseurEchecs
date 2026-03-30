@@ -11,7 +11,7 @@ from display.navigation import render_navigation_buttons, display_moves_slider
 from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import load_pgn, analyze_game
+from engine.analysis import load_pgn, analyze_game, get_moves_from_pgn
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.eval_utils import get_winner
 from utils.debug_pgn_samples import *
@@ -135,9 +135,9 @@ with col_board:
             pgn_to_use = st.session_state.get("pgn_last_analyzed", None)
             if not pgn_to_use:
                 st.error("Aucune partie analysée à afficher.")
-            game=load_pgn(pgn_to_use)
+
+            moves = get_moves_from_pgn(pgn_to_use)
             board = chess.Board()
-            moves = [move for move in game.mainline_moves()]
 
             # Initialisation de l'index du coup courant
             if "move_index" not in st.session_state:

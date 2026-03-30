@@ -18,6 +18,12 @@ def load_pgn(pgn: str) -> chess.pgn.Game:
     except Exception as e:
         raise e
 
+@st.cache_data
+def get_moves_from_pgn(pgn_text: str) -> list[chess.Move]:
+    """Parse le PGN et retourne la liste des coups. Résultat mis en cache par PGN."""
+    game = chess.pgn.read_game(io.StringIO(pgn_text))
+    return list(game.mainline_moves())
+
 def is_theoretical_move(board, move, reader):
     try:
         entries = list(reader.find_all(board))
