@@ -1,6 +1,9 @@
+import io
+import os
+import re
+import chess
 import chess.pgn
 import chess.polyglot
-import io
 import streamlit as st
 
 from utils.eval_utils import convert_eval_to_cp, get_quality
@@ -10,6 +13,28 @@ from stockfish import Stockfish
 
 class InvalidPgnError(ValueError):
     """PGN illisible, vide ou sans ligne principale."""
+
+
+def _parse_eval_from_info_line(info_line: str, white_to_move: bool) -> dict:
+    """Reconstruit le dict d'éval au format get_evaluation() depuis la dernière ligne info."""
+    if not info_line or not info_line.strip():
+        return {"type": "cp", "value": 0}
+    matches = list(re.finditer(r"score (cp|mate) (-?\d+)", info_line))
+    if not matches:
+        return {"type": "cp", "value": 0}
+    typ, val_s = matches[-1].group(1), matches[-1].group(2)
+    val = int(val_s)
+    compare = 1 if white_to_move else -1
+    return {"type": typ, "value": val * compare}
+
+
+def _eval_from_top_move(entry: dict) -> dict:
+    """Une entrée get_top_moves() -> raw_eval pour convert_eval_to_cp / get_quality."""
+    if entry.get("Mate") is not None:
+        return {"type": "mate", "value": int(entry["Mate"])}
+    if entry.get("Centipawn") is not None:
+        return {"type": "cp", "value": int(entry["Centipawn"])}
+    return {"type": "cp", "value": 0}
 
 
 def load_pgn(pgn: str) -> chess.pgn.Game:
@@ -82,7 +107,15 @@ def analyze_game(
     black_player = _header_player_name(game.headers.get("Black"), "Noir")
 
     stockfish = Stockfish(path=stockfish_path, depth=user_depth)
-    stockfish.update_engine_parameters({"Skill Level": 20})  # Optionnel mais utile
+    _threads = min(8, max(1, (os.cpu_count() or 4)))
+    stockfish.update_engine_parameters(
+        {
+            "Skill Level": 20,
+            "Threads": _threads,
+            "Hash": 128,
+            "Minimum Thinking Time": 0,
+        }
+    )
 
     moves = list(game.mainline_moves())
     if len(moves) > MAX_MAINLINE_HALFMOVES:
@@ -103,28 +136,48 @@ def analyze_game(
             book_reader = None
 
     for idx, move in enumerate(moves):
-        # État avant le coup
-        stockfish.set_fen_position(board.fen())
-        eval_before = stockfish.get_evaluation()
+        # Une seule recherche avant le coup : get_best_move remplit .info avec le score final.
+        stockfish.set_fen_position(board.fen(), send_ucinewgame_token=(idx == 0))
+        white_before = board.turn == chess.WHITE
         best_move = stockfish.get_best_move()
+        info_before = stockfish.info or ""
+        if re.search(r"score (cp|mate)", info_before):
+            eval_before = _parse_eval_from_info_line(info_before, white_before)
+        else:
+            eval_before = stockfish.get_evaluation()
+
         best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
 
-        # Test coup théorique
         is_theo = False
         if book_reader:
             is_theo = is_theoretical_move(board, move, book_reader)
 
         move_san = board.san(move)
 
-        # On joue le coup réel
         board.push(move)
-        stockfish.set_fen_position(board.fen())
-        eval_after = stockfish.get_evaluation()
+        stockfish.set_fen_position(board.fen(), send_ucinewgame_token=False)
 
         if compute_threats:
             top_moves = stockfish.get_top_moves(2)
-            threats = [m["Move"] for m in top_moves if m.get("Move") != best_move][:1]
+            if top_moves:
+                eval_after = _eval_from_top_move(top_moves[0])
+                threats = [
+                    m["Move"]
+                    for m in top_moves
+                    if m.get("Move") and m.get("Move") != best_move
+                ][:1]
+            else:
+                eval_after = {"type": "cp", "value": 0}
+                threats = []
         else:
+            _ = stockfish.get_best_move()
+            info_after = stockfish.info or ""
+            if re.search(r"score (cp|mate)", info_after):
+                eval_after = _parse_eval_from_info_line(
+                    info_after, board.turn == chess.WHITE
+                )
+            else:
+                eval_after = stockfish.get_evaluation()
             threats = []
 
         # Calcul du delta

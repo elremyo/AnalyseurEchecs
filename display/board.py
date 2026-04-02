@@ -1,4 +1,5 @@
 import base64
+from utils.image_utils import load_quality_images_b64
 import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
@@ -38,7 +39,9 @@ def display_players_name_for_board(color="white", height=50):
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
     
-def inject_quality_on_square(svg, square, quality_path, flipped=False):
+def inject_quality_on_square(svg, square, quality: str, images_b64: dict[str, str], flipped=False):
+
+    img_b64 = images_b64[quality]
 
     #Magic numbers found by trial and error
     marging_coordinates = 10
@@ -54,8 +57,6 @@ def inject_quality_on_square(svg, square, quality_path, flipped=False):
         x = (8-file)*square_size
         y = rank*square_size
 
-    with open(quality_path, "rb") as f:
-        img_b64 = base64.b64encode(f.read()).decode("utf-8")
     
     quality_size = int(20)
     quality_x = marging_coordinates + x - quality_size/2
@@ -77,6 +78,7 @@ def inject_quality_on_square(svg, square, quality_path, flipped=False):
 def render_board(board, last_move=None, flipped=False):
 
     move_index = st.session_state.get("move_index", 0)
+    images_b64 = load_quality_images_b64()
 
     arrows = []
 
@@ -88,11 +90,11 @@ def render_board(board, last_move=None, flipped=False):
     ):
 
         coup_data = st.session_state.analysis[move_index - 1]
-        qualite = coup_data.get("qualité", "Non précisée")
+        quality = coup_data.get("qualité", "Non précisée")
         # Flèche pour le meilleur coup si le coup joué n'est ni théorique ni le meilleur
         if (
             st.session_state.get("show_best_arrow", True)
-            and qualite not in ("Théorique", "Meilleur")
+            and quality not in ("Théorique", "Meilleur")
             and "best_move" in coup_data
             and coup_data.get("best_move_uci")
         ):
@@ -130,15 +132,15 @@ def render_board(board, last_move=None, flipped=False):
 
 
     if move_index == 0 or "analysis" not in st.session_state or not st.session_state.analysis:
-        qualite = "Non précisée"
+        quality = "Non précisée"
         light_color, dark_color = "#ffffff", "#FFFFFF"
         quality_path = None
     else:
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis[analysis_index]
-        qualite = coup_data.get("qualité", "Non précisée")
-        light_color, dark_color = quality_board_colors.get(qualite, ("#ff0000", "#000000"))
-        quality_path = quality_images.get(qualite)
+        quality = coup_data.get("qualité", "Non précisée")
+        light_color, dark_color = quality_board_colors.get(quality, ("#ff0000", "#000000"))
+        quality_path = quality_images.get(quality)
 
     svg = chess.svg.board(
         board,
@@ -158,7 +160,7 @@ def render_board(board, last_move=None, flipped=False):
 
     # Ajoute l'icône sur la case cible du dernier coup joué
     if last_move and quality_path:
-        svg = inject_quality_on_square(svg, last_move.to_square, quality_path, flipped)
+        svg = inject_quality_on_square(svg, last_move.to_square, quality, images_b64, flipped)
 
     if st.session_state.analysis:
         if flipped:

@@ -42,16 +42,16 @@ def display_total_moves_by_quality():
         st.markdown(f"<b>{escape_html(black_name)}</b>", unsafe_allow_html=True)
 
 
-    for qualite, row in recap.iterrows():
-        color = quality_colors.get(qualite, "black")
+    for quality, row in recap.iterrows():
+        color = quality_colors.get(quality, "black")
         value_white = int(row["W"])
         value_black = int(row["B"])
-        img_path = quality_images.get(qualite)
+        img_path = quality_images.get(quality)
 
         col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
         with col_quality:
             st.markdown(
-                f"<span style='color:{escape_html(color)}; font-weight:bold'>{escape_html(qualite)}</span>",
+                f"<span style='color:{escape_html(color)}; font-weight:bold'>{escape_html(quality)}</span>",
                 unsafe_allow_html=True,
             )
         with col_white:
@@ -61,7 +61,7 @@ def display_total_moves_by_quality():
             )
         with col_image:
             images_b64 = load_quality_images_b64()
-            img_b64 = images_b64.get(qualite)
+            img_b64 = images_b64.get(quality)
             if img_b64:
                 st.markdown(
                     f"<div style='text-align:center;'>"
@@ -96,30 +96,30 @@ def display_move_description():
     coup_data = st.session_state.analysis[analysis_index]
     meilleur_coup = coup_data.get("best_move", "Non spécifié")
     coup_joué = coup_data.get("coup", "Inconnu")
-    qualite = coup_data.get("qualité", "Non précisée")
-    img_path = quality_images.get(qualite)
+    quality = coup_data.get("qualité", "Non précisée")
+    img_path = quality_images.get(quality)
     est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
     est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
     color_best = quality_colors.get("Meilleur", "black")
 
-    color_coup = quality_colors.get(qualite, "black")
+    color_coup = quality_colors.get(quality, "black")
 
     ec = escape_html(color_coup)
     ej = escape_html(coup_joué)
-    eq = escape_html(qualite)
+    eq = escape_html(quality)
     if est_theorique == "Oui":
         description = f"<span style='color:{ec};'>{ej} est un coup théorique</span>"
-    elif qualite == "Excellent" or qualite == "Bon":
-        description = f"<span style='color:{ec};'>{ej} est un {escape_html(qualite.lower())} coup</span>"
-    elif qualite == "Imprécision" or qualite == "Erreur" or qualite == "Gaffe":
-        description = f"<span style='color:{ec};'>{ej} est une {escape_html(qualite.lower())}</span>"
-    elif qualite == "Meilleur":
+    elif quality == "Excellent" or quality == "Bon":
+        description = f"<span style='color:{ec};'>{ej} est un {escape_html(quality.lower())} coup</span>"
+    elif quality == "Imprécision" or quality == "Erreur" or quality == "Gaffe":
+        description = f"<span style='color:{ec};'>{ej} est une {escape_html(quality.lower())}</span>"
+    elif quality == "Meilleur":
         description = f"<span style='color:{ec};'>{ej} est le meilleur coup</span>"
     else:
         description = f"<span style='color:{ec};'>{ej} ({eq})</span>"
 
     meilleur_coup_html = ""
-    if est_theorique != "Oui" and est_meilleur != "Oui" and qualite != "Meilleur" and analysis_index > 0:
+    if est_theorique != "Oui" and est_meilleur != "Oui" and quality != "Meilleur" and analysis_index > 0:
         meilleur_coup_html = (
             f"<div style='margin-top:8px; color:{escape_html(color_best)}; font-weight:bold;'>"
             f"{escape_html(meilleur_coup)} est le meilleur coup</div>"
@@ -129,7 +129,7 @@ def display_move_description():
     
     with st.container(border=True):
         images_b64 = load_quality_images_b64()
-        img_b64 = images_b64.get(qualite)
+        img_b64 = images_b64.get(quality)
         img_tag = ""
         if img_b64:
             img_tag = (
@@ -164,10 +164,10 @@ def display_all_moves_recap():
             with col_num_coup:
                 st.markdown(f"&nbsp;:small[{move_number}].", unsafe_allow_html=True)
 
-            qualite_w = analysis[i].get("qualité", "Non précisée")
+            quality_w = analysis[i].get("qualité", "Non précisée")
             coup_w = analysis[i].get("coup", "")
             images_b64 = load_quality_images_b64()
-            img_b64 = images_b64.get(qualite_w)
+            img_b64 = images_b64.get(quality_w)
 
             with col_qual_blanc:
                 img_w_tag = ""
@@ -195,10 +195,10 @@ def display_all_moves_recap():
 
             # Coup noir
             if i + 1 < len(analysis):
-                qualite_b = analysis[i + 1].get("qualité", "Non précisée")
+                quality_b = analysis[i + 1].get("qualité", "Non précisée")
                 coup_b = analysis[i + 1].get("coup", "")
                 images_b64 = load_quality_images_b64()
-                img_b64 = images_b64.get(qualite_b)
+                img_b64 = images_b64.get(quality_b)
                 with col_qual_noir:
                     img_b_tag = ""
                     if img_b64:
