@@ -259,7 +259,7 @@ def display_key_moments(winner):
             with cols[0]:
                 st.write(
                     f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info['eval'] / 100:+.1f}, {move_info['qualité']}"
+                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['qualité']}"
                 )
             with cols[1]:
                 st.button(
@@ -284,7 +284,7 @@ def display_key_moments(winner):
             with cols[0]:
                 st.write(
                     f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info['eval'] / 100:+.1f}, {move_info['qualité']}"
+                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['qualité']}"
                 )
             with cols[1]:
                 st.button(
