@@ -23,5 +23,5 @@ def can_use_clipboard() -> bool:
         import pyperclip
         test = pyperclip.paste()
         return True
-    except:
+    except Exception:
         return False
