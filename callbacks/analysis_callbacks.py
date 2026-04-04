@@ -22,18 +22,10 @@ class AnalysisCallbacks:
             st.session_state.analyze_error = error.message
             return
         
-        # Stockage du résultat
+        # Stockage du résultat complet
         st.session_state.update({
-            "analysis": result.analysis,
-            "white_name": result.white_name,
-            "black_name": result.black_name,
-            "pgn_meta": result.pgn_meta,
-            "analysis_df": result.analysis_df,
-            "quality_recap": result.quality_recap,
+            "analysis_result": result,
             "pgn_last_analyzed": pgn,
-            "winner": result.winner,
-            "key_moments": result.key_moments,
-            "move_index": 0,
             "analyze_error": None,
         })
     

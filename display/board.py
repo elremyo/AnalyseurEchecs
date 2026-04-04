@@ -10,16 +10,17 @@ from display.constants import board_size, quality_images, quality_board_colors, 
 
 def display_players_name_for_board(color: str = "white", height: int = 50) -> None:
 
-    white_name = st.session_state.white_name
-    black_name = st.session_state.black_name
+    analysis_result = st.session_state.analysis_result
+    white_name = analysis_result.white_name
+    black_name = analysis_result.black_name
     
-    # Utiliser les métadonnées PGN stockées dans session_state
-    pgn_meta = st.session_state.pgn_meta
+    # Utiliser les métadonnées PGN depuis analysis_result
+    pgn_meta = analysis_result.pgn_meta
     white_elo = pgn_meta.white_elo
     black_elo = pgn_meta.black_elo
 
 
-    if "analysis" not in st.session_state or not st.session_state.analysis:
+    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         return
     if color == "white":
         with st.container(border=False,height=height):
@@ -90,11 +91,11 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
     # Ajout des flèches selon les options
     if (
         move_index > 0
-        and "analysis" in st.session_state
-        and st.session_state.analysis
+        and st.session_state.analysis_result
+        and st.session_state.analysis_result.analysis
     ):
 
-        coup_data = st.session_state.analysis[move_index - 1]
+        coup_data = st.session_state.analysis_result.analysis[move_index - 1]
         quality = coup_data.quality
         # Flèche pour le meilleur coup si le coup joué n'est ni théorique ni le meilleur
         if (
@@ -136,13 +137,13 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
                     pass
 
 
-    if move_index == 0 or "analysis" not in st.session_state or not st.session_state.analysis:
+    if move_index == 0 or not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         quality = "Non précisée"
         light_color, dark_color = "#ffffff", "#FFFFFF"
         quality_path = None
     else:
         analysis_index = move_index - 1
-        coup_data = st.session_state.analysis[analysis_index]
+        coup_data = st.session_state.analysis_result.analysis[analysis_index]
         quality = coup_data.quality
         light_color, dark_color = quality_board_colors.get(quality, ("#ff0000", "#000000"))
         quality_path = quality_images.get(quality)
@@ -167,7 +168,7 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
     if last_move and quality_path:
         svg = inject_quality_on_square(svg, last_move.to_square, quality, images_b64, flipped)
 
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         if flipped:
             display_players_name_for_board("white")
         else:
@@ -177,7 +178,7 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
     html = f'<img src="data:image/svg+xml;base64,{b64}"/>'
     st.write(html, unsafe_allow_html=True)
 
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         if flipped:
             display_players_name_for_board("black")
         else:

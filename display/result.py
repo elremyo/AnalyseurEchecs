@@ -7,8 +7,9 @@ def display_game_result():
     if "pgn_last_analyzed" not in st.session_state or not st.session_state.pgn_last_analyzed:
         return
     
-    # Utiliser les métadonnées PGN stockées dans session_state
-    pgn_meta = st.session_state.pgn_meta
+    # Utiliser les métadonnées PGN depuis analysis_result
+    analysis_result = st.session_state.analysis_result
+    pgn_meta = analysis_result.pgn_meta
     result = pgn_meta.result
     termination = pgn_meta.termination
     link = pgn_meta.link

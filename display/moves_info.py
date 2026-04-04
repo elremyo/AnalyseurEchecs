@@ -9,14 +9,15 @@ from domain.analyzed_move import AnalyzedMove
 
 def display_total_moves_by_quality() -> None:
 
-    # Utiliser le récap précalculé depuis l'analyse
-    recap = st.session_state.get("quality_recap")
+    # Utiliser le récap précalculé depuis analysis_result
+    analysis_result = st.session_state.analysis_result
+    recap = analysis_result.quality_recap
     if recap is None:
         st.write("Aucun récapitulatif de qualité disponible.")
         return
     
-    white_name = st.session_state.white_name
-    black_name = st.session_state.black_name
+    white_name = analysis_result.white_name
+    black_name = analysis_result.black_name
 
     # Charger les images une seule fois
     images_b64 = load_quality_images_b64()
@@ -67,7 +68,7 @@ def display_total_moves_by_quality() -> None:
 
 
 def display_move_description() -> None:
-    if "analysis" not in st.session_state or not st.session_state.analysis:
+    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         st.write("Aucune analyse disponible.")
         return
 
@@ -78,11 +79,11 @@ def display_move_description() -> None:
 
     analysis_index = move_index - 1
 
-    if analysis_index >= len(st.session_state.analysis):
+    if analysis_index >= len(st.session_state.analysis_result.analysis):
         st.warning("Aucune analyse disponible pour ce coup.")
         return
 
-    coup_data = st.session_state.analysis[analysis_index]
+    coup_data = st.session_state.analysis_result.analysis[analysis_index]
     meilleur_coup = coup_data.best_move
     coup_joué = coup_data.coup
     quality = coup_data.quality
@@ -135,11 +136,11 @@ def display_move_description() -> None:
 
 
 def display_all_moves_recap() -> None:
-    if "analysis" not in st.session_state or not st.session_state.analysis:
+    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         st.write("Aucun récapitulatif disponible.")
         return
 
-    analysis = st.session_state.analysis
+    analysis = st.session_state.analysis_result.analysis
     
     # Charger les images une seule fois
     images_b64 = load_quality_images_b64()
@@ -213,9 +214,10 @@ def display_all_moves_recap() -> None:
 
 
 def display_key_moments(winner: str) -> None: 
-    analysis = st.session_state.analysis
+    analysis_result = st.session_state.analysis_result
+    analysis = analysis_result.analysis
     username = st.session_state.get("username", "Vous")
-    white = st.session_state.get("white_name", "Blanc")
+    white = analysis_result.white_name
 
     user_color = "white" if username.lower() == white.lower() else "black"
 

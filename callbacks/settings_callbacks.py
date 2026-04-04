@@ -19,11 +19,3 @@ class SettingsCallbacks:
         """Gère le changement d'affichage des flèches de menaces."""
         st.session_state.show_threat_arrows = st.session_state.threat_arrows_toggle
     
-    @staticmethod
-    def initialize_settings_if_needed() -> None:
-        """Initialise les paramètres s'ils n'existent pas.
-        
-        Note: Cette méthode est conservée pour compatibilité mais les paramètres
-        sont maintenant initialisés dans utils/session.py.
-        """
-        pass

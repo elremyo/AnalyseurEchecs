@@ -40,7 +40,7 @@ def render_navigation_buttons(max_index):
                  on_click=lambda: NavigationCallbacks.go_to_last_move(max_index))
 
 def display_moves_slider(max_index):
-    if "analysis" not in st.session_state or not st.session_state.analysis:
+    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         return
     if max_index == 0:
         return

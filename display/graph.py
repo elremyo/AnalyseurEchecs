@@ -7,7 +7,7 @@ from display.constants import quality_colors
 
 
 def render_score_bar() -> None:
-    if not st.session_state.analysis:
+    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         return
 
     move_index = st.session_state.get("move_index", 0)
@@ -17,7 +17,7 @@ def render_score_bar() -> None:
         white_win_chance = 50
         black_win_chance = 50
     else:
-        coup = st.session_state.analysis[move_index - 1]
+        coup = st.session_state.analysis_result.analysis[move_index - 1]
         cp = coup.eval
         raw_eval = coup.raw_eval
 
@@ -42,7 +42,7 @@ def render_score_bar() -> None:
                 black_win_chance = 100
             else:  # M0, il faut déterminer qui a maté
                 prev_eval = None
-                for prev_coup in reversed(st.session_state.analysis[:move_index-1]):
+                for prev_coup in reversed(st.session_state.analysis_result.analysis[:move_index-1]):
                     prev_raw = prev_coup.raw_eval
                     if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
                         prev_eval = prev_raw["value"]
@@ -128,7 +128,7 @@ def render_score_bar() -> None:
 
 
 def render_moves_graph(current_index: Optional[int] = None) -> None:
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         y_min, y_max = -1300, 1300
 
         def eval_to_y(i, coup):
@@ -141,7 +141,7 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
                 else:  # M0, il faut déterminer qui a maté
                     # On regarde le coup précédent pour savoir le signe du mat
                     prev_eval = None
-                    for prev_coup in reversed(st.session_state.analysis[:i]):
+                    for prev_coup in reversed(st.session_state.analysis_result.analysis[:i]):
                         prev_raw = prev_coup.raw_eval
                         if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
                             prev_eval = prev_raw["value"]
@@ -152,8 +152,8 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
                         return y_min
             return max(min(raw.get("value", 0), y_max), y_min)
 
-        evals = [eval_to_y(i, coup) for i, coup in enumerate(st.session_state.analysis)]
-        formatted_labels = [format_eval(coup.raw_eval) for coup in st.session_state.analysis]
+        evals = [eval_to_y(i, coup) for i, coup in enumerate(st.session_state.analysis_result.analysis)]
+        formatted_labels = [format_eval(coup.raw_eval) for coup in st.session_state.analysis_result.analysis]
 
         fig = go.Figure()
         # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
@@ -190,7 +190,7 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
-            quality = st.session_state.analysis[current_index].quality
+            quality = st.session_state.analysis_result.analysis[current_index].quality
             color = quality_colors.get(quality, "#739552")
 
             fig.add_shape(

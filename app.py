@@ -34,9 +34,6 @@ dev_mode = False
 
 @st.dialog(title="Options")
 def open_parameters() -> None:
-    # Initialisation des paramètres si nécessaire
-    SettingsCallbacks.initialize_settings_if_needed()
-    
     st.slider(
         "Profondeur d'analyse",
         min_value=10,
@@ -128,10 +125,10 @@ with col_pgn:
     # Affichage des erreurs
     analysis_callbacks.display_error_if_any()
 
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         st.divider()
         display_game_result()
-        display_key_moments(winner=st.session_state.get("winner"))
+        display_key_moments(winner=st.session_state.analysis_result.winner)
         st.divider()
         display_total_moves_by_quality()
     else:
@@ -153,9 +150,9 @@ with col_pgn:
 
 with col_board:
 
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         try:
-            max_index = len(st.session_state.analysis)
+            max_index = len(st.session_state.analysis_result.analysis)
             pgn_to_use = st.session_state.get("pgn_last_analyzed", "")
             if not pgn_to_use:
                 st.error("Aucune partie analysée à afficher.")
@@ -184,7 +181,7 @@ with col_board:
  
 
 with col_datas:
-    if st.session_state.analysis:
+    if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         # Afficher le sélecteur de coups
         display_moves_slider(max_index)
 
