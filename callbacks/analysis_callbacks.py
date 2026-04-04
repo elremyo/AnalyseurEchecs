@@ -27,6 +27,8 @@ class AnalysisCallbacks:
             "analysis": result.analysis,
             "white_name": result.white_name,
             "black_name": result.black_name,
+            "pgn_meta": result.pgn_meta,
+            "analysis_df": result.analysis_df,
             "pgn_last_analyzed": pgn,
             "winner": result.winner,
             "key_moments": result.key_moments,
