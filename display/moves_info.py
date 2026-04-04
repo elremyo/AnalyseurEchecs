@@ -152,7 +152,7 @@ def display_all_moves_recap() -> None:
             move_number = i // 2 + 1
 
             with col_num_coup:
-                st.markdown(f"&nbsp;:small[{move_number}].", unsafe_allow_html=True)
+                st.caption(f"{move_number}.")
 
             quality_w = analysis[i].quality
             coup_w = analysis[i].coup
@@ -167,7 +167,7 @@ def display_all_moves_recap() -> None:
                     )
                 st.markdown(
                     f"{img_w_tag}"
-                    f"<span style='font-family:monospace;font-size:16px'>{escape_html(coup_w)}</span>",
+                    f"{escape_html(coup_w)}",
                     unsafe_allow_html=True,
                 )
             with col_coup_blanc:
@@ -196,7 +196,7 @@ def display_all_moves_recap() -> None:
                         )
                     st.markdown(
                         f"{img_b_tag}"
-                        f"<span style='font-family:monospace;font-size:16px'>{escape_html(coup_b)}</span>",
+                        f"{escape_html(coup_b)}",
                         unsafe_allow_html=True,
                     )
                 with col_coup_noir:

@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.safe_html import escape_html
 
 
 def display_game_result():
@@ -23,7 +24,8 @@ def display_game_result():
         winner_color = "❓"
 
     with st.container(border=False):
+        termination_escaped = escape_html(termination)
         if link:
-            st.markdown(f"{winner_color}**{termination}** (:material/open_in_new: [Lien de la partie]({link}))")
+            st.markdown(f"{winner_color}**{termination_escaped}** (:material/open_in_new: [Lien de la partie]({link}))")
         else:
-            st.markdown(f"{winner_color}**{termination}**")
+            st.markdown(f"{winner_color}**{termination_escaped}**")
