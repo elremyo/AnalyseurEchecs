@@ -11,6 +11,9 @@ from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
 from stockfish import Stockfish
 from domain.analyzed_move import AnalyzedMove
 
+# Regex pattern for score parsing - compiled once at module level
+_SCORE_RE = re.compile(r"score (cp|mate) (-?\d+)")
+
 
 class InvalidPgnError(ValueError):
     """PGN illisible, vide ou sans ligne principale."""
@@ -20,7 +23,7 @@ def _parse_eval_from_info_line(info_line: str, white_to_move: bool) -> dict:
     """Reconstruit le dict d'éval au format get_evaluation() depuis la dernière ligne info."""
     if not info_line or not info_line.strip():
         return {"type": "cp", "value": 0}
-    matches = list(re.finditer(r"score (cp|mate) (-?\d+)", info_line))
+    matches = list(_SCORE_RE.finditer(info_line))
     if not matches:
         return {"type": "cp", "value": 0}
     typ, val_s = matches[-1].group(1), matches[-1].group(2)
@@ -142,7 +145,7 @@ def analyze_game(
         white_before = board.turn == chess.WHITE
         best_move = stockfish.get_best_move()
         info_before = stockfish.info or ""
-        if re.search(r"score (cp|mate)", info_before):
+        if _SCORE_RE.search(info_before):
             eval_before = _parse_eval_from_info_line(info_before, white_before)
         else:
             eval_before = stockfish.get_evaluation()
@@ -173,7 +176,7 @@ def analyze_game(
         else:
             _ = stockfish.get_best_move()
             info_after = stockfish.info or ""
-            if re.search(r"score (cp|mate)", info_after):
+            if _SCORE_RE.search(info_after):
                 eval_after = _parse_eval_from_info_line(
                     info_after, board.turn == chess.WHITE
                 )
