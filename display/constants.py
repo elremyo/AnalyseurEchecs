@@ -3,6 +3,11 @@ import os
 
 board_size = 800  # in pixels
 
+# Constants for board rendering
+SQUARE_SIZE_PX = 45.7
+BOARD_MARGIN_PX = 10
+QUALITY_ICON_SIZE = 20
+
 quality_images = {
     "Théorique": os.path.join(assets_path, "theorique.png"),
     "Gaffe": os.path.join(assets_path, "gaffe.png"),

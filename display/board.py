@@ -6,7 +6,7 @@ import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
-from display.constants import board_size, quality_images, quality_board_colors
+from display.constants import board_size, quality_images, quality_board_colors, SQUARE_SIZE_PX, BOARD_MARGIN_PX, QUALITY_ICON_SIZE
 
 def display_players_name_for_board(color: str = "white", height: int = 50) -> None:
 
@@ -48,9 +48,9 @@ def inject_quality_on_square(svg: str, square: chess.Square, quality: str, image
 
     img_b64 = images_b64[quality]
 
-    #Magic numbers found by trial and error
-    marging_coordinates = 10
-    square_size = 45.7
+    # Constants for board rendering
+    marging_coordinates = BOARD_MARGIN_PX
+    square_size = SQUARE_SIZE_PX
 
     file = chess.square_file(square)
     rank = chess.square_rank(square)
@@ -63,7 +63,7 @@ def inject_quality_on_square(svg: str, square: chess.Square, quality: str, image
         y = rank*square_size
 
     
-    quality_size = int(20)
+    quality_size = QUALITY_ICON_SIZE
     quality_x = marging_coordinates + x - quality_size/2
     quality_y = marging_coordinates + 2 + y - quality_size/2
 
