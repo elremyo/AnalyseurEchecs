@@ -17,6 +17,9 @@ def display_total_moves_by_quality():
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
 
+    # Charger les images une seule fois
+    images_b64 = load_quality_images_b64()
+
  
     # Clés fixes W/B : si les deux noms PGN sont identiques (ex. "?"), pandas aurait
     # deux colonnes du même nom et row[nom] renverrait une Series au lieu d'un entier.
@@ -63,7 +66,6 @@ def display_total_moves_by_quality():
                 unsafe_allow_html=True,
             )
         with col_image:
-            images_b64 = load_quality_images_b64()
             img_b64 = images_b64.get(quality)
             if img_b64:
                 st.markdown(
@@ -154,6 +156,9 @@ def display_all_moves_recap():
         return
 
     analysis = st.session_state.analysis
+    
+    # Charger les images une seule fois
+    images_b64 = load_quality_images_b64()
 
     def go_to_move(idx):
         st.session_state.move_index = idx
@@ -168,7 +173,6 @@ def display_all_moves_recap():
 
             quality_w = analysis[i].get("quality", "Non précisée")
             coup_w = analysis[i].get("coup", "")
-            images_b64 = load_quality_images_b64()
             img_b64 = images_b64.get(quality_w)
 
             with col_qual_blanc:
@@ -199,7 +203,6 @@ def display_all_moves_recap():
             if i + 1 < len(analysis):
                 quality_b = analysis[i + 1].get("quality", "Non précisée")
                 coup_b = analysis[i + 1].get("coup", "")
-                images_b64 = load_quality_images_b64()
                 img_b64 = images_b64.get(quality_b)
                 with col_qual_noir:
                     img_b_tag = ""
