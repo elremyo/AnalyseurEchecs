@@ -194,5 +194,7 @@ with col_datas:
 
     else:
             st.subheader("👀 Rien à afficher pour l’instant !",anchor=False)
-            st.image(get_random_gif(), width='stretch')
+            gif_url = get_random_gif()
+            if gif_url:
+                st.image(gif_url, width='stretch')
             st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")

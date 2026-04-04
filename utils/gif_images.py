@@ -1,6 +1,7 @@
 import random
 import requests
 import os
+import streamlit as st
 
 assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
@@ -19,12 +20,16 @@ chess_gifs = [
 ]
 
 
+@st.cache_data(ttl=3600)
 def get_random_gif():
-    for _ in range(3):  # on tente 3 fois
+    for _ in range(2):  # on tente 2 fois
         gif = random.choice(chess_gifs)
         try:
             if requests.head(gif, timeout=3).status_code == 200:
                 return gif
-        except:
+        except Exception:
             continue
-    return os.path.join(assets_path, 'checkmate_gif.gif')
+    fallback_path = os.path.join(assets_path, 'checkmate_gif.gif')
+    if os.path.exists(fallback_path):
+        return fallback_path
+    return None
