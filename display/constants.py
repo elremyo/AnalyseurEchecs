@@ -1,7 +1,5 @@
+from utils.assets import assets_path
 import os
-
-# Détermine le chemin vers le dossier assets
-assets_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 
 board_size = 800  # in pixels
 
