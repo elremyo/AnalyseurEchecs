@@ -123,11 +123,12 @@ with col_pgn:
             st.session_state.pgn_last = pgn_text
             st.session_state.pgn_last_analyzed = pgn_text
             st.session_state.move_index = 0
+            st.session_state.winner = get_winner(pgn_text)
 
     if st.session_state.analysis:
         st.divider()
         display_game_result()
-        display_key_moments(winner=winner)
+        display_key_moments(winner=st.session_state.get("winner"))
         st.divider()
         display_total_moves_by_quality()
     else:
