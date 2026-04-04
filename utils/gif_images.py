@@ -2,6 +2,7 @@ import random
 import requests
 import os
 import streamlit as st
+from typing import Optional
 from utils.assets import assets_path
 
 
@@ -19,16 +20,27 @@ chess_gifs = [
 ]
 
 
+def _is_reachable(gif_url: str) -> bool:
+    """Vérifie si une URL de GIF est accessible."""
+    try:
+        return requests.head(gif_url, timeout=3).status_code == 200
+    except Exception:
+        return False
+
+
 @st.cache_data(ttl=3600)
-def get_random_gif():
-    for _ in range(2):  # on tente 2 fois
-        gif = random.choice(chess_gifs)
-        try:
-            if requests.head(gif, timeout=3).status_code == 200:
-                return gif
-        except Exception:
-            continue
+def _get_reachable_gifs() -> list[str]:
+    """Retourne la liste des GIFs accessibles (mis en cache 1h)."""
+    return [gif for gif in chess_gifs if _is_reachable(gif)]
+
+
+def _fallback_gif() -> Optional[str]:
+    """Retourne le GIF local de fallback."""
     fallback_path = os.path.join(assets_path, 'checkmate_gif.gif')
-    if os.path.exists(fallback_path):
-        return fallback_path
-    return None
+    return fallback_path if os.path.exists(fallback_path) else None
+
+
+def get_random_gif() -> Optional[str]:
+    """Retourne un GIF aléatoire parmi les URLs valides."""
+    reachable = _get_reachable_gifs()
+    return random.choice(reachable) if reachable else _fallback_gif()
