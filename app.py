@@ -1,6 +1,7 @@
 import streamlit as st
 import chess
 import pandas as pd
+from typing import Dict, Any, List
 from dotenv import load_dotenv
 from utils.session import init_session_state
 from display.style import set_page_style
@@ -32,7 +33,7 @@ st.header("Road to 1000 ELO", anchor=False)
 dev_mode = False
 
 @st.dialog(title="Options")
-def open_parameters():
+def open_parameters() -> None:
     # Initialisation des paramètres si nécessaire
     SettingsCallbacks.initialize_settings_if_needed()
     

@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+from typing import Dict, Any, List
 
 from display.constants import quality_images, quality_colors
 from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
-
+from domain.analyzed_move import AnalyzedMove
 
 def display_total_moves_by_quality() -> None:
 
@@ -143,7 +144,7 @@ def display_all_moves_recap() -> None:
     # Charger les images une seule fois
     images_b64 = load_quality_images_b64()
 
-    def go_to_move(idx):
+    def go_to_move(idx: int) -> None:
         st.session_state.move_index = idx
 
     with st.container(border=False, height=400):
@@ -224,7 +225,7 @@ def display_key_moments(winner: str) -> None:
     determinants = key_moments.get("moments_determinants", [])
     critiques = key_moments.get("moments_critiques", [])
 
-    def go_to_move(idx):
+    def go_to_move(idx: int) -> None:
         st.session_state.move_index = idx
 
     if not determinants and not critiques:
