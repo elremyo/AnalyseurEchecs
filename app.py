@@ -15,7 +15,6 @@ from callbacks.navigation_callbacks import NavigationCallbacks
 from callbacks.settings_callbacks import SettingsCallbacks
 from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path, can_use_clipboard
-from utils.eval_utils import get_winner
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
 
@@ -118,7 +117,6 @@ with col_pgn:
         key=pgn_widget_key,
     )
 
-    winner = get_winner(pgn_text) if pgn_text else None
 
 
 
