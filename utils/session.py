@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 def init_session_state():
     defaults = {
@@ -11,7 +12,7 @@ def init_session_state():
         "user_depth": 15,
         "show_best_arrow": True,
         "show_threat_arrows": False,
-        "username": "ElRemyo",
+        "username": os.getenv("CHESSBOT_USERNAME", "Anonymous"),
     }
     for key, value in defaults.items():
         if key not in st.session_state:

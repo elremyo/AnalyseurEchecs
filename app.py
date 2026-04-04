@@ -1,10 +1,7 @@
 import streamlit as st
 import chess
-
+from dotenv import load_dotenv
 from utils.session import init_session_state
-
-init_session_state()
-
 from display.style import set_page_style
 from display.board import render_board
 from display.navigation import render_navigation_buttons, display_moves_slider
@@ -17,6 +14,8 @@ from utils.eval_utils import get_winner
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
 
+init_session_state()
+load_dotenv()
 
 set_page_style()
 st.header("Road to 1000 ELO", anchor=False)
@@ -198,3 +197,6 @@ with col_datas:
             if gif_url:
                 st.image(gif_url, width='stretch')
             st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")
+
+#debug affiche le username
+st.write("Username:", st.session_state.username)
