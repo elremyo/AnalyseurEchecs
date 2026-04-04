@@ -10,8 +10,11 @@ def display_players_name_for_board(color="white", height=50):
 
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
-    white_elo = st.session_state.pgn_last.split("[WhiteElo \"")[1].split("\"]")[0] if "[WhiteElo \"" in st.session_state.pgn_last else "ELO?"
-    black_elo = st.session_state.pgn_last.split("[BlackElo \"")[1].split("\"]")[0] if "[BlackElo \"" in st.session_state.pgn_last else "ELO?"
+    
+    # Utiliser les métadonnées PGN stockées dans session_state
+    pgn_meta = st.session_state.pgn_meta
+    white_elo = pgn_meta.white_elo
+    black_elo = pgn_meta.black_elo
 
 
     if "analysis" not in st.session_state or not st.session_state.analysis:

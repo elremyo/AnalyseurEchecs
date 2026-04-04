@@ -1,4 +1,5 @@
 import math
+from .pgn_parser import parse_pgn_meta
 
 def convert_eval_to_cp(e):
     if e["type"] == "cp":
@@ -101,24 +102,7 @@ def get_win_chance(cp):
 def get_winner(pgn: str):
     """
     Retourne 'white', 'black', 'draw' ou None selon le résultat du PGN.
+    Utilise le parser PGN centralisé.
     """
-    import re
-    # Recherche la balise [Result "..."] ou la dernière occurrence dans le texte
-    m = re.search(r'\[Result\s+"([^"]+)"\]', pgn)
-    if m:
-        result = m.group(1)
-    else:
-        m = re.findall(r'(1-0|0-1|1/2-1/2|½-½)', pgn)
-        if m:
-            result = m[-1]
-        else:
-            result = "?"
-
-    if result == "1-0":
-        return "white"
-    elif result == "0-1":
-        return "black"
-    elif result in ("1/2-1/2", "½-½"):
-        return "draw"
-    else:
-        return None
+    pgn_meta = parse_pgn_meta(pgn)
+    return pgn_meta.winner

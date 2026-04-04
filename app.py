@@ -12,6 +12,7 @@ from display.result import display_game_result
 from engine.analysis import InvalidPgnError, analyze_game, get_moves_from_pgn
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.eval_utils import get_winner
+from utils.pgn_parser import parse_pgn_meta
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
 
@@ -124,7 +125,10 @@ with col_pgn:
             st.session_state.pgn_last = pgn_text
             st.session_state.pgn_last_analyzed = pgn_text
             st.session_state.move_index = 0
-            st.session_state.winner = get_winner(pgn_text)
+            
+            # Stocker les métadonnées PGN parsées dans session_state
+            st.session_state.pgn_meta = parse_pgn_meta(pgn_text)
+            st.session_state.winner = st.session_state.pgn_meta.winner
             st.session_state.analysis_df = pd.DataFrame(analysis)
 
     if st.session_state.analysis:
