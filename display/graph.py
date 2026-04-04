@@ -1,7 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
-
-from utils.eval_utils import *
+from utils.eval_utils import format_eval, get_win_chance, convert_eval_to_cp
 from display.constants import quality_colors
 
 
@@ -193,7 +192,7 @@ def render_moves_graph(current_index=None):
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
-            quality = st.session_state.analysis[current_index].get("quality", "Meilleur")
+            quality = st.session_state.analysis[current_index].get("qualité", "Meilleur")
             color = quality_colors.get(quality, "#739552")
 
             fig.add_shape(
