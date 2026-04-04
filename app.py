@@ -17,6 +17,7 @@ from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
+from utils.pgn_limits import MAX_PGN_CHARACTERS
 
 init_session_state()
 load_dotenv()
@@ -99,7 +100,7 @@ with col_pgn:
     if can_use_clipboard():
         import pyperclip
         clipboard_content = pyperclip.paste()
-        if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event"):
+        if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event") and len(clipboard_content.strip()) <= MAX_PGN_CHARACTERS:
             pgn_clipboard = clipboard_content.strip()
         else:
             pgn_clipboard = ""
