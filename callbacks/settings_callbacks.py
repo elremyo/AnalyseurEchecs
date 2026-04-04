@@ -21,10 +21,9 @@ class SettingsCallbacks:
     
     @staticmethod
     def initialize_settings_if_needed() -> None:
-        """Initialise les paramètres s'ils n'existent pas."""
-        if "user_depth" not in st.session_state:
-            st.session_state.user_depth = 10
-        if "show_best_arrow" not in st.session_state:
-            st.session_state.show_best_arrow = True
-        if "show_threat_arrows" not in st.session_state:
-            st.session_state.show_threat_arrows = False
+        """Initialise les paramètres s'ils n'existent pas.
+        
+        Note: Cette méthode est conservée pour compatibilité mais les paramètres
+        sont maintenant initialisés dans utils/session.py.
+        """
+        pass

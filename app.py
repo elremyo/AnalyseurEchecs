@@ -108,15 +108,13 @@ with col_pgn:
     else:
         pgn_clipboard = ""
 
-    pgn_widget_key = "pgn_text_input"
-    if pgn_widget_key not in st.session_state:
-        st.session_state[pgn_widget_key] = pgn_clipboard or ""
+    # Le pgn_text_input est maintenant initialisé dans session.py
 
     pgn_text = st.text_area(
         "PGN de la partie :",
         placeholder="Collez ici le PGN de la partie",
         height=150,
-        key=pgn_widget_key,
+        key="pgn_text_input",
     )
 
 
@@ -165,9 +163,6 @@ with col_board:
             else:
                 moves = get_moves_from_pgn(pgn_to_use)
                 board = chess.Board()
-
-                if "move_index" not in st.session_state:
-                    st.session_state.move_index = 0
 
                 render_navigation_buttons(max_index)
                 st.session_state.move_index = max(0, min(st.session_state.move_index, max_index))
