@@ -16,9 +16,9 @@ def display_total_moves_by_quality():
  
     # Clés fixes W/B : si les deux noms PGN sont identiques (ex. "?"), pandas aurait
     # deux colonnes du même nom et row[nom] renverrait une Series au lieu d'un entier.
-    df["_côté"] = ["W" if i % 2 == 0 else "B" for i in range(len(df))]
+    df["_side"] = ["W" if i % 2 == 0 else "B" for i in range(len(df))]
     recap = (
-        df.groupby(["qualité", "_côté"])
+        df.groupby(["quality", "_side"])
         .size()
         .unstack(fill_value=0)
         .reindex(columns=["W", "B"], fill_value=0)
@@ -96,7 +96,7 @@ def display_move_description():
     coup_data = st.session_state.analysis[analysis_index]
     meilleur_coup = coup_data.get("best_move", "Non spécifié")
     coup_joué = coup_data.get("coup", "Inconnu")
-    quality = coup_data.get("qualité", "Non précisée")
+    quality = coup_data.get("quality", "Non précisée")
     img_path = quality_images.get(quality)
     est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
     est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
@@ -164,7 +164,7 @@ def display_all_moves_recap():
             with col_num_coup:
                 st.markdown(f"&nbsp;:small[{move_number}].", unsafe_allow_html=True)
 
-            quality_w = analysis[i].get("qualité", "Non précisée")
+            quality_w = analysis[i].get("quality", "Non précisée")
             coup_w = analysis[i].get("coup", "")
             images_b64 = load_quality_images_b64()
             img_b64 = images_b64.get(quality_w)
@@ -195,7 +195,7 @@ def display_all_moves_recap():
 
             # Coup noir
             if i + 1 < len(analysis):
-                quality_b = analysis[i + 1].get("qualité", "Non précisée")
+                quality_b = analysis[i + 1].get("quality", "Non précisée")
                 coup_b = analysis[i + 1].get("coup", "")
                 images_b64 = load_quality_images_b64()
                 img_b64 = images_b64.get(quality_b)
@@ -259,7 +259,7 @@ def display_key_moments(winner):
             with cols[0]:
                 st.write(
                     f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['qualité']}"
+                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['quality']}"
                 )
             with cols[1]:
                 st.button(
@@ -284,7 +284,7 @@ def display_key_moments(winner):
             with cols[0]:
                 st.write(
                     f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['qualité']}"
+                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['quality']}"
                 )
             with cols[1]:
                 st.button(

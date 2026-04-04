@@ -193,7 +193,7 @@ def render_moves_graph(current_index=None):
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
-            quality = st.session_state.analysis[current_index].get("qualité", "Meilleur")
+            quality = st.session_state.analysis[current_index].get("quality", "Meilleur")
             color = quality_colors.get(quality, "#739552")
 
             fig.add_shape(

@@ -185,7 +185,7 @@ def analyze_game(
 
         is_best = (best_move == move.uci())
 
-        # Attribution de la qualité
+        # Attribution de la quality
         quality = get_quality(
             delta=delta,
             is_best=is_best,
@@ -199,7 +199,7 @@ def analyze_game(
         # Ajout à l'analyse
         analysis.append({
             "coup": move_san,
-            "qualité": quality,
+            "quality": quality,
             "eval": convert_eval_to_cp(eval_after),
             "raw_eval": eval_after,
             "best_move": best_move_san,

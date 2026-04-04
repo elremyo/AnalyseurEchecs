@@ -90,7 +90,7 @@ def render_board(board, last_move=None, flipped=False):
     ):
 
         coup_data = st.session_state.analysis[move_index - 1]
-        quality = coup_data.get("qualité", "Non précisée")
+        quality = coup_data.get("quality", "Non précisée")
         # Flèche pour le meilleur coup si le coup joué n'est ni théorique ni le meilleur
         if (
             st.session_state.get("show_best_arrow", True)
@@ -138,7 +138,7 @@ def render_board(board, last_move=None, flipped=False):
     else:
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis[analysis_index]
-        quality = coup_data.get("qualité", "Non précisée")
+        quality = coup_data.get("quality", "Non précisée")
         light_color, dark_color = quality_board_colors.get(quality, ("#ff0000", "#000000"))
         quality_path = quality_images.get(quality)
 
