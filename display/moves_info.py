@@ -8,33 +8,17 @@ from utils.safe_html import escape_html
 
 def display_total_moves_by_quality() -> None:
 
-    # Utiliser le DataFrame pré-calculé ou le créer si nécessaire
-    if "analysis_df" not in st.session_state:
-        st.session_state.analysis_df = pd.DataFrame(st.session_state.analysis)
+    # Utiliser le récap précalculé depuis l'analyse
+    recap = st.session_state.get("quality_recap")
+    if recap is None:
+        st.write("Aucun récapitulatif de qualité disponible.")
+        return
     
-    df = st.session_state.analysis_df.copy()
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
 
     # Charger les images une seule fois
     images_b64 = load_quality_images_b64()
-
- 
-    # Clés fixes W/B : si les deux noms PGN sont identiques (ex. "?"), pandas aurait
-    # deux colonnes du même nom et row[nom] renverrait une Series au lieu d'un entier.
-    df["_side"] = ["W" if i % 2 == 0 else "B" for i in range(len(df))]
-    recap = (
-        df.groupby(["quality", "_side"])
-        .size()
-        .unstack(fill_value=0)
-        .reindex(columns=["W", "B"], fill_value=0)
-        .reindex(index=[
-            #"Brillant", 
-            #"Critique", 
-            "Meilleur", "Excellent", "Bon",
-            "Imprécision", "Erreur", "Gaffe", "Théorique"
-        ], fill_value=0)
-        )
     
     col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False,vertical_alignment="center")
     with col_quality:

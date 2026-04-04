@@ -16,6 +16,7 @@ class AnalysisResult:
     key_moments: List[Any]
     winner: Optional[str] = None
     analysis_df: Optional[pd.DataFrame] = None
+    quality_recap: Optional[pd.DataFrame] = None
 
 
 @dataclass
@@ -67,6 +68,22 @@ class GameAnalysisService:
                 winner=pgn_meta.winner
             )
             
+            # Création du DataFrame et précalcul du GroupBy
+            analysis_df = pd.DataFrame(analysis)
+            analysis_df["_side"] = ["W" if i % 2 == 0 else "B" for i in range(len(analysis_df))]
+            quality_recap = (
+                analysis_df.groupby(["quality", "_side"])
+                .size()
+                .unstack(fill_value=0)
+                .reindex(columns=["W", "B"], fill_value=0)
+                .reindex(index=[
+                    #"Brillant", 
+                    #"Critique", 
+                    "Meilleur", "Excellent", "Bon",
+                    "Imprécision", "Erreur", "Gaffe", "Théorique"
+                ], fill_value=0)
+            )
+            
             result = AnalysisResult(
                 analysis=analysis,
                 white_name=white_name,
@@ -74,7 +91,8 @@ class GameAnalysisService:
                 pgn_meta=pgn_meta,
                 key_moments=key_moments,
                 winner=pgn_meta.winner,
-                analysis_df=pd.DataFrame(analysis)
+                analysis_df=analysis_df,
+                quality_recap=quality_recap
             )
             
             return result, None
