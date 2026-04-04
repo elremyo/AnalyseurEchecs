@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 
 from display.constants import quality_images, quality_colors
-from engine.analysis import find_key_moments
 from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
 
@@ -235,12 +234,8 @@ def display_key_moments(winner: str) -> None:
 
     user_color = "white" if username.lower() == white.lower() else "black"
 
-    key_moments = find_key_moments(
-        analysis,
-        threshold=500,
-        min_gap_between_moments=2,
-        winner=winner
-    )
+    # Utiliser le cache au lieu de recalculer
+    key_moments = st.session_state.get("key_moments", {})
 
     determinants = key_moments["moments_determinants"]
     critiques = key_moments["moments_critiques"]
