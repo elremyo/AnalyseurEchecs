@@ -120,15 +120,12 @@ with col_pgn:
     )
 
 
-
-
-    if st.button("Analyser",
+    st.button("Analyser",
                  disabled=not (pgn_text and pgn_text.strip()),
                  type="primary",
                  icon=":material/monitoring:",
                  width='stretch',
-                 on_click=analysis_callbacks.on_analyze_click):
-        pass
+                 on_click=analysis_callbacks.on_analyze_click)
 
     # Affichage des erreurs
     analysis_callbacks.display_error_if_any()
