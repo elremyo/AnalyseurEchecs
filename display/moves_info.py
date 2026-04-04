@@ -99,11 +99,11 @@ def display_move_description():
         return
 
     coup_data = st.session_state.analysis[analysis_index]
-    meilleur_coup = coup_data.get("best_move", "Non spécifié")
-    coup_joué = coup_data.get("coup", "Inconnu")
-    quality = coup_data.get("quality", "Non précisée")
-    est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
-    est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
+    meilleur_coup = coup_data.best_move
+    coup_joué = coup_data.coup
+    quality = coup_data.quality
+    est_theorique = "Oui" if coup_data.is_theoretical else "Non"
+    est_meilleur = "Oui" if coup_data.is_best else "Non"
     color_best = quality_colors.get("Meilleur", "black")
 
     color_coup = quality_colors.get(quality, "black")
@@ -171,8 +171,8 @@ def display_all_moves_recap():
             with col_num_coup:
                 st.markdown(f"&nbsp;:small[{move_number}].", unsafe_allow_html=True)
 
-            quality_w = analysis[i].get("quality", "Non précisée")
-            coup_w = analysis[i].get("coup", "")
+            quality_w = analysis[i].quality
+            coup_w = analysis[i].coup
             img_b64 = images_b64.get(quality_w)
 
             with col_qual_blanc:
@@ -201,8 +201,8 @@ def display_all_moves_recap():
 
             # Coup noir
             if i + 1 < len(analysis):
-                quality_b = analysis[i + 1].get("quality", "Non précisée")
-                coup_b = analysis[i + 1].get("coup", "")
+                quality_b = analysis[i + 1].quality
+                coup_b = analysis[i + 1].coup
                 img_b64 = images_b64.get(quality_b)
                 with col_qual_noir:
                     img_b_tag = ""
@@ -263,8 +263,8 @@ def display_key_moments(winner):
             cols = st.columns([10, 1])
             with cols[0]:
                 st.write(
-                    f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['quality']}"
+                    f"Coup {idx + 2} ({move_info.coup}) : "
+                    f"{move_info.eval / 100:+.1f}, {move_info.quality}"
                 )
             with cols[1]:
                 st.button(
@@ -288,8 +288,8 @@ def display_key_moments(winner):
             cols = st.columns([10, 1])
             with cols[0]:
                 st.write(
-                    f"Coup {idx + 2} ({move_info['coup']}) : "
-                    f"{move_info.get('eval', 0) / 100:+.1f}, {move_info['quality']}"
+                    f"Coup {idx + 2} ({move_info.coup}) : "
+                    f"{move_info.eval / 100:+.1f}, {move_info.quality}"
                 )
             with cols[1]:
                 st.button(

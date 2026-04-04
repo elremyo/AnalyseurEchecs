@@ -17,8 +17,8 @@ def render_score_bar():
         black_win_chance = 50
     else:
         coup = st.session_state.analysis[move_index - 1]
-        cp = coup["eval"]
-        raw_eval = coup.get("raw_eval", {"type": "cp", "value": cp})
+        cp = coup.eval
+        raw_eval = coup.raw_eval
 
         # Fonction locale pour formatage positif sans signe
         def format_eval_bar(e):
@@ -42,7 +42,7 @@ def render_score_bar():
             else:  # M0, il faut déterminer qui a maté
                 prev_eval = None
                 for prev_coup in reversed(st.session_state.analysis[:move_index-1]):
-                    prev_raw = prev_coup.get("raw_eval", {})
+                    prev_raw = prev_coup.raw_eval
                     if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
                         prev_eval = prev_raw["value"]
                         break
@@ -134,7 +134,7 @@ def render_moves_graph(current_index=None):
         y_min, y_max = -1300, 1300
 
         def eval_to_y(i, coup):
-            raw = coup.get("raw_eval", {"type": "cp", "value": coup.get("eval", 0)})
+            raw = coup.raw_eval
             if raw["type"] == "mate":
                 if raw["value"] > 0:
                     return y_max
@@ -144,7 +144,7 @@ def render_moves_graph(current_index=None):
                     # On regarde le coup précédent pour savoir le signe du mat
                     prev_eval = None
                     for prev_coup in reversed(st.session_state.analysis[:i]):
-                        prev_raw = prev_coup.get("raw_eval", {})
+                        prev_raw = prev_coup.raw_eval
                         if prev_raw.get("type") == "mate" and prev_raw.get("value") != 0:
                             prev_eval = prev_raw["value"]
                             break
@@ -155,7 +155,7 @@ def render_moves_graph(current_index=None):
             return max(min(raw.get("value", 0), y_max), y_min)
 
         evals = [eval_to_y(i, coup) for i, coup in enumerate(st.session_state.analysis)]
-        formatted_labels = [format_eval(coup["raw_eval"]) for coup in st.session_state.analysis]
+        formatted_labels = [format_eval(coup.raw_eval) for coup in st.session_state.analysis]
 
         fig = go.Figure()
         # Première trace : ligne blanche invisible au niveau de `min_val` pour générer une "zone remplie"
@@ -192,7 +192,7 @@ def render_moves_graph(current_index=None):
         )
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
-            quality = st.session_state.analysis[current_index].get("qualité", "Meilleur")
+            quality = st.session_state.analysis[current_index].quality
             color = quality_colors.get(quality, "#739552")
 
             fig.add_shape(

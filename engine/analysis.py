@@ -9,6 +9,7 @@ import streamlit as st
 from utils.eval_utils import convert_eval_to_cp, get_quality
 from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
 from stockfish import Stockfish
+from domain.move_analysis import MoveAnalysis
 
 
 class InvalidPgnError(ValueError):
@@ -197,17 +198,17 @@ def analyze_game(
         )
 
         # Ajout à l'analyse
-        analysis.append({
-            "coup": move_san,
-            "quality": quality,
-            "eval": convert_eval_to_cp(eval_after),
-            "raw_eval": eval_after,
-            "best_move": best_move_san,
-            "best_move_uci": best_move, 
-            "is_best": is_best,
-            "is_theoretical": is_theo,
-            "threats": threats
-        })
+        analysis.append(MoveAnalysis(
+            coup=move_san,
+            quality=quality,
+            eval=convert_eval_to_cp(eval_after),
+            raw_eval=eval_after,
+            best_move=best_move_san,
+            best_move_uci=best_move,
+            is_best=is_best,
+            is_theoretical=is_theo,
+            threats=threats
+        ))
 
         # Mise à jour de la barre de progression
         percent = int(((idx + 1) / total_moves) * 100)
@@ -229,8 +230,8 @@ def find_key_moments(analysis, threshold=500, min_gap_between_moments=2, winner=
     prev_eval = None
 
     for idx, move_info in enumerate(analysis):
-        curr_eval = move_info.get("eval", 0)
-        curr_raw_eval = move_info.get("raw_eval", {})
+        curr_eval = move_info.eval
+        curr_raw_eval = move_info.raw_eval
 
         # Ne pas considérer un coup qui mène directement au mat
         if curr_raw_eval.get("type") == "mate" and curr_raw_eval.get("value") == 0:
@@ -245,7 +246,7 @@ def find_key_moments(analysis, threshold=500, min_gap_between_moments=2, winner=
             # pour éviter de signaler des variations temporaires corrigées immédiatement après
             sustained_change = True
             if idx + 1 < len(analysis):
-                next_eval = analysis[idx + 1].get("eval", curr_eval)
+                next_eval = analysis[idx + 1].eval
                 delta_next = next_eval - curr_eval
                 if abs(delta_next) > abs_delta * 0.5:
                     sustained_change = False

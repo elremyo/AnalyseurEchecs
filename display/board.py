@@ -93,15 +93,15 @@ def render_board(board, last_move=None, flipped=False):
     ):
 
         coup_data = st.session_state.analysis[move_index - 1]
-        quality = coup_data.get("quality", "Non précisée")
+        quality = coup_data.quality
         # Flèche pour le meilleur coup si le coup joué n'est ni théorique ni le meilleur
         if (
             st.session_state.get("show_best_arrow", True)
             and quality not in ("Théorique", "Meilleur")
-            and "best_move" in coup_data
-            and coup_data.get("best_move_uci")
+            and coup_data.best_move
+            and coup_data.best_move_uci
         ):
-            best_move_uci = coup_data["best_move_uci"]
+            best_move_uci = coup_data.best_move_uci
 
             try:
                 best_move = chess.Move.from_uci(best_move_uci)
@@ -118,9 +118,9 @@ def render_board(board, last_move=None, flipped=False):
         # Flèches pour les menaces
         if (
             st.session_state.get("show_threat_arrows", False)
-            and "threats" in coup_data
+            and coup_data.threats
         ):
-            for threat_uci in coup_data["threats"]:
+            for threat_uci in coup_data.threats:
                 try:
                     threat_move = chess.Move.from_uci(threat_uci)
                     arrows.append(
@@ -141,7 +141,7 @@ def render_board(board, last_move=None, flipped=False):
     else:
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis[analysis_index]
-        quality = coup_data.get("quality", "Non précisée")
+        quality = coup_data.quality
         light_color, dark_color = quality_board_colors.get(quality, ("#ff0000", "#000000"))
         quality_path = quality_images.get(quality)
 
