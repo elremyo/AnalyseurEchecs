@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from typing import Dict, Any, List
 
-from display.constants import quality_images, quality_colors
+from display.constants import quality_colors
 from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
 from domain.analyzed_move import AnalyzedMove
