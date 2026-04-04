@@ -1,11 +1,12 @@
 import streamlit as st
 import plotly.graph_objects as go
+from typing import Optional
 from utils.eval_utils import format_eval, get_win_chance, convert_eval_to_cp
 from display.constants import quality_colors
 
 
 
-def render_score_bar():
+def render_score_bar() -> None:
     if not st.session_state.analysis:
         return
 
@@ -129,7 +130,7 @@ def render_score_bar():
 
 
 
-def render_moves_graph(current_index=None):
+def render_moves_graph(current_index: Optional[int] = None) -> None:
     if st.session_state.analysis:
         y_min, y_max = -1300, 1300
 

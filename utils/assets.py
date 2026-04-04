@@ -18,7 +18,7 @@ else:
 book_path = os.path.join(assets_path, "performance.bin")
 
 
-def can_use_clipboard():
+def can_use_clipboard() -> bool:
     try:
         import pyperclip
         test = pyperclip.paste()

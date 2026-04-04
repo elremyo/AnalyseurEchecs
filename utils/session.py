@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-def init_session_state():
+def init_session_state() -> None:
     defaults = {
         "analysis": None,
         "pgn_last": "",

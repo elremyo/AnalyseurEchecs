@@ -7,7 +7,7 @@ from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
 
 
-def display_total_moves_by_quality():
+def display_total_moves_by_quality() -> None:
 
     # Utiliser le DataFrame pré-calculé ou le créer si nécessaire
     if "analysis_df" not in st.session_state:
@@ -82,7 +82,7 @@ def display_total_moves_by_quality():
 
 
 
-def display_move_description():
+def display_move_description() -> None:
     if "analysis" not in st.session_state or not st.session_state.analysis:
         st.write("Aucune analyse disponible.")
         return
@@ -150,7 +150,7 @@ def display_move_description():
         )
 
 
-def display_all_moves_recap():
+def display_all_moves_recap() -> None:
     if "analysis" not in st.session_state or not st.session_state.analysis:
         st.write("Aucun récapitulatif disponible.")
         return
@@ -228,7 +228,7 @@ def display_all_moves_recap():
                     )
 
 
-def display_key_moments(winner): 
+def display_key_moments(winner: str) -> None: 
     analysis = st.session_state.analysis
     username = st.session_state.get("username", "Vous")
     white = st.session_state.get("white_name", "Blanc")

@@ -1,7 +1,8 @@
 import math
+from typing import Optional, Dict, Any
 from .pgn_parser import parse_pgn_meta
 
-def convert_eval_to_cp(e):
+def convert_eval_to_cp(e: Dict[str, Any]) -> int:
     if e["type"] == "cp":
         return e["value"]
     elif e["type"] == "mate":
@@ -70,7 +71,7 @@ def _quality_cp_to_cp(delta: int, prev_cp: int, curr_cp: int, prev_eval: dict, c
             return "Bon"
         return "Gaffe"
 
-def get_quality(delta, is_best, is_theoretical, prev_eval, curr_eval, prev_cp, curr_cp) -> str:
+def get_quality(delta: int, is_best: bool, is_theoretical: bool, prev_eval: Dict[str, Any], curr_eval: Dict[str, Any], prev_cp: int, curr_cp: int) -> str:
     """Dispatch principal qui délègue aux fonctions spécialisées selon le type de transition."""
     if is_best and not is_theoretical:
         return "Meilleur"
@@ -87,7 +88,7 @@ def get_quality(delta, is_best, is_theoretical, prev_eval, curr_eval, prev_cp, c
     else:  # cp to cp
         return _quality_cp_to_cp(delta, prev_cp, curr_cp, prev_eval, curr_eval)
 
-def format_eval(e):
+def format_eval(e: Dict[str, Any]) -> str:
     if e["type"] == "cp":
         val = round(e["value"] / 100, 2)
         return f"+{val}" if val > 0 else f"{val}"
@@ -95,11 +96,11 @@ def format_eval(e):
         return f"M{e['value']}" if e["value"] > 0 else f"-M{abs(e['value'])}"
     return "?"
 
-def get_win_chance(cp):
+def get_win_chance(cp: int) -> float:
     cp = max(min(cp, 1000), -1000)
     return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)
 
-def get_winner(pgn: str):
+def get_winner(pgn: str) -> Optional[str]:
     """
     Retourne 'white', 'black', 'draw' ou None selon le résultat du PGN.
     Utilise le parser PGN centralisé.

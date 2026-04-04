@@ -1,12 +1,14 @@
 import base64
+from typing import Optional
 from utils.image_utils import load_quality_images_b64
+import chess
 import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
 from display.constants import board_size, quality_images, quality_board_colors
 
-def display_players_name_for_board(color="white", height=50):
+def display_players_name_for_board(color: str = "white", height: int = 50) -> None:
 
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
@@ -42,7 +44,7 @@ def display_players_name_for_board(color="white", height=50):
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
     
-def inject_quality_on_square(svg, square, quality: str, images_b64: dict[str, str], flipped=False):
+def inject_quality_on_square(svg: str, square: chess.Square, quality: str, images_b64: dict[str, str], flipped: bool = False) -> str:
 
     img_b64 = images_b64[quality]
 
@@ -78,7 +80,7 @@ def inject_quality_on_square(svg, square, quality: str, images_b64: dict[str, st
 
 
 
-def render_board(board, last_move=None, flipped=False):
+def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, flipped: bool = False) -> None:
 
     move_index = st.session_state.get("move_index", 0)
     images_b64 = load_quality_images_b64()
