@@ -1,6 +1,5 @@
 import math
 from typing import Optional, Dict, Any
-from .pgn_parser import parse_pgn_meta
 
 def convert_eval_to_cp(e: Dict[str, Any]) -> int:
     if e["type"] == "cp":
@@ -99,11 +98,3 @@ def format_eval(e: Dict[str, Any]) -> str:
 def get_win_chance(cp: int) -> float:
     cp = max(min(cp, 1000), -1000)
     return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * cp)) - 1)
-
-def get_winner(pgn: str) -> Optional[str]:
-    """
-    Retourne 'white', 'black', 'draw' ou None selon le résultat du PGN.
-    Utilise le parser PGN centralisé.
-    """
-    pgn_meta = parse_pgn_meta(pgn)
-    return pgn_meta.winner
