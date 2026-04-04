@@ -88,9 +88,6 @@ def render_score_bar() -> None:
         textfont=dict(size=16, family="Source Sans Pro, sans-serif", color="white"),
     ))
 
-
-    flipped = st.session_state.get("board_flipped", False)
-
     fig.update_layout(
         barmode='stack',
         height=48,
