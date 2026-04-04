@@ -7,52 +7,51 @@ def convert_eval_to_cp(e):
         return 1200 if e["value"] >= 0 else -1200
     return 0
 
-def get_quality(delta, is_best, is_theoretical, prev_eval, curr_eval, prev_cp, curr_cp):
-    if is_best and not is_theoretical:
+def _quality_cp_to_mate(curr_eval: dict) -> str:
+    """Évalue la qualité d'une transition de centipawns à mate."""
+    if curr_eval["value"] > 0:
         return "Meilleur"
-    if is_theoretical:
-        return "Théorique"
+    elif curr_eval["value"] >= -2:
+        return "Gaffe"
+    elif curr_eval["value"] >= -5:
+        return "Erreur"
+    else:
+        return "Imprécision"
 
-    # Mate cases
-    if prev_eval["type"] == "cp" and curr_eval["type"] == "mate":
-        if curr_eval["value"] > 0:
-            return "Meilleur"
-        elif curr_eval["value"] >= -2:
-            return "Gaffe"
-        elif curr_eval["value"] >= -5:
+def _quality_mate_to_cp(prev_cp: int, curr_cp: int) -> str:
+    """Évalue la qualité d'une transition de mate à centipawns."""
+    if prev_cp < 0 and curr_cp < 0:
+        return "Meilleur"
+    elif curr_cp >= 400:
+        return "Bon"
+    elif curr_cp >= 150:
+        return "Imprécision"
+    elif curr_cp >= -100:
+        return "Erreur"
+    else:
+        return "Gaffe"
+
+def _quality_mate_to_mate(prev_cp: int, curr_cp: int) -> str:
+    """Évalue la qualité d'une transition de mate à mate."""
+    if prev_cp > 0:
+        if curr_cp <= -4:
             return "Erreur"
-        else:
-            return "Imprécision"
-    if prev_eval["type"] == "mate" and curr_eval["type"] == "cp":
-        if prev_cp < 0 and curr_cp < 0:
+        elif curr_cp < 0:
+            return "Gaffe"
+        elif curr_cp < prev_cp:
             return "Meilleur"
-        elif curr_cp >= 400:
+        elif curr_cp <= prev_cp + 2:
+            return "Excellent"
+        else:
             return "Bon"
-        elif curr_cp >= 150:
-            return "Imprécision"
-        elif curr_cp >= -100:
-            return "Erreur"
+    else:
+        if curr_cp == prev_cp:
+            return "Meilleur"
         else:
-            return "Gaffe"
-    if prev_eval["type"] == "mate" and curr_eval["type"] == "mate":
-        if prev_cp > 0:
-            if curr_cp <= -4:
-                return "Erreur"
-            elif curr_cp < 0:
-                return "Gaffe"
-            elif curr_cp < prev_cp:
-                return "Meilleur"
-            elif curr_cp <= prev_cp + 2:
-                return "Excellent"
-            else:
-                return "Bon"
-        else:
-            if curr_cp == prev_cp:
-                return "Meilleur"
-            else:
-                return "Bon"
+            return "Bon"
 
-    # Centipawn cases
+def _quality_cp_to_cp(delta: int, prev_cp: int, curr_cp: int, prev_eval: dict, curr_eval: dict) -> str:
+    """Évalue la qualité d'une transition de centipawns à centipawns."""
     delta_abs = abs(delta)
     if delta_abs < 10:
         return "Meilleur"
@@ -69,6 +68,23 @@ def get_quality(delta, is_best, is_theoretical, prev_eval, curr_eval, prev_cp, c
         if curr_cp >= 600 or (prev_cp <= -600 and prev_eval["type"] == "cp" and curr_eval["type"] == "cp"):
             return "Bon"
         return "Gaffe"
+
+def get_quality(delta, is_best, is_theoretical, prev_eval, curr_eval, prev_cp, curr_cp) -> str:
+    """Dispatch principal qui délègue aux fonctions spécialisées selon le type de transition."""
+    if is_best and not is_theoretical:
+        return "Meilleur"
+    if is_theoretical:
+        return "Théorique"
+    
+    # Dispatch selon le type de transition
+    if prev_eval["type"] == "cp" and curr_eval["type"] == "mate":
+        return _quality_cp_to_mate(curr_eval)
+    elif prev_eval["type"] == "mate" and curr_eval["type"] == "cp":
+        return _quality_mate_to_cp(prev_cp, curr_cp)
+    elif prev_eval["type"] == "mate" and curr_eval["type"] == "mate":
+        return _quality_mate_to_mate(prev_cp, curr_cp)
+    else:  # cp to cp
+        return _quality_cp_to_cp(delta, prev_cp, curr_cp, prev_eval, curr_eval)
 
 def format_eval(e):
     if e["type"] == "cp":
