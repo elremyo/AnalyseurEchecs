@@ -46,7 +46,6 @@ def display_total_moves_by_quality():
         color = quality_colors.get(quality, "black")
         value_white = int(row["W"])
         value_black = int(row["B"])
-        img_path = quality_images.get(quality)
 
         col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
         with col_quality:
@@ -97,7 +96,6 @@ def display_move_description():
     meilleur_coup = coup_data.get("best_move", "Non spécifié")
     coup_joué = coup_data.get("coup", "Inconnu")
     quality = coup_data.get("quality", "Non précisée")
-    img_path = quality_images.get(quality)
     est_theorique = "Oui" if coup_data.get("is_theoretical", False) else "Non"
     est_meilleur = "Oui" if coup_data.get("is_best", False) else "Non"
     color_best = quality_colors.get("Meilleur", "black")
