@@ -1,5 +1,6 @@
 import streamlit as st
 import chess
+import pandas as pd
 from dotenv import load_dotenv
 from utils.session import init_session_state
 from display.style import set_page_style
@@ -124,6 +125,7 @@ with col_pgn:
             st.session_state.pgn_last_analyzed = pgn_text
             st.session_state.move_index = 0
             st.session_state.winner = get_winner(pgn_text)
+            st.session_state.analysis_df = pd.DataFrame(analysis)
 
     if st.session_state.analysis:
         st.divider()
@@ -198,6 +200,3 @@ with col_datas:
             if gif_url:
                 st.image(gif_url, width='stretch')
             st.markdown("🔎 Essayez d’analyser une partie pour voir vos statistiques !")
-
-#debug affiche le username
-st.write("Username:", st.session_state.username)

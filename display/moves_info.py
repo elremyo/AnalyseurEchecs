@@ -9,7 +9,11 @@ from utils.safe_html import escape_html
 
 def display_total_moves_by_quality():
 
-    df = pd.DataFrame(st.session_state.analysis)
+    # Utiliser le DataFrame pré-calculé ou le créer si nécessaire
+    if "analysis_df" not in st.session_state:
+        st.session_state.analysis_df = pd.DataFrame(st.session_state.analysis)
+    
+    df = st.session_state.analysis_df
     white_name = st.session_state.white_name
     black_name = st.session_state.black_name
 
