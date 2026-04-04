@@ -13,6 +13,12 @@ def init_session_state() -> None:
         "show_best_arrow": True,
         "show_threat_arrows": False,
         "username": os.getenv("CHESSBOT_USERNAME", "Anonymous"),
+        "move_index": 0,
+        "pgn_meta": {},
+        "key_moments": [],
+        "winner": None,
+        "analyze_error": None,
+        "analysis_df": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
