@@ -218,11 +218,11 @@ def display_key_moments(winner: str) -> None:
 
     user_color = "white" if username.lower() == white.lower() else "black"
 
-    # Utiliser le cache au lieu de recalculer
+    # Utiliser les key_moments précalculés depuis session_state (évite le recalcul)
     key_moments = st.session_state.get("key_moments", {})
-
-    determinants = key_moments["moments_determinants"]
-    critiques = key_moments["moments_critiques"]
+    
+    determinants = key_moments.get("moments_determinants", [])
+    critiques = key_moments.get("moments_critiques", [])
 
     def go_to_move(idx):
         st.session_state.move_index = idx
