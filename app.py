@@ -11,6 +11,8 @@ from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
 from engine.analysis import get_moves_from_pgn
 from callbacks.analysis_callbacks import AnalysisCallbacks
+from callbacks.navigation_callbacks import NavigationCallbacks
+from callbacks.settings_callbacks import SettingsCallbacks
 from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.eval_utils import get_winner
@@ -31,18 +33,32 @@ dev_mode = False
 
 @st.dialog(title="Options")
 def open_parameters():
-    user_depth = st.slider(
+    # Initialisation des paramètres si nécessaire
+    SettingsCallbacks.initialize_settings_if_needed()
+    
+    st.slider(
         "Profondeur d'analyse",
         min_value=10,
         max_value=20,
-        value=st.session_state.get("user_depth", 10),
+        value=st.session_state.user_depth,
         step=1,
+        key="depth_slider",
+        on_change=SettingsCallbacks.on_depth_change,
     )
-    st.session_state.user_depth = user_depth
-    show_best_arrow = st.toggle("Afficher la meilleure alternative", value=st.session_state.get("show_best_arrow", True))
-    st.session_state.show_best_arrow = show_best_arrow
-    show_threat_arrows = st.toggle("Afficher la meilleure continuation", value=st.session_state.get("show_threat_arrows", False))
-    st.session_state.show_threat_arrows = show_threat_arrows
+    
+    st.toggle(
+        "Afficher la meilleure alternative", 
+        value=st.session_state.show_best_arrow,
+        key="best_arrow_toggle",
+        on_change=SettingsCallbacks.on_best_arrow_toggle,
+    )
+    
+    st.toggle(
+        "Afficher la meilleure continuation", 
+        value=st.session_state.show_threat_arrows,
+        key="threat_arrows_toggle",
+        on_change=SettingsCallbacks.on_threat_arrows_toggle,
+    )
 
 
 col_pgn, col_board, col_datas = st.columns(spec=[2,5,3], gap="small", border=True)
