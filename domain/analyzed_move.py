@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 
 
 @dataclass
-class MoveAnalysis:
+class AnalyzedMove:
     """Dataclass représentant l'analyse d'un coup d'échecs.
     
     Remplace les dicts non-typés utilisés précédemment pour l'analyse,

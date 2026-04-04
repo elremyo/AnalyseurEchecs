@@ -9,15 +9,20 @@ from display.navigation import render_navigation_buttons, display_moves_slider
 from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import InvalidPgnError, analyze_game, get_moves_from_pgn
+from engine.analysis import get_moves_from_pgn
+from callbacks.analysis_callbacks import AnalysisCallbacks
+from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.eval_utils import get_winner
-from utils.pgn_parser import parse_pgn_meta
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
 
 init_session_state()
 load_dotenv()
+
+# Initialisation des services
+analysis_service = GameAnalysisService(stockfish_path, book_path)
+analysis_callbacks = AnalysisCallbacks(analysis_service)
 
 set_page_style()
 st.header("Road to 1000 ELO", anchor=False)
@@ -105,31 +110,12 @@ with col_pgn:
                  disabled=not (pgn_text and pgn_text.strip()),
                  type="primary",
                  icon=":material/monitoring:",
-                 width='stretch'):
-        try:
-            analysis, white_name, black_name = analyze_game(
-                pgn_text,
-                st.session_state.user_depth,
-                stockfish_path,
-                book_path,
-                compute_threats=st.session_state.get("show_threat_arrows", False),
-            )
-        except InvalidPgnError as err:
-            st.error(str(err))
-        except Exception as err:
-            st.error(f"Erreur pendant l'analyse : {err}")
-        else:
-            st.session_state.analysis = analysis
-            st.session_state.white_name = white_name
-            st.session_state.black_name = black_name
-            st.session_state.pgn_last = pgn_text
-            st.session_state.pgn_last_analyzed = pgn_text
-            st.session_state.move_index = 0
-            
-            # Stocker les métadonnées PGN parsées dans session_state
-            st.session_state.pgn_meta = parse_pgn_meta(pgn_text)
-            st.session_state.winner = st.session_state.pgn_meta.winner
-            st.session_state.analysis_df = pd.DataFrame(analysis)
+                 width='stretch',
+                 on_click=analysis_callbacks.on_analyze_click):
+        pass
+
+    # Affichage des erreurs
+    analysis_callbacks.display_error_if_any()
 
     if st.session_state.analysis:
         st.divider()

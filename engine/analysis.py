@@ -9,7 +9,7 @@ import streamlit as st
 from utils.eval_utils import convert_eval_to_cp, get_quality
 from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
 from stockfish import Stockfish
-from domain.move_analysis import MoveAnalysis
+from domain.analyzed_move import AnalyzedMove
 
 
 class InvalidPgnError(ValueError):
@@ -198,7 +198,7 @@ def analyze_game(
         )
 
         # Ajout à l'analyse
-        analysis.append(MoveAnalysis(
+        analysis.append(AnalyzedMove(
             coup=move_san,
             quality=quality,
             eval=convert_eval_to_cp(eval_after),
