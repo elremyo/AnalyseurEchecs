@@ -7,7 +7,10 @@ from utils.session import init_session_state
 from display.style import set_page_style
 from display.board import render_board
 from display.navigation import render_navigation_buttons, display_moves_slider
-from display.moves_info import display_move_description, display_all_moves_recap, display_total_moves_by_quality, display_key_moments
+from display.move_description import display_move_description
+from display.moves_recap import display_all_moves_recap
+from display.quality_summary import display_total_moves_by_quality
+from display.key_moments import display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
 from engine.analysis import get_moves_from_pgn
