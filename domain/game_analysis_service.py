@@ -35,8 +35,9 @@ class GameAnalysisService:
         self.stockfish_path = stockfish_path
         self.book_path = book_path
     
+    @staticmethod
     @st.cache_data
-    def _get_moves_from_pgn_cached(self, pgn_text: str) -> list[chess.Move]:
+    def _get_moves_from_pgn_cached(pgn_text: str) -> list[chess.Move]:
         """Version cachée de get_moves_from_pgn pour la couche UI."""
         return get_moves_from_pgn(pgn_text)
     

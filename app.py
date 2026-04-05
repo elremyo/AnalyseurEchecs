@@ -160,7 +160,7 @@ with col_board:
                 st.error("Aucune partie analysée à afficher.")
                 render_board(board=chess.Board())
             else:
-                moves = analysis_service._get_moves_from_pgn_cached(pgn_to_use)
+                moves = GameAnalysisService._get_moves_from_pgn_cached(pgn_to_use)
                 board = chess.Board()
 
                 render_navigation_buttons(max_index)

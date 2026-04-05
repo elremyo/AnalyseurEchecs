@@ -31,7 +31,6 @@ def display_players_name_for_board(color: str = "white", height: int = 50) -> No
                 "caption": f"({white_elo})",
                 "key": "avatar1",
             }])
-            #st.markdown(f"◻️ {white_name} :grey[({white_elo})]")
     elif color == "black":
         with st.container(border=False,height=height):
             avatar([{
@@ -41,7 +40,6 @@ def display_players_name_for_board(color: str = "white", height: int = 50) -> No
                 "caption": f"({black_elo})",
                 "key": "avatar2",
             }])
-            #st.markdown(f"◼️ {black_name} :grey[({black_elo})]")
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
     
