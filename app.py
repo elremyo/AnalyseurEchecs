@@ -130,7 +130,7 @@ with col_pgn:
     if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
         st.divider()
         display_game_result()
-        display_key_moments(winner=st.session_state.analysis_result.winner)
+        display_key_moments()
         st.divider()
         display_total_moves_by_quality()
     else:

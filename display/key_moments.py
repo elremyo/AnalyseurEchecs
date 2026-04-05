@@ -1,17 +1,15 @@
 import streamlit as st
 from typing import Dict, Any, List
 
-def display_key_moments(winner: str) -> None: 
+def display_key_moments() -> None: 
     analysis_result = st.session_state.analysis_result
     analysis = analysis_result.analysis
+    winner = analysis_result.winner
+    key_moments = analysis_result.key_moments
     username = st.session_state.get("username", "Vous")
     white = analysis_result.white_name
-
     user_color = "white" if username.lower() == white.lower() else "black"
 
-    # Utiliser les key_moments précalculés depuis session_state (évite le recalcul)
-    key_moments = st.session_state.get("key_moments", {})
-    
     determinants = key_moments.get("moments_determinants", [])
     critiques = key_moments.get("moments_critiques", [])
 
