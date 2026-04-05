@@ -8,7 +8,7 @@ from streamlit_avatar import avatar
 
 from display.constants import board_size, quality_images, quality_board_colors, SQUARE_SIZE_PX, BOARD_MARGIN_PX, QUALITY_ICON_SIZE
 
-def display_players_name_for_board(color: str = "white", height: int = 50) -> None:
+def display_players_name_for_board(color: str = "white", height: int = 30) -> None:
 
     analysis_result = st.session_state.analysis_result
     white_name = analysis_result.white_name
@@ -24,22 +24,13 @@ def display_players_name_for_board(color: str = "white", height: int = 50) -> No
         return
     if color == "white":
         with st.container(border=False,height=height):
-            avatar([{
-                "url": "https://raw.githubusercontent.com/elremyo/chess-assets/refs/heads/main/white_king.png",
-                "size": 35,
-                "title": f"{white_name}",
-                "caption": f"({white_elo})",
-                "key": "avatar1",
-            }])
+            #nom et elo du joueur blanc
+            st.markdown(f"⬜ **{white_name}**  :gray[:small[{white_elo}]]")
     elif color == "black":
         with st.container(border=False,height=height):
-            avatar([{
-                "url": "https://raw.githubusercontent.com/elremyo/chess-assets/refs/heads/main/black_king.png",
-                "size": 35,
-                "title": f"{black_name}",
-                "caption": f"({black_elo})",
-                "key": "avatar2",
-            }])
+            #nom et elo du joueur noir
+            st.markdown(f"⬛ **{black_name}** :gray[:small[{black_elo}]]")
+
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
     
