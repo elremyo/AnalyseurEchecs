@@ -1,6 +1,7 @@
 import base64
 from typing import Optional
 from utils.image_utils import load_quality_images_b64
+from utils.safe_html import escape_html
 import chess
 import chess.svg
 import streamlit as st
@@ -25,11 +26,11 @@ def display_players_name_for_board(color: str = "white", height: int = 30) -> No
     if color == "white":
         with st.container(border=False,height=height):
             #nom et elo du joueur blanc
-            st.markdown(f"⬜ **{white_name}**  :gray[:small[{white_elo}]]")
+            st.markdown(f"⬜ **{escape_html(white_name)}**  :gray[:small[{white_elo}]]")
     elif color == "black":
         with st.container(border=False,height=height):
             #nom et elo du joueur noir
-            st.markdown(f"⬛ **{black_name}** :gray[:small[{black_elo}]]")
+            st.markdown(f"⬛ **{escape_html(black_name)}** :gray[:small[{black_elo}]]")
 
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
