@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from utils.session import init_session_state
 from display.style import set_page_style
 from display.board import render_board
+from utils.pgn_utils import get_moves_from_pgn_cached
 from display.navigation import render_navigation_buttons, display_moves_slider
 from display.move_description import display_move_description
 from display.moves_recap import display_all_moves_recap
@@ -16,6 +17,7 @@ from display.result import display_game_result
 from callbacks.analysis_callbacks import AnalysisCallbacks
 from callbacks.navigation_callbacks import NavigationCallbacks
 from callbacks.settings_callbacks import SettingsCallbacks
+from engine.analysis import InvalidPgnError, analyze_game, find_key_moments, get_moves_from_pgn
 from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path, can_use_clipboard
 from utils.debug_pgn_samples import sample_games
@@ -160,7 +162,7 @@ with col_board:
                 st.error("Aucune partie analysée à afficher.")
                 render_board(board=chess.Board())
             else:
-                moves = GameAnalysisService._get_moves_from_pgn_cached(pgn_to_use)
+                moves = get_moves_from_pgn_cached(pgn_to_use)
                 board = chess.Board()
 
                 render_navigation_buttons(max_index)

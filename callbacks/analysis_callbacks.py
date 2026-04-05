@@ -35,6 +35,7 @@ class AnalysisCallbacks:
         result, error = self.service.analyze_game(
             pgn=pgn,
             user_depth=st.session_state.user_depth,
+            username=st.session_state.username,
             compute_threats=st.session_state.show_threat_arrows,
             progress_callback=progress_callback
         )

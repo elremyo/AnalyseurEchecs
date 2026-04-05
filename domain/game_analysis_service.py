@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Any, Callable
 import pandas as pd
-import streamlit as st
 import chess
 from engine.analysis import InvalidPgnError, analyze_game, find_key_moments, get_moves_from_pgn
 from utils.pgn_parser import parse_pgn_meta
@@ -38,20 +37,14 @@ class GameAnalysisService:
         self.stockfish_path = stockfish_path
         self.book_path = book_path
     
-    @staticmethod
-    @st.cache_data
-    def _get_moves_from_pgn_cached(pgn_text: str) -> list[chess.Move]:
-        """Version cachée de get_moves_from_pgn pour la couche UI."""
-        return get_moves_from_pgn(pgn_text)
-    
     def analyze_game(
         self,
         pgn: str,
         user_depth: int,
+        username: str = "Vous",
         compute_threats: bool = False,
         key_moments_threshold: int = 500,
         min_gap_between_moments: int = 2,
-        username: str = "Vous",
         progress_callback: Optional[Callable[[int, int, str], None]] = None
     ) -> Tuple[Optional[AnalysisResult], Optional[AnalysisError]]:
         """
@@ -83,7 +76,6 @@ class GameAnalysisService:
             )
             
             # Calcul de la couleur utilisateur et des messages précalculés
-            username = getattr(st.session_state, 'username', 'Vous') if 'st' in globals() else 'Vous'
             user_color = "white" if username.lower() == white_name.lower() else "black"
             
             # Calcul des messages pour les key moments
