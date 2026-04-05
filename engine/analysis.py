@@ -4,6 +4,7 @@ import re
 import chess
 import chess.pgn
 import chess.polyglot
+import streamlit as st
 
 from utils.eval_utils import convert_eval_to_cp, get_quality
 from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
@@ -78,9 +79,10 @@ def is_theoretical_move(board, move, reader):
     except Exception:
         return False
 
-def _setup_stockfish(user_depth: int, stockfish_path: str) -> Stockfish:
-    """Configure et retourne une instance Stockfish."""
-    stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+@st.cache_resource
+def _get_stockfish_engine(_stockfish_path: str) -> Stockfish:
+    """Retourne une instance Stockfish mutualisée via cache."""
+    stockfish = Stockfish(path=_stockfish_path)
     _threads = min(8, max(1, (os.cpu_count() or 4)))
     stockfish.update_engine_parameters(
         {
@@ -90,6 +92,13 @@ def _setup_stockfish(user_depth: int, stockfish_path: str) -> Stockfish:
             "Minimum Thinking Time": 0,
         }
     )
+    return stockfish
+
+
+def _setup_stockfish(user_depth: int, stockfish_path: str) -> Stockfish:
+    """Configure et retourne une instance Stockfish avec la profondeur demandée."""
+    stockfish = _get_stockfish_engine(stockfish_path)
+    stockfish.set_depth(user_depth)
     return stockfish
 
 
