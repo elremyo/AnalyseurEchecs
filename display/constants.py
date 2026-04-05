@@ -43,3 +43,15 @@ quality_board_colors = {
     "Critique": ("#a7b2b2", "#8a8a8a"),
     "Brillant": ("#1baa9b", "#1baa9b")
 }
+
+# Board colors
+BOARD_COLORS = {
+    "square_light": "#ebecd0",
+    "square_dark": "#739552",
+    "arrow": "#ff0000",
+    "margin": "#181818", # Same as background in config.toml
+    "best_arrow": "#98bc499e",
+    "threat_arrow": "#c02424b9",
+    "default_light": "#ffffff",
+    "default_dark": "#000000"
+}

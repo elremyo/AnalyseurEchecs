@@ -78,7 +78,7 @@ def render_score_bar() -> None:
         y=["Évaluation"],
         x=[black_win_chance],
         orientation='h',
-        marker_color="#232325",
+        marker_color="#000000",
         hoverinfo="skip",
         showlegend=False,
         name="Noirs",
@@ -208,7 +208,7 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
             dragmode=False,
             xaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
             yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
-            plot_bgcolor="#252423"
+            plot_bgcolor="#000000"
         )
         st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
 

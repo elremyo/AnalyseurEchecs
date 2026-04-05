@@ -6,7 +6,7 @@ import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
-from display.constants import board_size, quality_images, quality_board_colors, SQUARE_SIZE_PX, BOARD_MARGIN_PX, QUALITY_ICON_SIZE
+from display.constants import board_size, quality_images, quality_board_colors, SQUARE_SIZE_PX, BOARD_MARGIN_PX, QUALITY_ICON_SIZE, BOARD_COLORS
 
 def display_players_name_for_board(color: str = "white", height: int = 30) -> None:
 
@@ -101,7 +101,7 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
                     chess.svg.Arrow(
                         best_move.from_square,
                         best_move.to_square,
-                        color="#98bc499e" 
+                        color=BOARD_COLORS["best_arrow"]
                     )
                 )
             except Exception:
@@ -119,7 +119,7 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
                         chess.svg.Arrow(
                             threat_move.from_square,
                             threat_move.to_square,
-                            color="#c02424b9" 
+                            color=BOARD_COLORS["threat_arrow"]
                         )
                     )
                 except Exception:
@@ -128,13 +128,13 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
 
     if move_index == 0 or not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
         quality = "Non précisée"
-        light_color, dark_color = "#ffffff", "#FFFFFF"
+        light_color, dark_color = BOARD_COLORS["default_light"], BOARD_COLORS["default_dark"]
         quality_path = None
     else:
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis_result.analysis[analysis_index]
         quality = coup_data.quality
-        light_color, dark_color = quality_board_colors.get(quality, ("#ff0000", "#000000"))
+        light_color, dark_color = quality_board_colors.get(quality, (BOARD_COLORS["default_light"], BOARD_COLORS["default_dark"]))
         quality_path = quality_images.get(quality)
 
     svg = chess.svg.board(
@@ -142,11 +142,12 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
         lastmove=last_move,
         flipped=flipped,
         colors={
-            "square light": "#ebecd0",
-            "square dark": "#739552",
-            "arrow": "#ff0000",
+            "square light": BOARD_COLORS["square_light"],
+            "square dark": BOARD_COLORS["square_dark"],
+            "arrow": BOARD_COLORS["arrow"],
             "square light lastmove": light_color,
             "square dark lastmove": dark_color,
+            "margin": BOARD_COLORS["margin"],
         },
         size=board_size,
         coordinates=True,
