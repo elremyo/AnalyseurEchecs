@@ -4,7 +4,6 @@ import re
 import chess
 import chess.pgn
 import chess.polyglot
-import streamlit as st
 
 from utils.eval_utils import convert_eval_to_cp, get_quality
 from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
@@ -56,7 +55,6 @@ def load_pgn(pgn: str) -> chess.pgn.Game:
     return game
 
 
-@st.cache_data
 def get_moves_from_pgn(pgn_text: str) -> list[chess.Move]:
     """Parse le PGN et retourne la liste des coups. Résultat mis en cache par PGN."""
     if not pgn_text or not str(pgn_text).strip():
@@ -188,6 +186,7 @@ def analyze_game(
     book_path: str,
     *,
     compute_threats: bool = False,
+    progress_callback=None,
 ):
     """Analyse une partie PGN et retourne la liste des coups annotés.
 
@@ -219,9 +218,10 @@ def analyze_game(
             f"Partie trop longue (max {MAX_MAINLINE_HALFMOVES} demi-coups)."
         )
     total_moves = len(moves)
-    progress_bar = st.progress(0, text="Préparation de l'analyse")
-    caption_placeholder = st.empty()
-    caption_placeholder.caption("Si l'analyse est trop longue, vous pouvez diminuer la profondeur d'analyse dans les options.")
+    
+    # Callback de progression initial
+    if progress_callback:
+        progress_callback(0, total_moves, "Préparation de l'analyse")
 
     #Ouverture du livre des coups théoriques
     book_reader = _open_book(book_path)
@@ -230,12 +230,11 @@ def analyze_game(
         analyzed_move = _analyze_single_move(board, stockfish, move, book_reader, compute_threats, idx)
         analysis.append(analyzed_move)
 
-        # Mise à jour de la barre de progression
-        percent = int(((idx + 1) / total_moves) * 100)
-        progress_bar.progress((idx + 1) / total_moves, text=f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
+        # Mise à jour de la progression
+        if progress_callback:
+            percent = int(((idx + 1) / total_moves) * 100)
+            progress_callback(idx + 1, total_moves, f"Analyse en cours {idx + 1}/{total_moves} ({percent}%)")
 
-    progress_bar.empty()  
-    caption_placeholder.empty()
 
     #Fermeture du livre des coups théoriques
     if book_reader:

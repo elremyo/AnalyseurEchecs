@@ -13,7 +13,6 @@ from display.quality_summary import display_total_moves_by_quality
 from display.key_moments import display_key_moments
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
-from engine.analysis import get_moves_from_pgn
 from callbacks.analysis_callbacks import AnalysisCallbacks
 from callbacks.navigation_callbacks import NavigationCallbacks
 from callbacks.settings_callbacks import SettingsCallbacks
@@ -161,7 +160,7 @@ with col_board:
                 st.error("Aucune partie analysée à afficher.")
                 render_board(board=chess.Board())
             else:
-                moves = get_moves_from_pgn(pgn_to_use)
+                moves = analysis_service._get_moves_from_pgn_cached(pgn_to_use)
                 board = chess.Board()
 
                 render_navigation_buttons(max_index)

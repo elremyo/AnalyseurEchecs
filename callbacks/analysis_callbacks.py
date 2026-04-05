@@ -8,14 +8,35 @@ class AnalysisCallbacks:
     def __init__(self, service: GameAnalysisService):
         self.service = service
     
+    def _create_progress_callback(self):
+        """Crée un callback de progression pour Streamlit."""
+        progress_bar = st.progress(0, text="Préparation de l'analyse")
+        caption_placeholder = st.empty()
+        caption_placeholder.caption("Si l'analyse est trop longue, vous pouvez diminuer la profondeur d'analyse dans les options.")
+        
+        def callback(current: int, total: int, message: str):
+            if total > 0:
+                progress_bar.progress(current / total, text=message)
+            
+            # Nettoyage à la fin
+            if current >= total:
+                progress_bar.empty()
+                caption_placeholder.empty()
+        
+        return callback
+    
     def on_analyze_click(self) -> None:
         """Callback pour le bouton Analyser."""
         pgn = st.session_state.pgn_text_input
         
+        # Créer le callback de progression
+        progress_callback = self._create_progress_callback()
+        
         result, error = self.service.analyze_game(
             pgn=pgn,
             user_depth=st.session_state.user_depth,
-            compute_threats=st.session_state.show_threat_arrows
+            compute_threats=st.session_state.show_threat_arrows,
+            progress_callback=progress_callback
         )
         
         if error:

@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Any
+from typing import List, Optional, Tuple, Any, Callable
 import pandas as pd
-from engine.analysis import InvalidPgnError, analyze_game, find_key_moments
+import streamlit as st
+import chess
+from engine.analysis import InvalidPgnError, analyze_game, find_key_moments, get_moves_from_pgn
 from utils.pgn_parser import parse_pgn_meta
 from domain.analyzed_move import AnalyzedMove
 
@@ -33,13 +35,19 @@ class GameAnalysisService:
         self.stockfish_path = stockfish_path
         self.book_path = book_path
     
+    @st.cache_data
+    def _get_moves_from_pgn_cached(self, pgn_text: str) -> list[chess.Move]:
+        """Version cachée de get_moves_from_pgn pour la couche UI."""
+        return get_moves_from_pgn(pgn_text)
+    
     def analyze_game(
         self,
         pgn: str,
         user_depth: int,
         compute_threats: bool = False,
         key_moments_threshold: int = 500,
-        min_gap_between_moments: int = 2
+        min_gap_between_moments: int = 2,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None
     ) -> Tuple[Optional[AnalysisResult], Optional[AnalysisError]]:
         """
         Analyse une partie et retourne le résultat ou une erreur.
@@ -56,7 +64,8 @@ class GameAnalysisService:
             # Analyse du moteur
             analysis, white_name, black_name = analyze_game(
                 pgn, user_depth, self.stockfish_path, self.book_path,
-                compute_threats=compute_threats
+                compute_threats=compute_threats,
+                progress_callback=progress_callback
             )
             
             # Traitement métier
