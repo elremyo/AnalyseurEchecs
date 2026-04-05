@@ -7,21 +7,9 @@ assets_path = os.path.join(base_dir, "assets")
 engine_path = os.path.join(base_dir, 'engine')
 
 
-
-
 if platform.system() == "Windows":
     stockfish_path = os.path.join(engine_path, 'stockfish', 'stockfish-windows-x86-64-avx2.exe')
 else:
     stockfish_path = "/usr/games/stockfish"
 
-
 book_path = os.path.join(assets_path, "performance.bin")
-
-
-def can_use_clipboard() -> bool:
-    try:
-        import pyperclip
-        test = pyperclip.paste()
-        return True
-    except Exception:
-        return False

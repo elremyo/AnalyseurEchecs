@@ -19,7 +19,7 @@ from callbacks.navigation_callbacks import NavigationCallbacks
 from callbacks.settings_callbacks import SettingsCallbacks
 from engine.analysis import InvalidPgnError, analyze_game, find_key_moments, get_moves_from_pgn
 from domain.game_analysis_service import GameAnalysisService
-from utils.assets import stockfish_path, book_path, can_use_clipboard
+from utils.assets import stockfish_path, book_path
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
 from utils.pgn_limits import MAX_PGN_CHARACTERS
@@ -98,18 +98,6 @@ with col_pgn:
         selected_pgn = sample_games[selected_idx].strip()
         if st.session_state.get("pgn_last", "") != selected_pgn:
             st.session_state.pgn_last = selected_pgn
-
-    if can_use_clipboard():
-        import pyperclip
-        clipboard_content = pyperclip.paste()
-        if clipboard_content and isinstance(clipboard_content, str) and clipboard_content.strip().startswith("[Event") and len(clipboard_content.strip()) <= MAX_PGN_CHARACTERS:
-            pgn_clipboard = clipboard_content.strip()
-        else:
-            pgn_clipboard = ""
-    else:
-        pgn_clipboard = ""
-
-    # Le pgn_text_input est maintenant initialisé dans session.py
 
     pgn_text = st.text_area(
         "PGN de la partie :",
