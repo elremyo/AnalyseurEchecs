@@ -19,6 +19,9 @@ class AnalysisResult:
     winner: Optional[str] = None
     analysis_df: Optional[pd.DataFrame] = None
     quality_recap: Optional[pd.DataFrame] = None
+    user_color: Optional[str] = None
+    determinants_message: Optional[str] = None
+    critiques_message: Optional[str] = None
 
 
 @dataclass
@@ -48,6 +51,7 @@ class GameAnalysisService:
         compute_threats: bool = False,
         key_moments_threshold: int = 500,
         min_gap_between_moments: int = 2,
+        username: str = "Vous",
         progress_callback: Optional[Callable[[int, int, str], None]] = None
     ) -> Tuple[Optional[AnalysisResult], Optional[AnalysisError]]:
         """
@@ -78,6 +82,22 @@ class GameAnalysisService:
                 winner=pgn_meta.winner
             )
             
+            # Calcul de la couleur utilisateur et des messages précalculés
+            username = getattr(st.session_state, 'username', 'Vous') if 'st' in globals() else 'Vous'
+            user_color = "white" if username.lower() == white_name.lower() else "black"
+            
+            # Calcul des messages pour les key moments
+            determinants_message = None
+            critiques_message = None
+            
+            if pgn_meta.winner:
+                if pgn_meta.winner == user_color:
+                    determinants_message = "✅ **Tu gagnes la partie ici :**"
+                    critiques_message = "⚠️ **Tu as failli tout perdre ici :**"
+                else:
+                    determinants_message = "❌ **Tu perds la partie ici :**"
+                    critiques_message = "💥 **Tu aurais pu gagner ici :**"
+            
             # Création du DataFrame et précalcul du GroupBy
             analysis_df = pd.DataFrame(analysis)
             analysis_df["_side"] = ["W" if i % 2 == 0 else "B" for i in range(len(analysis_df))]
@@ -102,7 +122,10 @@ class GameAnalysisService:
                 key_moments=key_moments,
                 winner=pgn_meta.winner,
                 analysis_df=analysis_df,
-                quality_recap=quality_recap
+                quality_recap=quality_recap,
+                user_color=user_color,
+                determinants_message=determinants_message,
+                critiques_message=critiques_message
             )
             
             return result, None

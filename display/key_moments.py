@@ -4,12 +4,8 @@ from typing import Dict, Any, List
 def display_key_moments() -> None: 
     analysis_result = st.session_state.analysis_result
     analysis = analysis_result.analysis
-    winner = analysis_result.winner
     key_moments = analysis_result.key_moments
-    username = st.session_state.get("username", "Vous")
-    white = analysis_result.white_name
-    user_color = "white" if username.lower() == white.lower() else "black"
-
+    
     determinants = key_moments.get("moments_determinants", [])
     critiques = key_moments.get("moments_critiques", [])
 
@@ -21,10 +17,8 @@ def display_key_moments() -> None:
         return
 
     if determinants:
-        if winner == user_color:
-            st.markdown("✅ **Tu gagnes la partie ici :**")
-        else:
-            st.markdown("❌ **Tu perds la partie ici :**")
+        if analysis_result.determinants_message:
+            st.markdown(analysis_result.determinants_message)
 
         for idx in determinants:
             move_info = analysis[idx]
@@ -46,10 +40,8 @@ def display_key_moments() -> None:
                 )
 
     if critiques:
-        if winner == user_color:
-            st.markdown("⚠️ **Tu as failli tout perdre ici :**")
-        else:
-            st.markdown("💥 **Tu aurais pu gagner ici :**")
+        if analysis_result.critiques_message:
+            st.markdown(analysis_result.critiques_message)
 
         for idx in critiques:
             move_info = analysis[idx]
