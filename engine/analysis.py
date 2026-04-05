@@ -80,6 +80,107 @@ def is_theoretical_move(board, move, reader):
     except Exception:
         return False
 
+def _setup_stockfish(user_depth: int, stockfish_path: str) -> Stockfish:
+    """Configure et retourne une instance Stockfish."""
+    stockfish = Stockfish(path=stockfish_path, depth=user_depth)
+    _threads = min(8, max(1, (os.cpu_count() or 4)))
+    stockfish.update_engine_parameters(
+        {
+            "Skill Level": 20,
+            "Threads": _threads,
+            "Hash": 128,
+            "Minimum Thinking Time": 0,
+        }
+    )
+    return stockfish
+
+
+def _open_book(book_path: str):
+    """Ouvre le livre d'ouvertures polyglot et retourne le reader."""
+    if not book_path:
+        return None
+    try:
+        return chess.polyglot.open_reader(book_path)
+    except FileNotFoundError:
+        return None
+
+
+def _analyze_single_move(board, stockfish, move, book_reader, compute_threats: bool, move_index: int) -> AnalyzedMove:
+    """Analyse un seul coup et retourne un AnalyzedMove."""
+    # Une seule recherche avant le coup : get_best_move remplit .info avec le score final.
+    stockfish.set_fen_position(board.fen(), send_ucinewgame_token=(move_index == 0))
+    white_before = board.turn == chess.WHITE
+    best_move = stockfish.get_best_move()
+    info_before = stockfish.info or ""
+    if _SCORE_RE.search(info_before):
+        eval_before = _parse_eval_from_info_line(info_before, white_before)
+    else:
+        eval_before = stockfish.get_evaluation()
+
+    best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
+
+    is_theo = False
+    if book_reader:
+        is_theo = is_theoretical_move(board, move, book_reader)
+
+    move_san = board.san(move)
+
+    board.push(move)
+    stockfish.set_fen_position(board.fen(), send_ucinewgame_token=False)
+
+    if compute_threats:
+        top_moves = stockfish.get_top_moves(2)
+        if top_moves:
+            eval_after = _eval_from_top_move(top_moves[0])
+            threats = [
+                m["Move"]
+                for m in top_moves
+                if m.get("Move") and m.get("Move") != best_move
+            ][:1]
+        else:
+            eval_after = {"type": "cp", "value": 0}
+            threats = []
+    else:
+        _ = stockfish.get_best_move()
+        info_after = stockfish.info or ""
+        if _SCORE_RE.search(info_after):
+            eval_after = _parse_eval_from_info_line(
+                info_after, board.turn == chess.WHITE
+            )
+        else:
+            eval_after = stockfish.get_evaluation()
+        threats = []
+
+    # Calcul du delta
+    delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
+
+    is_best = (best_move == move.uci())
+
+    # Attribution de la quality
+    quality = get_quality(
+        delta=delta,
+        is_best=is_best,
+        is_theoretical=is_theo,
+        prev_eval=eval_before,
+        curr_eval=eval_after,
+        prev_cp=convert_eval_to_cp(eval_before),
+        curr_cp=convert_eval_to_cp(eval_after)
+    )
+
+    # Retourne l'analyse du coup
+    return AnalyzedMove(
+        coup=move_san,
+        quality=quality,
+        eval=convert_eval_to_cp(eval_after),
+        raw_eval=eval_after,
+        best_move=best_move_san,
+        best_move_uci=best_move,
+        is_best=is_best,
+        is_theoretical=is_theo,
+        threats=threats
+    )
+
+
 def analyze_game(
     pgn: str,
     user_depth: int,
@@ -110,16 +211,7 @@ def analyze_game(
     white_player = _header_player_name(game.headers.get("White"), "Blanc")
     black_player = _header_player_name(game.headers.get("Black"), "Noir")
 
-    stockfish = Stockfish(path=stockfish_path, depth=user_depth)
-    _threads = min(8, max(1, (os.cpu_count() or 4)))
-    stockfish.update_engine_parameters(
-        {
-            "Skill Level": 20,
-            "Threads": _threads,
-            "Hash": 128,
-            "Minimum Thinking Time": 0,
-        }
-    )
+    stockfish = _setup_stockfish(user_depth, stockfish_path)
 
     moves = list(game.mainline_moves())
     if len(moves) > MAX_MAINLINE_HALFMOVES:
@@ -132,86 +224,11 @@ def analyze_game(
     caption_placeholder.caption("Si l'analyse est trop longue, vous pouvez diminuer la profondeur d'analyse dans les options.")
 
     #Ouverture du livre des coups théoriques
-    book_reader = None
-    if book_path:
-        try:
-            book_reader = chess.polyglot.open_reader(book_path)
-        except FileNotFoundError:
-            book_reader = None
+    book_reader = _open_book(book_path)
 
     for idx, move in enumerate(moves):
-        # Une seule recherche avant le coup : get_best_move remplit .info avec le score final.
-        stockfish.set_fen_position(board.fen(), send_ucinewgame_token=(idx == 0))
-        white_before = board.turn == chess.WHITE
-        best_move = stockfish.get_best_move()
-        info_before = stockfish.info or ""
-        if _SCORE_RE.search(info_before):
-            eval_before = _parse_eval_from_info_line(info_before, white_before)
-        else:
-            eval_before = stockfish.get_evaluation()
-
-        best_move_san = board.san(chess.Move.from_uci(best_move)) if best_move else "Non spécifié"
-
-        is_theo = False
-        if book_reader:
-            is_theo = is_theoretical_move(board, move, book_reader)
-
-        move_san = board.san(move)
-
-        board.push(move)
-        stockfish.set_fen_position(board.fen(), send_ucinewgame_token=False)
-
-        if compute_threats:
-            top_moves = stockfish.get_top_moves(2)
-            if top_moves:
-                eval_after = _eval_from_top_move(top_moves[0])
-                threats = [
-                    m["Move"]
-                    for m in top_moves
-                    if m.get("Move") and m.get("Move") != best_move
-                ][:1]
-            else:
-                eval_after = {"type": "cp", "value": 0}
-                threats = []
-        else:
-            _ = stockfish.get_best_move()
-            info_after = stockfish.info or ""
-            if _SCORE_RE.search(info_after):
-                eval_after = _parse_eval_from_info_line(
-                    info_after, board.turn == chess.WHITE
-                )
-            else:
-                eval_after = stockfish.get_evaluation()
-            threats = []
-
-        # Calcul du delta
-        delta = convert_eval_to_cp(eval_after) - convert_eval_to_cp(eval_before)
-
-        is_best = (best_move == move.uci())
-
-        # Attribution de la quality
-        quality = get_quality(
-            delta=delta,
-            is_best=is_best,
-            is_theoretical=is_theo,
-            prev_eval=eval_before,
-            curr_eval=eval_after,
-            prev_cp=convert_eval_to_cp(eval_before),
-            curr_cp=convert_eval_to_cp(eval_after)
-        )
-
-        # Ajout à l'analyse
-        analysis.append(AnalyzedMove(
-            coup=move_san,
-            quality=quality,
-            eval=convert_eval_to_cp(eval_after),
-            raw_eval=eval_after,
-            best_move=best_move_san,
-            best_move_uci=best_move,
-            is_best=is_best,
-            is_theoretical=is_theo,
-            threats=threats
-        ))
+        analyzed_move = _analyze_single_move(board, stockfish, move, book_reader, compute_threats, idx)
+        analysis.append(analyzed_move)
 
         # Mise à jour de la barre de progression
         percent = int(((idx + 1) / total_moves) * 100)
