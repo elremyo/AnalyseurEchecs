@@ -3,6 +3,74 @@ import plotly.graph_objects as go
 from typing import Optional
 from utils.eval_utils import format_eval, get_win_chance, convert_eval_to_cp
 from constants import QUALITY_COLORS
+from callbacks.navigation_callbacks import NavigationCallbacks
+
+
+def handle_graph_click():
+    """Gère le clic sur le graphe d'évaluation pour naviguer au coup."""
+    print("handle_graph_click appelé!")  # Debug
+    
+    # Les données de sélection sont stockées dans st.session_state par Streamlit
+    # quand on utilise on_select avec une clé
+    widget_state = st.session_state.get('moves_graph', None)
+    print(f"widget_state: {widget_state}")  # Debug
+    
+    if widget_state is None:
+        return
+    
+    # Essayer d'extraire les données de sélection de différentes manières
+    selected_data = None
+    
+    # Cas 1: Les données sont directement dans l'état du widget
+    if hasattr(widget_state, 'selection'):
+        selected_data = widget_state.selection
+    elif isinstance(widget_state, dict) and 'selection' in widget_state:
+        selected_data = widget_state['selection']
+    elif hasattr(widget_state, 'points'):
+        selected_data = widget_state
+    elif isinstance(widget_state, dict) and 'points' in widget_state:
+        selected_data = widget_state
+    
+    print(f"selected_data: {selected_data}")  # Debug
+    
+    if selected_data is None:
+        return
+    
+    # Traiter les données de sélection
+    points = None
+    
+    if hasattr(selected_data, 'points'):
+        points = selected_data.points
+    elif isinstance(selected_data, dict) and "points" in selected_data:
+        points = selected_data["points"]
+    elif isinstance(selected_data, list):
+        points = selected_data
+    
+    print(f"points: {points}")  # Debug
+    
+    # Si on a des points, traiter le premier
+    if points and len(points) > 0:
+        point = points[0]
+        
+        # Extraire la coordonnée x
+        x_val = None
+        if hasattr(point, 'x'):
+            x_val = point.x
+        elif isinstance(point, dict):
+            if "x" in point:
+                x_val = point["x"]
+            elif "point_number" in point:
+                x_val = point["point_number"]
+        
+        if x_val is not None:
+            move_index = int(x_val)
+            
+            # Calculer le bon index pour move_index
+            # move_index = 0 signifie "avant le premier coup"
+            # move_index = 1 signifie "après le premier coup" (donc on montre le premier coup)
+            # Le graphe montre les coups de 0 à n-1, donc move_index = x_val + 1
+            st.session_state.move_index = move_index + 1
+            print(f"Nouveau move_index: {st.session_state.move_index}")  # Debug
 
 
 
@@ -170,13 +238,15 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
         fig.add_trace(go.Scatter(
             x=list(range(len(evals))),
             y=evals,
-            mode='lines',
+            mode='lines+markers',
             line=dict(color='blue', width=0),
+            marker=dict(size=1, color='blue'),
             fill='tonexty',
             fillcolor='white',
             showlegend=False,
-            text=[f"Coup {i+1}: {label}" for i, label in enumerate(formatted_labels)],
-            hovertemplate="%{text}<extra></extra>"
+            text=[f"Coup {i+2}: {label}" for i, label in enumerate(formatted_labels)],
+            hovertemplate="%{text}<extra></extra>",
+            name="Évaluation"
         ))
         # Ligne grise horizontale à y=0 pour référence
         fig.add_shape(
@@ -210,5 +280,12 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
             yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, showline=False),
             plot_bgcolor="#000000"
         )
-        st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
+        
+        # Configuration pour permettre la sélection par clic
+        config = {
+            'displayModeBar': False
+        }
+        
+        # Utiliser la fonction sans arguments comme callback
+        st.plotly_chart(fig, width='stretch', config=config, on_select=handle_graph_click, key="moves_graph")
 

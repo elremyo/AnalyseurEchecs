@@ -37,3 +37,15 @@ class NavigationCallbacks:
     def on_slider_change() -> None:
         """Gère le changement de valeur du slider de navigation."""
         st.session_state.move_index = st.session_state.move_index_slider - 1
+    
+    @staticmethod
+    def on_graph_select(selected_data: dict) -> None:
+        """Gère le clic sur le graphe d'évaluation pour naviguer au coup."""
+        if selected_data and "points" in selected_data and selected_data["points"]:
+            point = selected_data["points"][0]
+            if "x" in point:
+                # x correspond à l'index du coup dans la liste d'analyse
+                move_index = int(point["x"])
+                # On ajuste car move_index est basé sur 0 et représente le coup actuel
+                # Alors que le graphe montre les coups joués (index 0 = premier coup joué)
+                st.session_state.move_index = move_index + 1
