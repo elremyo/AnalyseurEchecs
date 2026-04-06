@@ -4,7 +4,7 @@ import streamlit as st
 from display.constants import quality_images
 
 
-@st.cache_data
+@st.cache_resource
 def load_quality_images_b64() -> dict[str, str]:
     """Charge et encode en base64 toutes les images de qualité. Résultat mis en cache."""
     result = {}
