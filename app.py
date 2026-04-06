@@ -22,7 +22,7 @@ from domain.game_analysis_service import GameAnalysisService
 from utils.assets import stockfish_path, book_path
 from utils.debug_pgn_samples import sample_games
 from utils.gif_images import get_random_gif
-from utils.pgn_limits import MAX_PGN_CHARACTERS
+from constants import MAX_PGN_CHARACTERS
 
 init_session_state()
 load_dotenv()

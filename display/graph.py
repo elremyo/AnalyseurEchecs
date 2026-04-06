@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from typing import Optional
 from utils.eval_utils import format_eval, get_win_chance, convert_eval_to_cp
-from display.constants import quality_colors
+from constants import QUALITY_COLORS
 
 
 
@@ -191,7 +191,7 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
         # Ligne verticale indiquant le coup actuellement sélectionné (si fourni)
         if current_index is not None and current_index < len(evals):
             quality = st.session_state.analysis_result.analysis[current_index].quality
-            color = quality_colors.get(quality, "#739552")
+            color = QUALITY_COLORS.get(quality, "#739552")
 
             fig.add_shape(
                 type="line",

@@ -1,18 +1,12 @@
 import streamlit as st
+from constants import PAGE_CONFIG, MENU_ITEMS
 
 
 def set_page_style():
     """Applique le style global de la page."""
     st.set_page_config(
-        page_title="ChessBot",
-        layout="wide",
-        page_icon="♟️",
-        initial_sidebar_state ="expanded",
-        menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': None
-        }
+        **PAGE_CONFIG,
+        menu_items=MENU_ITEMS
         )
     st.markdown(
         """

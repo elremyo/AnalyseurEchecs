@@ -1,7 +1,7 @@
 import streamlit as st
 from typing import Dict, Any, List
 
-from display.constants import quality_colors
+from constants import QUALITY_COLORS
 from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
 
@@ -27,9 +27,9 @@ def display_move_description() -> None:
     quality = coup_data.quality
     est_theorique = "Oui" if coup_data.is_theoretical else "Non"
     est_meilleur = "Oui" if coup_data.is_best else "Non"
-    color_best = quality_colors.get("Meilleur", "black")
+    color_best = QUALITY_COLORS.get("Meilleur", "black")
 
-    color_coup = quality_colors.get(quality, "black")
+    color_coup = QUALITY_COLORS.get(quality, "black")
 
     ec = escape_html(color_coup)
     ej = escape_html(coup_joué)

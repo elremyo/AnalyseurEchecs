@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from typing import Dict, Any, List
 
-from display.constants import quality_colors
+from constants import QUALITY_COLORS
 from utils.image_utils import load_quality_images_b64
 from utils.safe_html import escape_html
 
@@ -34,7 +34,7 @@ def display_total_moves_by_quality() -> None:
 
 
     for quality, row in recap.iterrows():
-        color = quality_colors.get(quality, "black")
+        color = QUALITY_COLORS.get(quality, "black")
         value_white = int(row["W"])
         value_black = int(row["B"])
 

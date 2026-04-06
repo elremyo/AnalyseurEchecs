@@ -7,7 +7,15 @@ import chess.svg
 import streamlit as st
 from streamlit_avatar import avatar
 
-from display.constants import board_size, quality_images, quality_board_colors, SQUARE_SIZE_PX, BOARD_MARGIN_PX, QUALITY_ICON_SIZE, BOARD_COLORS
+from constants import (
+    BOARD_SIZE,
+    QUALITY_IMAGES,
+    QUALITY_BOARD_COLORS,
+    SQUARE_SIZE_PX,
+    BOARD_MARGIN_PX,
+    QUALITY_ICON_SIZE,
+    BOARD_COLORS
+)
 
 def display_players_name_for_board(color: str = "white", height: int = 30) -> None:
 
@@ -135,8 +143,8 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
         analysis_index = move_index - 1
         coup_data = st.session_state.analysis_result.analysis[analysis_index]
         quality = coup_data.quality
-        light_color, dark_color = quality_board_colors.get(quality, (BOARD_COLORS["default_light"], BOARD_COLORS["default_dark"]))
-        quality_path = quality_images.get(quality)
+        light_color, dark_color = QUALITY_BOARD_COLORS.get(quality, (BOARD_COLORS["default_light"], BOARD_COLORS["default_dark"]))
+        quality_path = QUALITY_IMAGES.get(quality)
 
     svg = chess.svg.board(
         board,
@@ -150,7 +158,7 @@ def render_board(board: chess.Board, last_move: Optional[chess.Move] = None, fli
             "square dark lastmove": dark_color,
             "margin": BOARD_COLORS["margin"],
         },
-        size=board_size,
+        size=BOARD_SIZE,
         coordinates=True,
         arrows=arrows
     )

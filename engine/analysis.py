@@ -7,7 +7,14 @@ import chess.polyglot
 import streamlit as st
 
 from utils.eval_utils import convert_eval_to_cp, get_quality
-from utils.pgn_limits import MAX_MAINLINE_HALFMOVES, MAX_PGN_CHARACTERS
+from constants import (
+    MAX_MAINLINE_HALFMOVES,
+    MAX_PGN_CHARACTERS,
+    DEFAULT_SKILL_LEVEL,
+    DEFAULT_HASH,
+    DEFAULT_MINIMUM_THINKING_TIME,
+    DEFAULT_THREADS
+)
 from stockfish import Stockfish
 from domain.analyzed_move import AnalyzedMove
 
@@ -83,13 +90,12 @@ def is_theoretical_move(board, move, reader):
 def _get_stockfish_engine(_stockfish_path: str) -> Stockfish:
     """Retourne une instance Stockfish mutualisée via cache."""
     stockfish = Stockfish(path=_stockfish_path)
-    _threads = min(8, max(1, (os.cpu_count() or 4)))
     stockfish.update_engine_parameters(
         {
-            "Skill Level": 20,
-            "Threads": _threads,
-            "Hash": 128,
-            "Minimum Thinking Time": 0,
+            "Skill Level": DEFAULT_SKILL_LEVEL,
+            "Threads": DEFAULT_THREADS,
+            "Hash": DEFAULT_HASH,
+            "Minimum Thinking Time": DEFAULT_MINIMUM_THINKING_TIME,
         }
     )
     return stockfish
