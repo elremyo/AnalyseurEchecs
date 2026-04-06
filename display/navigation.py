@@ -3,35 +3,30 @@ from callbacks.navigation_callbacks import NavigationCallbacks
 
 
 def render_navigation_buttons(max_index):
-    col_flip, col_first, col_prev, col_next, col_last = st.columns(5)
-    with col_flip:
+    with st.container(horizontal=True):
         st.button("", 
                  icon=":material/swap_vert:",
                  width='stretch',
                  key="flip_board",
                  on_click=NavigationCallbacks.flip_board)            
-    with col_first:
         st.button("",
                  icon=":material/first_page:",
                  help = "Premier coup",
                  width='stretch',
                  key="first_move",
                  on_click=lambda: NavigationCallbacks.go_to_first_move(max_index))
-    with col_prev:
         st.button("",
                  icon=":material/chevron_left:",
                  help = "Coup précédent",
                  width='stretch',
                  key="prev_move",
                  on_click=lambda: NavigationCallbacks.go_to_prev_move(max_index))
-    with col_next:
         st.button("",
                  icon=":material/chevron_right:",
                  help = "Coup suivant",
                  width='stretch',
                  key="next_move",
                  on_click=lambda: NavigationCallbacks.go_to_next_move(max_index))
-    with col_last:
         st.button("",
                  icon=":material/last_page:",
                  help = "Dernier coup",

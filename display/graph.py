@@ -158,7 +158,7 @@ def render_score_bar() -> None:
 
     fig.update_layout(
         barmode='stack',
-        height=48,
+        height=32,
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
             range=[100, 0] if flipped else [0, 100],  # <-- Ici on inverse le range
@@ -177,19 +177,7 @@ def render_score_bar() -> None:
         paper_bgcolor="rgba(0,0,0,0)",
     )
 
-    # Ajoute ce bloc pour limiter la hauteur du conteneur
-    st.markdown(
-        f"""
-        <style>
-        .eval-bar-container {{
-            max-height: 400px;
-            overflow: hidden;
-        }}
-        </style>
-        <div class="eval-bar-container">
-        """,
-        unsafe_allow_html=True
-    )
+
     st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
