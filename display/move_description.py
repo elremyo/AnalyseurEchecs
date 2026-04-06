@@ -71,3 +71,4 @@ def display_move_description() -> None:
             f"</div>",
             unsafe_allow_html=True,
         )
+        st.space("xxsmall")

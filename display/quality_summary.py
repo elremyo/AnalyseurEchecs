@@ -21,7 +21,7 @@ def display_total_moves_by_quality() -> None:
     # Charger les images une seule fois
     images_b64 = load_quality_images_b64()
     
-    col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False,vertical_alignment="center")
+    col_quality,col_white,col_image,col_black = st.columns([2,2,1,2],border=False,vertical_alignment="center")
     with col_quality:
         pass        
     with col_white:
@@ -38,10 +38,10 @@ def display_total_moves_by_quality() -> None:
         value_white = int(row["W"])
         value_black = int(row["B"])
 
-        col_quality,col_white,col_image,col_black = st.columns([3,2,1,2],border=False)
+        col_quality,col_white,col_image,col_black = st.columns([2,2,1,2],border=False)
         with col_quality:
             st.markdown(
-                f"<span style='color:{escape_html(color)}; font-weight:bold'>{escape_html(quality)}</span>",
+                f"<span style='color:{escape_html(color)}; font-weight:bold; font-size:14px'>{escape_html(quality)}</span>",
                 unsafe_allow_html=True,
             )
         with col_white:

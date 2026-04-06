@@ -22,21 +22,18 @@ def display_key_moments() -> None:
 
         for idx in determinants:
             move_info = analysis[idx]
-            cols = st.columns([10, 1])
-            with cols[0]:
-                st.write(
+            with st.container(horizontal=True, vertical_alignment="center", border=True):
+                st.markdown(
                     f"Coup {idx + 2} ({move_info.coup}) : "
                     f"{move_info.eval / 100:+.1f}, {move_info.quality}"
                 )
-            with cols[1]:
                 st.button(
                     ":material/search:",
                     key=f"goto_det_{idx}",
                     help="Aller au coup",
                     on_click=go_to_move,
                     args=(idx + 1,),
-                    width='stretch',
-                    type="tertiary"
+                    type="primary"
                 )
 
     if critiques:
@@ -45,19 +42,16 @@ def display_key_moments() -> None:
 
         for idx in critiques:
             move_info = analysis[idx]
-            cols = st.columns([10, 1])
-            with cols[0]:
-                st.write(
+            with st.container(horizontal=True, vertical_alignment="center", border=True):
+                st.markdown(
                     f"Coup {idx + 2} ({move_info.coup}) : "
                     f"{move_info.eval / 100:+.1f}, {move_info.quality}"
                 )
-            with cols[1]:
                 st.button(
                     ":material/search:",
                     key=f"goto_crit_{idx}",
                     help="Aller au coup",
                     on_click=go_to_move,
                     args=(idx + 1,),
-                    width='stretch',
-                    type="tertiary"
+                    type="primary"
                 )
