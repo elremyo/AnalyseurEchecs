@@ -49,6 +49,7 @@ class AnalysisCallbacks:
             "analysis_result": result,
             "pgn_last_analyzed": pgn,
             "analyze_error": None,
+            "redirect_to_analysis": True,  # Flag pour la redirection
         })
     
     def display_error_if_any(self) -> None:
