@@ -7,13 +7,7 @@ from callbacks.analysis_callbacks import AnalysisCallbacks
 def render_sidebar(analysis_callbacks: AnalysisCallbacks, open_parameters_func):
     """Affiche le contenu de la sidebar."""
     with st.sidebar:    
-        if st.session_state.analysis_result and st.session_state.analysis_result.analysis:
-            # Affichage des erreurs
-            analysis_callbacks.display_error_if_any()
-            display_key_moments()
-            display_total_moves_by_quality()
-        else:
-            render_sidebar_input(analysis_callbacks, open_parameters_func)
+        render_sidebar_input(analysis_callbacks, open_parameters_func)
 
 
 def render_sidebar_input(analysis_callbacks: AnalysisCallbacks, open_parameters_func):

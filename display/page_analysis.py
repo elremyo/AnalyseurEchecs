@@ -7,29 +7,32 @@ from display.move_description import display_move_description
 from display.moves_recap import display_all_moves_recap
 from display.graph import render_moves_graph, render_score_bar
 from display.result import display_game_result
+from display.key_moments import display_key_moments
+from display.quality_summary import display_total_moves_by_quality
 
 
 def render_page_analysis():
     """Affiche l'interface complète d'analyse."""
-    # Bouton de retour
-    if st.button("Retour au dashboard",
-                key="back_to_dashboard",
-                help="Revenir au tableau de bord",
-                icon=":material/arrow_back:",
-                type="secondary",
-                width='stretch'
-    ):
-        st.session_state.view_mode = "dashboard"
-        st.session_state.analysis_result = None  # Effacer les résultats
-        st.rerun()
+
     
+    with st.container(horizontal=True, vertical_alignment="bottom"):
+        # Bouton de retour
+        if st.button("Retour au dashboard",
+            key="back_to_dashboard",
+            help="Revenir au tableau de bord",
+            icon=":material/arrow_back:",
+            type="secondary"
+        ):
+            st.session_state.view_mode = "dashboard"
+            st.session_state.analysis_result = None  # Effacer les résultats
+            st.rerun()
+
+        # Display game results at the top
+        display_game_result()
+
     col_board, col_datas = st.columns(spec=[5,3], gap="small", border=True)
 
     with col_board:
-        # Display game info at the top of board column
-        with st.container(horizontal=True, vertical_alignment="bottom"):
-            display_game_result()
-
         try:
             max_index = len(st.session_state.analysis_result.analysis)
             pgn_to_use = st.session_state.get("pgn_last_analyzed", "")
@@ -40,7 +43,7 @@ def render_page_analysis():
                 moves = get_moves_from_pgn_cached(pgn_to_use)
                 board = chess.Board()
 
-                render_navigation_buttons(max_index)
+                
                 st.session_state.move_index = max(0, min(st.session_state.move_index, max_index))
 
                 for move in moves[:st.session_state.move_index]:
@@ -55,7 +58,20 @@ def render_page_analysis():
             st.error(f"Erreur pendant l'affichage du plateau : {e}")
 
     with col_datas:
-        # Afficher le sélecteur de coups
-        render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
+        # Boutons de navigation
+        render_navigation_buttons(max_index)
+        
+        # Description du coup
         display_move_description()
-        display_all_moves_recap()
+        
+        # Graphique des scores
+        render_moves_graph(current_index=max(0, st.session_state.get("move_index", 0) - 1))
+        
+        # Onglets Récap et Coups
+        recap, coups = st.tabs(["Récap", "Coups"])
+        with recap:
+            # Moments clés
+            display_key_moments()
+            display_total_moves_by_quality()
+        with coups:
+            display_all_moves_recap()
