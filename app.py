@@ -96,13 +96,6 @@ with st.sidebar:
                 "4. Collez-le dans le champ ci-dessus."
             )
 
-# Configuration de la page
-st.set_page_config(
-    page_title="Analyseur d'échecs", 
-    page_icon=":material/chess:"
-)
-
-
 # Gestion de la redirection après analyse
 if st.session_state.get("redirect_to_analysis", False):
     st.session_state.redirect_to_analysis = False
