@@ -161,7 +161,7 @@ def render_score_bar() -> None:
         height=32,
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
-            range=[100, 0] if flipped else [0, 100],  # <-- Ici on inverse le range
+            range=[100, 0] if flipped else [0, 100],
             showticklabels=False,
             showgrid=False,
             zeroline=False,
@@ -227,8 +227,8 @@ def render_moves_graph(current_index: Optional[int] = None) -> None:
             x=list(range(len(evals))),
             y=evals,
             mode='lines+markers',
-            line=dict(color='blue', width=0),
-            marker=dict(size=1, color='blue'),
+            line=dict(color='#1f77b4', width=2),
+            marker=dict(size=3, color='#1f77b4'),
             fill='tonexty',
             fillcolor='white',
             showlegend=False,

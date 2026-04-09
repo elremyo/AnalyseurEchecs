@@ -6,6 +6,7 @@ def render_navigation_buttons(max_index):
     with st.container(horizontal=True):
         st.button("", 
                  icon=":material/swap_vert:",
+                 help = "Retourner l'échiquier",
                  width='stretch',
                  key="flip_board",
                  on_click=NavigationCallbacks.flip_board)            
