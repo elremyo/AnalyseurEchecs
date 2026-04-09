@@ -16,6 +16,7 @@ class PgnMeta:
     link: Optional[str]
     event: Optional[str]
     date: Optional[str]
+    eco: Optional[str]     # Code ECO de l'ouverture
 
 
 def _safe_game_link(url: str) -> Optional[str]:
@@ -131,6 +132,7 @@ def parse_pgn_meta(pgn: str) -> PgnMeta:
     link = _extract_link(pgn)
     event = _extract_tag(pgn, "Event")
     date = _extract_tag(pgn, "Date")
+    eco = _extract_tag(pgn, "ECO")
     
     return PgnMeta(
         white=white,
@@ -142,5 +144,6 @@ def parse_pgn_meta(pgn: str) -> PgnMeta:
         termination=termination,
         link=link,
         event=event,
-        date=date
+        date=date,
+        eco=eco
     )

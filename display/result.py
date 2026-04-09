@@ -1,5 +1,6 @@
 import streamlit as st
 from utils.safe_html import escape_html
+from utils.eco_openings import get_opening_name
 
 
 def display_game_result():
@@ -13,6 +14,8 @@ def display_game_result():
     result = pgn_meta.result
     termination = pgn_meta.termination
     link = pgn_meta.link
+    eco = pgn_meta.eco
+    opening_name = get_opening_name(eco) if eco else "Ouverture inconnue"
 
     # Déterminer l'icône du vainqueur
     if result == "1-0":
@@ -25,6 +28,12 @@ def display_game_result():
         winner_color = "❓"
 
     with st.container(border=False):
+        # Afficher l'ouverture avec le code ECO
+        if eco:
+            st.markdown(f"📋 **{opening_name}** ({eco})")
+        else:
+            st.markdown(f"📋 **{opening_name}**")
+        
         termination_escaped = escape_html(termination)
         if link:
             st.markdown(f"{winner_color}**{termination_escaped}** (:material/open_in_new: [Lien de la partie]({link}))")

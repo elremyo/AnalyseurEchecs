@@ -9,13 +9,14 @@ from typing import List, Dict, Any
 
 from utils.chesscom_api import fetch_recent_games
 from utils.chesscom_cache import init_db, get_cached_games, get_last_sync, upsert_games, update_sync_log
+from utils.eco_openings import get_opening_name
 
 _ECO_FAMILIES = {
-    "A": "Flank / Anglaise",
-    "B": "Semi-ouverte",
-    "C": "Ouverte",
-    "D": "Fermée / Gambit Dame",
-    "E": "Indienne",
+    "A": "Flanc (Réti, Bird, Anglaise, Hollandaise, Benoni)",
+    "B": "Semi-ouverte (Sicilienne, Caro-Kann, Pirc, Moderne, Alekhine, Scandinave)",
+    "C": "Ouverte (Espagnole, Italienne, Gambit Roi, Écossaise, Française)",
+    "D": "Fermée (Gambit Dame, Slave, Grünfeld, Néo-Grünfeld)",
+    "E": "Indienne (Nimzo-Indienne, Est-Indienne, Ouest-Indienne, Catalane, Bogo-Indienne)",
 }
 
 
@@ -103,7 +104,7 @@ def _render_recent_games(df: pd.DataFrame):
     display["Résultat"]   = display["user_result"].map({"win": "✅", "loss": "❌", "draw": "🟰"})
     display["Adversaire"] = display["opponent"] + " (" + display["opponent_elo"].astype(str) + ")"
     display["Elo"]        = display["user_elo"]
-    display["Ouverture"]  = display["eco_family"].str[:35]
+    display["Ouverture"]  = display["eco"].apply(lambda x: get_opening_name(x) if x else "Inconnue")
 
     st.dataframe(
         display[["Date", "Couleur", "Résultat", "Adversaire", "Elo", "Ouverture"]],
