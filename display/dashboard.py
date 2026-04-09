@@ -1,205 +1,218 @@
+"""Dashboard principal — données réelles depuis le cache Chess.com."""
+
 import streamlit as st
 import pandas as pd
-from typing import Dict, Any, List
-import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import random
+import plotly.express as px
+from datetime import datetime
+from typing import List, Dict, Any
 
-def render_dashboard():
-    """Render the dashboard page with placeholder data"""
-    st.header("📊 Tableau de bord", anchor=False)
-    
-    # Generate placeholder data
-    recent_games = generate_recent_games_data()
-    metrics = generate_metrics_data()
-    
-    # Layout: metrics cards at top
-    render_metrics_cards(metrics)
-    
-    # Two columns layout
-    col_games, col_charts = st.columns([3, 2], gap="medium")
-    
-    with col_games:
-        render_recent_games_table(recent_games)
-    
-    with col_charts:
-        render_win_rate_chart()
-        render_opening_family_chart()
+from utils.chesscom_api import fetch_recent_games
+from utils.chesscom_cache import init_db, get_cached_games, get_last_sync, upsert_games, update_sync_log
 
-def generate_recent_games_data() -> List[Dict[str, Any]]:
-    """Generate placeholder data for recent games"""
-    games = []
-    players = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry"]
-    openings = ["Italian Game", "Sicilian Defense", "French Defense", "Ruy Lopez", "Queen's Gambit"]
-    
-    for i in range(20):
-        white = random.choice(players)
-        black = random.choice([p for p in players if p != white])
-        result = random.choice(["1-0", "0-1", "1/2-1/2"])
-        opening = random.choice(openings)
-        accuracy = round(random.uniform(60, 95), 1)
-        date = datetime.now() - timedelta(days=random.randint(0, 30))
-        
-        games.append({
-            "Date": date.strftime("%d/%m/%Y"),
-            "Blanc": white,
-            "Noir": black,
-            "Résultat": result,
-            "Ouverture": opening,
-            "Précision": f"{accuracy}%",
-            "Durée": f"{random.randint(5, 60)} min"
-        })
-    
-    return games
+_ECO_FAMILIES = {
+    "A": "Flank / Anglaise",
+    "B": "Semi-ouverte",
+    "C": "Ouverte",
+    "D": "Fermée / Gambit Dame",
+    "E": "Indienne",
+}
 
-def generate_metrics_data() -> Dict[str, float]:
-    """Generate placeholder metrics"""
-    return {
-        "accuracy_moyenne": round(random.uniform(70, 85), 1),
-        "win_rate_blanc": round(random.uniform(35, 55), 1),
-        "win_rate_noir": round(random.uniform(35, 55), 1),
-        "total_parties": 20,
-        "parties_ce_mois": 8
-    }
 
-def render_metrics_cards(metrics: Dict[str, float]):
-    """Render metrics cards at the top of dashboard"""
-    col1, col2, col3, col4 = st.columns(4, gap="small")
-    
-    with col1:
-        st.metric(
-            label="🎯 Précision moyenne",
-            value=f"{metrics['accuracy_moyenne']}%",
-            delta=f"+{random.uniform(1, 5):.1f}% vs mois dernier"
-        )
-    
-    with col2:
-        st.metric(
-            label="⚪ Win rate (Blanc)",
-            value=f"{metrics['win_rate_blanc']}%",
-            delta=f"+{random.uniform(0, 3):.1f}%"
-        )
-    
-    with col3:
-        st.metric(
-            label="⚫ Win rate (Noir)",
-            value=f"{metrics['win_rate_noir']}%",
-            delta=f"{random.uniform(-2, 2):.1f}%"
-        )
-    
-    with col4:
-        st.metric(
-            label="📈 Parties ce mois",
-            value=metrics['parties_ce_mois'],
-            delta=f"+{random.randint(1, 5)} vs mois dernier"
-        )
+# ---------------------------------------------------------------------------
+# Sync & chargement
+# ---------------------------------------------------------------------------
 
-def render_recent_games_table(games: List[Dict[str, Any]]):
-    """Render table of recent games"""
-    st.subheader("🕹️ 20 dernières parties", anchor=False)
-    
-    # Convert to DataFrame for better display
+def _sync(username: str) -> tuple[int, str]:
+    try:
+        games = fetch_recent_games(username, months=3)
+        new_count = upsert_games(games)
+        update_sync_log(username)
+        return new_count, ""
+    except Exception as exc:
+        return 0, str(exc)
+
+
+def _to_df(games: List[Dict[str, Any]]) -> pd.DataFrame:
     df = pd.DataFrame(games)
-    
-    # Style the result column
-    def color_result(val):
-        if val == "1-0":
-            return "background-color: rgba(34, 197, 94, 0.2); color: black"
-        elif val == "0-1":
-            return "background-color: rgba(239, 68, 68, 0.2); color: black"
-        else:
-            return "background-color: rgba(251, 191, 36, 0.2); color: black"
-    
-    styled_df = df.style.applymap(color_result, subset=['Résultat'])
-    
+    df["user_elo"] = df.apply(
+        lambda r: r["white_elo"] if r["user_color"] == "white" else r["black_elo"], axis=1
+    )
+    df["opponent"] = df.apply(
+        lambda r: r["black"] if r["user_color"] == "white" else r["white"], axis=1
+    )
+    df["opponent_elo"] = df.apply(
+        lambda r: r["black_elo"] if r["user_color"] == "white" else r["white_elo"], axis=1
+    )
+    df["date_parsed"] = pd.to_datetime(df["date"], format="%Y.%m.%d", errors="coerce")
+    df["eco_family"] = df["eco"].str[:1].map(_ECO_FAMILIES).fillna("Autre")
+    return df.sort_values("date_parsed", ascending=False).reset_index(drop=True)
+
+
+# ---------------------------------------------------------------------------
+# Composants d'affichage
+# ---------------------------------------------------------------------------
+
+def _render_header(username: str):
+    col_title, col_btn = st.columns([4, 1], vertical_alignment="bottom")
+    with col_title:
+        st.header("📊 Tableau de bord", anchor=False)
+    with col_btn:
+        if st.button("🔄 Rafraîchir", type="secondary", width="stretch", key="dashboard_refresh"):
+            with st.spinner("Récupération des parties Chess.com…"):
+                new_count, error = _sync(username)
+            if error:
+                st.error(f"Erreur lors de la synchronisation : {error}")
+            elif new_count == 0:
+                st.info("Aucune nouvelle partie depuis la dernière sync.")
+            else:
+                st.success(f"{new_count} nouvelle(s) partie(s) importée(s).")
+            st.rerun()
+
+    last_sync = get_last_sync(username)
+    if last_sync:
+        dt = datetime.fromisoformat(last_sync)
+        st.caption(f"Dernière sync : {dt.strftime('%d/%m/%Y à %Hh%M')} · username Chess.com : `{username}`")
+
+
+def _render_metrics(df: pd.DataFrame):
+    total = len(df)
+    wins  = (df["user_result"] == "win").sum()
+    draws = (df["user_result"] == "draw").sum()
+    losses = (df["user_result"] == "loss").sum()
+    wr_global = round(wins / total * 100, 1) if total else 0
+
+    df_w = df[df["user_color"] == "white"]
+    df_b = df[df["user_color"] == "black"]
+    wr_white = round((df_w["user_result"] == "win").sum() / len(df_w) * 100, 1) if len(df_w) else 0
+    wr_black = round((df_b["user_result"] == "win").sum() / len(df_b) * 100, 1) if len(df_b) else 0
+    current_elo = int(df.iloc[0]["user_elo"]) if total else 0
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("🎯 Win rate global", f"{wr_global}%", f"{wins}V / {draws}N / {losses}D")
+    c2.metric("⬜ Win rate (Blancs)", f"{wr_white}%", f"{len(df_w)} parties")
+    c3.metric("⬛ Win rate (Noirs)", f"{wr_black}%", f"{len(df_b)} parties")
+    c4.metric("📈 Elo actuel", current_elo, f"{total} parties en cache")
+
+
+def _render_recent_games(df: pd.DataFrame):
+    st.subheader("Parties récentes", anchor=False)
+    display = df.copy()
+    display["Date"]       = display["date_parsed"].dt.strftime("%d/%m/%Y")
+    display["Couleur"]    = display["user_color"].map({"white": "⬜", "black": "⬛"})
+    display["Résultat"]   = display["user_result"].map({"win": "✅", "loss": "❌", "draw": "🟰"})
+    display["Adversaire"] = display["opponent"] + " (" + display["opponent_elo"].astype(str) + ")"
+    display["Elo"]        = display["user_elo"]
+    display["Ouverture"]  = display["eco_family"].str[:35]
+
     st.dataframe(
-        styled_df,
+        display[["Date", "Couleur", "Résultat", "Adversaire", "Elo", "Ouverture"]],
         use_container_width=True,
         hide_index=True,
-        height=400
+        height=420,
     )
 
-def render_win_rate_chart():
-    """Render win rate chart"""
-    st.subheader("📊 Taux de victoire", anchor=False)
-    
-    # Generate placeholder data
-    data = {
-        'Type': ['Victoires (Blanc)', 'Victoires (Noir)', 'Nulles'],
-        'Pourcentage': [45, 38, 17]
-    }
-    
-    fig = px.pie(
-        data,
-        values='Pourcentage',
-        names='Type',
-        color_discrete_map={
-            'Victoires (Blanc)': '#ffffff',
-            'Victoires (Noir)': '#000000',
-            'Nulles': '#808080'
-        }
-    )
-    
-    fig.update_traces(
-        textposition='inside',
-        textinfo='percent+label',
-        marker=dict(line=dict(color='#000000', width=2))
-    )
-    
+
+def _render_elo_chart(df: pd.DataFrame):
+    st.subheader("Évolution de l'Elo", anchor=False)
+    df_sorted = df[df["user_elo"] > 0].sort_values("date_parsed")
+    if df_sorted.empty:
+        st.caption("Pas de données Elo disponibles.")
+        return
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df_sorted["date_parsed"],
+        y=df_sorted["user_elo"],
+        mode="lines+markers",
+        marker=dict(size=4, color="#739552"),
+        line=dict(color="#739552", width=2),
+        hovertemplate="%{x|%d/%m/%Y}<br>Elo : %{y}<extra></extra>",
+    ))
     fig.update_layout(
-        height=300,
-        margin=dict(t=0, b=0, l=0, r=0),
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        )
+        height=220,
+        margin=dict(l=0, r=0, t=0, b=0),
+        xaxis=dict(showgrid=False, showline=False),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.08)", showline=False),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
     )
-    
     st.plotly_chart(fig, use_container_width=True)
 
-def render_opening_family_chart():
-    """Render opening family win rate chart"""
-    st.subheader("🏆 Win rate par famille d'ouverture", anchor=False)
-    
-    # Generate placeholder data for openings with ≥3 games
-    openings_data = [
-        {'Ouverture': 'Italienne', 'Parties': 5, 'Win Rate': 60},
-        {'Ouverture': 'Sicilienne', 'Parties': 4, 'Win Rate': 50},
-        {'Ouverture': 'Française', 'Parties': 3, 'Win Rate': 33},
-        {'Ouverture': 'Ruy Lopez', 'Parties': 3, 'Win Rate': 67},
-        {'Ouverture': 'Gambit Dame', 'Parties': 5, 'Win Rate': 40}
-    ]
-    
-    df = pd.DataFrame(openings_data)
-    
-    # Create horizontal bar chart
+
+def _render_opening_chart(df: pd.DataFrame):
+    st.subheader("Win rate par famille d'ouverture", anchor=False)
+    df_eco = df[df["eco"] != ""].copy()
+    if df_eco.empty:
+        st.caption("Pas de données d'ouvertures disponibles.")
+        return
+
+    stats = (
+        df_eco.groupby("eco_family")
+        .agg(parties=("user_result", "count"), victoires=("user_result", lambda x: (x == "win").sum()))
+        .reset_index()
+    )
+    stats = stats[stats["parties"] >= 3]
+    if stats.empty:
+        st.caption("Pas assez de parties par famille d'ouverture (minimum 3).")
+        return
+
+    stats["win_rate"] = (stats["victoires"] / stats["parties"] * 100).round(1)
+    stats = stats.sort_values("win_rate", ascending=True)
+
     fig = px.bar(
-        df,
-        x='Win Rate',
-        y='Ouverture',
-        orientation='h',
-        text='Win Rate',
-        color='Win Rate',
-        color_continuous_scale=['#ef4444', '#f59e0b', '#10b981'],
-        range_color=[0, 100]
+        stats,
+        x="win_rate", y="eco_family", orientation="h",
+        text="win_rate",
+        color="win_rate",
+        color_continuous_scale=["#ef4444", "#f59e0b", "#739552"],
+        range_color=[0, 100],
+        custom_data=["parties"],
     )
-    
     fig.update_traces(
-        texttemplate='%{text}%',
-        textposition='outside'
+        texttemplate="%{text}%",
+        textposition="outside",
+        hovertemplate="%{y}<br>Win rate : %{x}%<br>Parties : %{customdata[0]}<extra></extra>",
     )
-    
     fig.update_layout(
-        height=300,
-        margin=dict(t=0, b=0, l=0, r=0),
-        xaxis_title="Win Rate (%)",
+        height=220,
+        margin=dict(l=0, r=0, t=0, b=0),
+        xaxis=dict(title="Win rate (%)", range=[0, 115], showgrid=False),
         yaxis_title="",
-        coloraxis_showscale=False
+        coloraxis_showscale=False,
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
     )
-    
     st.plotly_chart(fig, use_container_width=True)
+
+
+# ---------------------------------------------------------------------------
+# Point d'entrée
+# ---------------------------------------------------------------------------
+
+def render_dashboard():
+    username = st.session_state.get("username", "Joueur")
+    init_db()
+
+    _render_header(username)
+
+    games = get_cached_games(username)
+
+    if not games:
+        st.info(
+            f"Aucune partie en cache. Cliquez sur **Rafraîchir** pour importer "
+            f"vos parties Chess.com (username configuré : `{username}`).\n\n"
+            f"Assurez-vous que la variable d'environnement `STREAMLIT_USER` correspond "
+            f"à votre pseudo Chess.com."
+        )
+        return
+
+    df = _to_df(games)
+    _render_metrics(df)
+
+    col_games, col_charts = st.columns([3, 2], gap="medium")
+    with col_games:
+        _render_recent_games(df)
+    with col_charts:
+        _render_elo_chart(df)
+        _render_opening_chart(df)
