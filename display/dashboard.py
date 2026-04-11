@@ -109,25 +109,39 @@ def _render_recent_games(df: pd.DataFrame):
 
 def _render_elo_chart(df: pd.DataFrame):
     st.subheader("Évolution de l'Elo", anchor=False)
-    df_sorted = df[df["user_elo"] > 0].sort_values("date_parsed")
-    if df_sorted.empty:
+    df_filtered = df[df["user_elo"] > 0].copy()
+    if df_filtered.empty:
         st.caption("Pas de données Elo disponibles.")
         return
 
+    # Grouper par jour et garder le dernier ELO de chaque journée
+    df_daily = df_filtered.sort_values("date_parsed").groupby("date_parsed").last().reset_index()
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df_sorted["date_parsed"],
-        y=df_sorted["user_elo"],
+        x=df_daily["date_parsed"],
+        y=df_daily["user_elo"],
         mode="lines+markers",
         marker=dict(size=4, color="#739552"),
         line=dict(color="#739552", width=2),
+        fill="tozeroy",
+        fillcolor="rgba(115, 149, 82, 0.3)",
         hovertemplate="%{x|%d/%m/%Y}<br>Elo : %{y}<extra></extra>",
     ))
+    # Calculer les limites
+    min_elo = df_daily["user_elo"].min()
+    max_elo = df_daily["user_elo"].max()
+    
     fig.update_layout(
         height=220,
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(showgrid=False, showline=False),
-        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.08)", showline=False),
+        yaxis=dict(
+            showgrid=True, 
+            gridcolor="rgba(255,255,255,0.08)", 
+            showline=False,
+            range=[min_elo - 50, max_elo + 50]
+        ),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
     )
