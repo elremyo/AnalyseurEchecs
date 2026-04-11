@@ -1,5 +1,107 @@
 """Dictionnaire de correspondance ECO - nom d'ouverture."""
 
+ECO_FAMILIES = {
+    # Familles spécifiques (codes ECO exacts)
+    "A09": "Gambit Réti",    
+    "A57": "Gambit Benko",
+    "A58": "Gambit Benko",
+    "A59": "Gambit Benko",
+    "B01": "Défense scandinave",
+    "B02": "Défense Alekhine",
+    "B03": "Défense Alekhine",
+    "B04": "Défense Alekhine",
+    "B05": "Défense Alekhine",
+    "B07": "Défense Pirc",
+    "B08": "Défense Pirc",
+    "B09": "Défense Pirc",
+    "C25": "Partie viennoise",
+    "C26": "Partie viennoise",
+    "C27": "Partie viennoise",
+    "C28": "Partie viennoise",
+    "C29": "Partie viennoise",
+    "C45": "Partie écossaise",
+    "D02": "Système de Londres",
+    "D10": "Gambit dame : Défense slave",
+    "D11": "Gambit dame : Défense slave",
+    "D12": "Gambit dame : Défense slave",
+    "D13": "Gambit dame : Défense slave",
+    "D14": "Gambit dame : Défense slave",
+    "D15": "Gambit dame : Défense slave",
+    "D16": "Gambit dame : Défense slave",
+    "D17": "Gambit dame : Défense slave",
+    "D18": "Gambit dame : Défense slave",
+    "D19": "Gambit dame : Défense slave",
+    "D20": "Gambit dame : Accepté",
+    "D21": "Gambit dame : Accepté",
+    "D22": "Gambit dame : Accepté",
+    "D23": "Gambit dame : Accepté",
+    "D24": "Gambit dame : Accepté",
+    "D25": "Gambit dame : Accepté",
+    "D26": "Gambit dame : Accepté",
+    "D27": "Gambit dame : Accepté",
+    "D28": "Gambit dame : Accepté",
+    "D29": "Gambit dame : Accepté",
+    
+    # Volume A - Ouvertures de flanc
+    "A0": "Ouvertures de flanc",
+    "A1": "Ouverture Anglaise",
+    "A2": "Ouverture Anglaise", 
+    "A3": "Ouverture Anglaise",
+    "A4": "Défense indiennes diverses",
+    "A5": "Défense indiennes diverses",
+    "A6": "Défense Benoni moderne",
+    "A7": "Défense Benoni moderne",
+    "A8": "Défense Hollandaise",
+    "A9": "Défense Hollandaise",
+    
+    # Volume B - Débuts semi-ouverts (1.e4)
+    "B0": "Débuts semi-ouverts divers",
+    "B1": "Défense Caro-Kann",
+    "B2": "Défense sicilienne",
+    "B3": "Défense sicilienne",
+    "B4": "Défense sicilienne",
+    "B5": "Défense sicilienne",
+    "B6": "Défense sicilienne",
+    "B7": "Défense sicilienne",
+    "B8": "Défense sicilienne",
+    "B9": "Défense sicilienne",
+    
+    # Volume C - Débuts ouverts (1.e4 e5)
+    "C0": "Défense Française",
+    "C1": "Défense Française",
+    "C2": "Débuts ouverts",
+    "C3": "Gambit du Roi",
+    "C4": "Gambit du Roi",
+    "C5": "Partie Italienne",
+    "C6": "Partie Espagnole (Ruy López)",
+    "C7": "Partie Espagnole (Ruy López)",
+    "C8": "Partie Espagnole (Ruy López)",
+    "C9": "Partie Espagnole (Ruy López)",
+    
+    # Volume D - Débuts fermés (1.d4 d5)
+    "D0": "Débuts fermés",
+    "D1": "Gambit dame",
+    "D3": "Gambit dame refusé",
+    "D4": "Gambit dame refusé",
+    "D5": "Gambit dame refusé",
+    "D6": "Gambit dame refusé",
+    "D7": "Défense Grünfeld",
+    "D8": "Défense Grünfeld",
+    "D9": "Défense Grünfeld",
+    
+    # Volume E - Débuts indiens (1.d4 Cf6)
+    "E0": "Ouverture Catalane",
+    "E1": "Défense ouest-indienne",
+    "E2": "Défense Nimzo-Indienne",
+    "E3": "Défense Nimzo-Indienne",
+    "E4": "Défense Nimzo-Indienne",
+    "E5": "Défense Nimzo-Indienne",
+    "E6": "Défense est-indienne",
+    "E7": "Défense est-indienne",
+    "E8": "Défense est-indienne",
+    "E9": "Défense est-indienne",
+}
+
 ECO_OPENINGS = {
     # Volume A - Ouvertures de flanc
     "A00": "Ouverture irrégulière",
@@ -529,3 +631,27 @@ def get_opening_name(eco_code: str) -> str:
     eco_code = eco_code.upper().strip()
     
     return ECO_OPENINGS.get(eco_code, eco_code)
+
+
+def get_opening_family(eco_code: str) -> str:
+    """Retourne la famille d'ouverture correspondant au code ECO.
+    
+    Args:
+        eco_code: Code ECO (ex: "C45", "B01", "D02")
+        
+    Returns:
+        Nom de la famille d'ouverture ou "Autre" si non trouvé
+    """
+    if not eco_code:
+        return "Ouverture inconnue"
+    
+    # Normalisation du code ECO
+    eco_code = eco_code.upper().strip()
+    
+    # Priorité aux codes spécifiques à 3 caractères (C45, D02, etc.)
+    if eco_code in ECO_FAMILIES:
+        return ECO_FAMILIES[eco_code]
+    
+    # Sinon, essayer avec les 2 premiers caractères
+    family_code = eco_code[:2]
+    return ECO_FAMILIES.get(family_code, "Autre")

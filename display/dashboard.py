@@ -9,15 +9,8 @@ from typing import List, Dict, Any
 
 from utils.chesscom_api import fetch_recent_games
 from utils.chesscom_cache import init_db, get_cached_games, get_last_sync, upsert_games, update_sync_log
-from utils.eco_openings import get_opening_name
+from utils.eco_openings import get_opening_name, get_opening_family
 
-_ECO_FAMILIES = {
-    "A": "Flanc (Réti, Bird, Anglaise, Hollandaise, Benoni)",
-    "B": "Semi-ouverte (Sicilienne, Caro-Kann, Pirc, Moderne, Alekhine, Scandinave)",
-    "C": "Ouverte (Espagnole, Italienne, Gambit Roi, Écossaise, Française)",
-    "D": "Fermée (Gambit Dame, Slave, Grünfeld, Néo-Grünfeld)",
-    "E": "Indienne (Nimzo-Indienne, Est-Indienne, Ouest-Indienne, Catalane, Bogo-Indienne)",
-}
 
 
 # ---------------------------------------------------------------------------
@@ -46,7 +39,7 @@ def _to_df(games: List[Dict[str, Any]]) -> pd.DataFrame:
         lambda r: r["black_elo"] if r["user_color"] == "white" else r["white_elo"], axis=1
     )
     df["date_parsed"] = pd.to_datetime(df["date"], format="%Y.%m.%d", errors="coerce")
-    df["eco_family"] = df["eco"].str[:1].map(_ECO_FAMILIES).fillna("Autre")
+    df["eco_family"] = df["eco"].apply(get_opening_family)
     return df.sort_values("date_parsed", ascending=False).reset_index(drop=True)
 
 
