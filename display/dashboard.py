@@ -73,8 +73,15 @@ def _apply_filters(df: pd.DataFrame, period_days: Optional[int], game_type: Opti
         df = df[df["game_type"] == game_type]
     return df.reset_index(drop=True)
 
-def render_games_summary(total: int, wins: int, draws: int, losses: int) -> None:
-    """Affiche le résumé des parties jouées avec des barres horizontales."""
+def render_games_bar(total: int, wins: int, draws: int, losses: int, color_filter: str = "all") -> None:
+    """Affiche le résumé des parties jouées avec des barres horizontales. 
+    Args:
+        total: Nombre total de parties
+        wins: Nombre de victoires
+        draws: Nombre de nuls
+        losses: Nombre de défaites
+        color_filter: Couleur des parties (all, white, black)
+    """
     if total == 0:
         st.markdown("**0** parties")
         return
@@ -84,7 +91,15 @@ def render_games_summary(total: int, wins: int, draws: int, losses: int) -> None
     draw_pct = draws / total * 100
     loss_pct = losses / total * 100
     
-    st.markdown(f"**{total}** parties")
+    with st.container(horizontal=True, width="content"):
+        filter_text = {
+            "all": "Tout",
+            "white": "⬜ Blanc", 
+            "black": "⬛ Noir"
+        }.get(color_filter, "Tout")
+        st.markdown(f"**{filter_text}**")
+
+        st.markdown(f"**{total}** parties")
     
     # Barre horizontale composite avec HTML personnalisé pour avoir des barres collées et colorées correctement
     bar_html = f"""
@@ -95,7 +110,6 @@ def render_games_summary(total: int, wins: int, draws: int, losses: int) -> None
     </div>
     """
     st.markdown(bar_html, unsafe_allow_html=True)
-    
     # Ligne avec les nombres absolus en dessous
     col_wins_count, col_draws_count, col_losses_count = st.columns(3)
     with col_wins_count:
@@ -104,7 +118,6 @@ def render_games_summary(total: int, wins: int, draws: int, losses: int) -> None
         st.markdown(f":grey[{draws} nulle{'s' if draws > 1 else ''} - **{draw_pct:.0f}%**]")
     with col_losses_count:
         st.markdown(f":red[{losses} défaite{'s' if losses > 1 else ''} - **{loss_pct:.0f}%**]")
-
 # ---------------------------------------------------------------------------
 # Helpers ouvertures
 # ---------------------------------------------------------------------------
@@ -342,78 +355,52 @@ def _render_filters(df: pd.DataFrame) -> tuple[Optional[int], Optional[str]]:
 
 
 def _render_metrics(df: pd.DataFrame):
+
+    # Barres de statistiques globales
     total  = len(df)
     wins   = (df["user_result"] == "win").sum()
     draws  = (df["user_result"] == "draw").sum()
     losses = (df["user_result"] == "loss").sum()
+    render_games_bar(total, wins, draws, losses, "all")
 
+    # Barres de statistiques pour les Blancs
     df_w = df[df["user_color"] == "white"]
-    df_b = df[df["user_color"] == "black"]
-
-    df_elo = df[df["user_elo"] > 0].sort_values("date_parsed")
-    elo_current = int(df_elo.iloc[-1]["user_elo"]) if not df_elo.empty else None
-    elo_delta   = int(df_elo.iloc[-1]["user_elo"] - df_elo.iloc[0]["user_elo"]) if len(df_elo) >= 2 else None
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.markdown(f"**Parties totales**")
-        render_games_summary(total, wins, draws, losses)
-
-    # Stats pour les Blancs
     wins_w = (df_w["user_result"] == "win").sum()
     draws_w = (df_w["user_result"] == "draw").sum()
     losses_w = (df_w["user_result"] == "loss").sum()
-    with c2:
-        st.markdown(f"**⬜ Blancs**")
-        render_games_summary(len(df_w), wins_w, draws_w, losses_w)
+    render_games_bar(len(df_w), wins_w, draws_w, losses_w, "white")   
     
-    # Stats pour les Noirs
+    # Barres de statistiques pour les Noirs
+    df_b = df[df["user_color"] == "black"]
     wins_b = (df_b["user_result"] == "win").sum()
     draws_b = (df_b["user_result"] == "draw").sum()
     losses_b = (df_b["user_result"] == "loss").sum()
-    with c3:
-        st.markdown(f"**⬛ Noirs**")
-        render_games_summary(len(df_b), wins_b, draws_b, losses_b)
+    render_games_bar(len(df_b), wins_b, draws_b, losses_b, "black")
 
-
-    with c4:
-        if elo_current is not None:
-            delta_str = f"{elo_delta:+d}" if elo_delta is not None else None
-            st.metric("ELO actuel", elo_current, f' {delta_str} sur la période')
-        else:
-            st.metric("ELO actuel", "—", delta_color="off", delta_arrow="off")
-
-    st.divider()
-    col_type, col_count, col_wins, col_draws, col_losses = st.columns(5)
-    with col_type:
-        st.markdown("Total")
-        st.markdown("Blancs")
-        st.markdown("Noirs")
-
-    with col_count:
-        st.markdown(f"{total} parties")
-        st.markdown(f"{len(df_w)} parties")
-        st.markdown(f"{len(df_b)} parties")
-    with col_wins:
-        st.markdown(f":green-badge[**{wins} victoires**]")
-        st.markdown(f":green-badge[**{wins_w} victoires**]")
-        st.markdown(f":green-badge[**{wins_b} victoires**]")
-    with col_draws:
-        st.markdown(f":grey-badge[**{draws} nulles**]")
-        st.markdown(f":grey-badge[**{draws_w} nulles**]")
-        st.markdown(f":grey-badge[**{draws_b} nulles**]")
-    with col_losses:
-        st.markdown(f":red-badge[**{losses} défaites**]")
-        st.markdown(f":red-badge[**{losses_w} défaites**]")
-        st.markdown(f":red-badge[**{losses_b} défaites**]")
 
 
 
 def _render_elo_chart(df: pd.DataFrame):
-    st.subheader("Évolution ELO", anchor=False)
+
+    # ELO actuel
+    df_elo = df[df["user_elo"] > 0].sort_values("date_parsed")
+    elo_current = int(df_elo.iloc[-1]["user_elo"]) if not df_elo.empty else None
+    elo_delta   = int(df_elo.iloc[-1]["user_elo"] - df_elo.iloc[0]["user_elo"]) if len(df_elo) >= 2 else None
+    if elo_current is not None:
+        delta_str = f"{elo_delta:+d}" if elo_delta is not None else None
+        color = "green" if elo_delta >= 0 else "red"
+        delta_colored = f":{color}-badge[{delta_str}]"
+
+        with st.container(horizontal=True, width="content", vertical_alignment="center"):
+            st.subheader(f"ELO : **{elo_current}**", anchor=False)
+            st.markdown(f":{color}-badge[{delta_str} sur la période]")
+    else:
+        st.caption("ELO actuel non disponible.")
+
+
     df_filtered = df[df["user_elo"] > 0].sort_values("date_parsed")
     if df_filtered.empty:
-        st.caption("Pas de données ELO disponibles.")
+        st.caption("Évolution ELO non disponible.")
         return
 
     df_daily = df_filtered.groupby("date_parsed").last().reset_index()
@@ -516,8 +503,7 @@ def render_dashboard():
         return
     st.divider()
 
-    # ── Métriques ─────────────────────────────────────────────────────────────
-    _render_metrics(df)
+
         
 
 
@@ -525,6 +511,8 @@ def render_dashboard():
     col_left, col_right = st.columns([3, 2], gap="large")
 
     with col_left:
+        # ── Métriques ─────────────────────────────────────────────────────────────
+        _render_metrics(df)
         st.subheader("Ouvertures", anchor=False)
         _render_openings_section(df)
 
