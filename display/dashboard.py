@@ -331,26 +331,25 @@ def _render_header(username: str):
 
 
 def _render_filters(df: pd.DataFrame) -> tuple[Optional[int], Optional[str]]:
-    col_period, col_mode = st.columns([3, 2], gap="large")
-    with col_period:
+    
+    with st.container(horizontal=True):
         period_label = st.segmented_control(
             "Période",
             options=list(_PERIOD_OPTIONS.keys()),
             default="3 mois",
             key="dashboard_period_filter",
         )
-    period_days = _PERIOD_OPTIONS.get(period_label or "3 mois")
+        period_days = _PERIOD_OPTIONS.get(period_label or "3 mois")
 
-    with col_mode:
         available_types = [t for t in GAME_TYPES if t in df["game_type"].unique()]
         default_type = df["game_type"].value_counts().idxmax() if available_types else None
         default_idx  = available_types.index(default_type) if default_type in available_types else 0
         game_type = st.segmented_control(
             "Mode de jeu",
             options=available_types,
-            default=available_types[default_idx] if available_types else None,
-            key="dashboard_game_type_filter",
-        )
+                default=available_types[default_idx] if available_types else None,
+                key="dashboard_game_type_filter",
+            )
     return period_days, game_type
 
 
@@ -419,38 +418,61 @@ def _render_elo_chart(df: pd.DataFrame):
         height=180, margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(showgrid=False, showline=False),
         yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.08)",
-                   showline=False, range=[min_elo - 30, max_elo + 30]),
+                   showline=False, range=[min_elo - 20, max_elo + 20]),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
 def _render_rolling_winrate(df: pd.DataFrame):
-    st.subheader(f"Win rate glissant ({_ROLLING_WINDOW} parties)", anchor=False)
+
     df_chron = df.sort_values("date_parsed").reset_index(drop=True)
     if len(df_chron) < 5:
         st.caption("Pas assez de parties pour afficher le win rate glissant.")
         return
+    else:
+        with st.container(horizontal=True, width="content", vertical_alignment="bottom"):
+            st.subheader(f"Win rate glissant", anchor=False, help=f"Moyenne glissante de vos victoires. Fenêtre de 5 à 20 parties selon votre historique.")
+            with st.popover(" ", icon=":material/settings:", type="tertiary", help="Paramètres de la fenêtre glissante"):
+                st.markdown('Fenêtre de calcul')
 
+                st.markdown(':gray[:small[**10 :** réaction rapide  \n**20 :** équilibre  \n**40 :** tendance fond  \n**80 :** analyse long terme]]')
+                rolling_window = st.select_slider(
+                    "Fenêtre de calcul",
+                    options=[10, 20, 40, 80],
+                    value=st.session_state.get("rolling_window", _ROLLING_WINDOW),
+                    format_func=lambda x: f"{x} parties" if x != 80 else f"{x} parties (max)",
+                    key="rolling_window_slider",
+                    label_visibility="collapsed"
+                )
+                
+                if st.button("Appliquer", key="apply_rolling_window"):
+                    st.session_state.rolling_window = rolling_window
+                    st.rerun()
+
+    # Récupérer la fenêtre de calcul (par défaut _ROLLING_WINDOW si non définie)
+    rolling_window = st.session_state.get("rolling_window", _ROLLING_WINDOW)
+    
     df_chron["win_bin"]    = (df_chron["user_result"] == "win").astype(int)
     df_chron["rolling_wr"] = (
-        df_chron["win_bin"].rolling(window=_ROLLING_WINDOW, min_periods=5).mean() * 100
+        df_chron["win_bin"].rolling(window=rolling_window, min_periods=5).mean() * 100
     )
     df_plot = df_chron.dropna(subset=["rolling_wr"])
 
     fig = go.Figure()
     fig.add_hrect(y0=50, y1=100, fillcolor="rgba(115,149,82,0.06)", line_width=0)
-    fig.add_hline(y=50, line=dict(color="gray", width=1, dash="dot"))
+    fig.add_hline(y=50, line=dict(color="gray", width=1, dash="dot"))    
     fig.add_trace(go.Scatter(
-        x=list(range(len(df_plot))), y=df_plot["rolling_wr"],
+        x=list(range(5, 5 + len(df_plot))), y=df_plot["rolling_wr"],
         mode="lines", line=dict(color="#739552", width=2),
         fill="tonexty", fillcolor="rgba(115,149,82,0.15)",
-        hovertemplate="Partie %{x}<br>Win rate : %{y:.1f}%<extra></extra>",
+        text=df_plot["date_parsed"].dt.strftime("%d/%m/%Y"),
+        hovertemplate="Partie %{x}<br>Date : %{text}<br>Win rate : %{y:.1f}%<extra></extra> ",
     ))
     fig.update_layout(
         height=180, margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(showgrid=False, showticklabels=False, zeroline=False),
-        yaxis=dict(showgrid=False, range=[0, 100], ticksuffix="%", tickfont=dict(size=10)),
+        yaxis=dict(showgrid=False, range=[df_plot["rolling_wr"].min()-5, df_plot["rolling_wr"].max()+5], ticksuffix="%", tickfont=dict(size=10)),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
