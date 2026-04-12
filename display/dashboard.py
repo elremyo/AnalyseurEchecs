@@ -74,11 +74,36 @@ def _apply_filters(df: pd.DataFrame, period_days: Optional[int], game_type: Opti
     return df.reset_index(drop=True)
 
 def render_games_summary(total: int, wins: int, draws: int, losses: int) -> None:
-    """Affiche le résumé des parties jouées avec le détail V/N/D."""
-    st.markdown(f"### {total} parties")
-    with st.container(horizontal=True, vertical_alignment="center", horizontal_alignment="left"):
-        st.markdown(f":green-badge[**{wins}** victoires] :grey-badge[**{draws}** nulles] :red-badge[**{losses}** défaites]")
-
+    """Affiche le résumé des parties jouées avec des barres horizontales."""
+    if total == 0:
+        st.markdown("**0** parties")
+        return
+    
+    # Calcul des pourcentages
+    win_pct = wins / total * 100
+    draw_pct = draws / total * 100
+    loss_pct = losses / total * 100
+    
+    st.markdown(f"**{total}** parties")
+    
+    # Barre horizontale composite avec HTML personnalisé pour avoir des barres collées et colorées correctement
+    bar_html = f"""
+    <div style="display: flex; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; margin: 4px 0;">
+        <div style="background-color: #739552; width: {win_pct}%; height: 100%;"></div>
+        <div style="background-color: #5a5a5a; width: {draw_pct}%; height: 100%;"></div>
+        <div style="background-color: #c0392b; width: {loss_pct}%; height: 100%;"></div>
+    </div>
+    """
+    st.markdown(bar_html, unsafe_allow_html=True)
+    
+    # Ligne avec les nombres absolus en dessous
+    col_wins_count, col_draws_count, col_losses_count = st.columns(3)
+    with col_wins_count:
+        st.markdown(f":green[{wins} victoire{'s' if wins > 1 else ''} - **{win_pct:.0f}%**]")
+    with col_draws_count:
+        st.markdown(f":grey[{draws} nulle{'s' if draws > 1 else ''} - **{draw_pct:.0f}%**]")
+    with col_losses_count:
+        st.markdown(f":red[{losses} défaite{'s' if losses > 1 else ''} - **{loss_pct:.0f}%**]")
 
 # ---------------------------------------------------------------------------
 # Helpers ouvertures
@@ -357,6 +382,31 @@ def _render_metrics(df: pd.DataFrame):
             st.metric("ELO actuel", elo_current, f' {delta_str} sur la période')
         else:
             st.metric("ELO actuel", "—", delta_color="off", delta_arrow="off")
+
+    st.divider()
+    col_type, col_count, col_wins, col_draws, col_losses = st.columns(5)
+    with col_type:
+        st.markdown("Total")
+        st.markdown("Blancs")
+        st.markdown("Noirs")
+
+    with col_count:
+        st.markdown(f"{total} parties")
+        st.markdown(f"{len(df_w)} parties")
+        st.markdown(f"{len(df_b)} parties")
+    with col_wins:
+        st.markdown(f":green-badge[**{wins} victoires**]")
+        st.markdown(f":green-badge[**{wins_w} victoires**]")
+        st.markdown(f":green-badge[**{wins_b} victoires**]")
+    with col_draws:
+        st.markdown(f":grey-badge[**{draws} nulles**]")
+        st.markdown(f":grey-badge[**{draws_w} nulles**]")
+        st.markdown(f":grey-badge[**{draws_b} nulles**]")
+    with col_losses:
+        st.markdown(f":red-badge[**{losses} défaites**]")
+        st.markdown(f":red-badge[**{losses_w} défaites**]")
+        st.markdown(f":red-badge[**{losses_b} défaites**]")
+
 
 
 def _render_elo_chart(df: pd.DataFrame):
