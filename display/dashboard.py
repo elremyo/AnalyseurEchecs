@@ -478,7 +478,7 @@ def _render_rolling_winrate(df: pd.DataFrame):
     st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
-def _render_recent_games_expander(df: pd.DataFrame, analysis_callbacks) -> None:
+def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
 
     def _analyze_game(pgn: str) -> None:
         st.session_state.pgn_text_input = pgn
@@ -574,4 +574,4 @@ def render_dashboard(analysis_callbacks):
     st.divider()
 
     # ── Parties récentes (discret) ────────────────────────────────────────────
-    _render_recent_games_expander(df, analysis_callbacks)
+    _render_recent_games(df, analysis_callbacks)
