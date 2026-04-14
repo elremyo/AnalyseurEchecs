@@ -18,3 +18,4 @@ class AnalyzedMove:
     is_best: bool
     is_theoretical: bool
     threats: List[str] = field(default_factory=list)
+    accuracy: float = 100.0

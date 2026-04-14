@@ -6,7 +6,7 @@ import chess.pgn
 import chess.polyglot
 import streamlit as st
 
-from utils.eval_utils import convert_eval_to_cp, get_quality
+from utils.eval_utils import convert_eval_to_cp, get_quality, compute_move_accuracy
 from constants import (
     MAX_MAINLINE_HALFMOVES,
     MAX_PGN_CHARACTERS,
@@ -191,6 +191,9 @@ def _build_analyzed_move_from_results(board: chess.Board, move: chess.Move,
         curr_cp=convert_eval_to_cp(curr_result["eval"])
     )
     
+    side = "white" if move_index % 2 == 0 else "black"
+    accuracy = compute_move_accuracy(prev_result["eval"], curr_result["eval"], side)
+
     return AnalyzedMove(
         coup=move_san,
         quality=quality,
@@ -200,7 +203,8 @@ def _build_analyzed_move_from_results(board: chess.Board, move: chess.Move,
         best_move_uci=prev_result["best_move"],
         is_best=is_best,
         is_theoretical=is_theo,
-        threats=curr_result["threats"]
+        threats=curr_result["threats"],
+        accuracy=accuracy,
     )
 
 
