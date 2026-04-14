@@ -28,7 +28,7 @@ def init_session_state() -> None:
         
         # Affichage et navigation
         "board_flipped": False,
-        "user_depth": 14,
+        "user_depth": 15,
         "show_best_arrow": True,
         "show_threat_arrows": False,
         "move_index": 0,

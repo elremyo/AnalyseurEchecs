@@ -480,21 +480,24 @@ def _render_rolling_winrate(df: pd.DataFrame):
 
 def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
 
+    from utils.chesscom_cache import get_analyzed_game_ids
+
     def _analyze_game(pgn: str) -> None:
         st.session_state.pgn_text_input = pgn
         analysis_callbacks.on_analyze_click()
 
-    with st.container(border=True):
-        st.subheader("Parties récentes (20)",anchor=False)
-        
-        col_size = [1, 0.9, 0.9, 2.5, 0.5, 3, 0.6]
+    game_ids      = df.head(20)["game_id"].astype(str).tolist()
+    analyzed_ids  = get_analyzed_game_ids(game_ids)
 
-        # En-tête
+    col_size = [1, 0.9, 0.9, 2.5, 0.5, 3, 0.6]
+
+    with st.container(border=True):
+        st.subheader("Parties récentes (20)", anchor=False)
+
         h = st.columns(col_size, vertical_alignment="center")
         for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Analyser"]):
             col.caption(f"**{label}**")
 
-        # Lignes
         for _, row in df.head(20).iterrows():
             date_str     = row["date_parsed"].strftime("%d/%m/%Y") if pd.notna(row["date_parsed"]) else "—"
             color_icon   = "⬜" if row["user_color"] == "white" else "⬛"
@@ -503,6 +506,9 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
             elo_str      = str(int(row["user_elo"])) if row["user_elo"] > 0 else "—"
             opening_str  = get_opening_name(row["eco"]) if row["eco"] else "—"
             pgn          = row.get("pgn", "")
+            gid          = str(row.get("game_id", ""))
+            is_cached    = gid in analyzed_ids
+
             c = st.columns(col_size, vertical_alignment="center")
             c[0].markdown(date_str)
             c[1].markdown(color_icon)
@@ -513,10 +519,10 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
             if pgn:
                 c[6].button(
                     "",
-                    icon=":material/monitoring:",
-                    key=f"analyze_{row['game_id']}",
+                    icon=":material/bolt:" if is_cached else ":material/monitoring:",
+                    key=f"analyze_{gid}",
                     type="secondary",
-                    help="Analyser cette partie",
+                    help="⚡ En cache — chargement instantané" if is_cached else "Analyser avec Stockfish",
                     on_click=_analyze_game,
                     args=(pgn,),
                 )

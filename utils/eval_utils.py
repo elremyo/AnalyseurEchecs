@@ -105,3 +105,27 @@ def format_eval(e: Dict[str, Any]) -> str:
 def get_win_chance(cp: int) -> float:
     cp = max(min(cp, CP_MAX), CP_MIN)
     return 50 + 50 * (2 / (1 + math.exp(-WIN_CHANCE_FACTOR * cp)) - 1)
+
+
+def compute_move_accuracy(
+    prev_eval: Dict[str, Any],
+    curr_eval: Dict[str, Any],
+    side: str,
+) -> float:
+    """
+    Accuracy d'un coup selon la perte de win% du joueur qui vient de jouer.
+    Formule Chess.com : 103.1668 * exp(-0.04354 * loss) - 3.1669, clampé [0, 100].
+    """
+    prev_cp = convert_eval_to_cp(prev_eval)
+    curr_cp = convert_eval_to_cp(curr_eval)
+    wp_before = get_win_chance(prev_cp)
+    wp_after  = get_win_chance(curr_cp)
+
+    # Perte de win% du côté qui vient de jouer (toujours >= 0 si coup bon)
+    if side == "white":
+        win_pct_loss = max(0.0, wp_before - wp_after)
+    else:
+        win_pct_loss = max(0.0, wp_after - wp_before)
+
+    raw = 103.1668 * math.exp(-0.04354 * win_pct_loss) - 3.1669
+    return max(0.0, min(100.0, raw))
