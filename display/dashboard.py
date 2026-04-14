@@ -163,14 +163,20 @@ def _render_opening_chart(stats: pd.DataFrame, title: str):
         st.caption("Pas de données.")
         return
 
+    # Filtrer pour n'afficher que les ouvertures fiables
+    reliable_stats = stats[stats["reliable"]].copy()
+    if reliable_stats.empty:
+        st.caption(f"Aucune ouverture avec {_MIN_GAMES_RELIABLE}+ parties sur cette période.")
+        return
+
     st.markdown(f"**{title}**")
 
-    names  = stats["name"].tolist()
-    wins   = stats["wins"].tolist()
-    draws  = stats["draws"].tolist()
-    losses = stats["losses"].tolist()
-    totals = stats["total"].tolist()
-    wrs    = stats["wr"].tolist()
+    names  = reliable_stats["name"].tolist()
+    wins   = reliable_stats["wins"].tolist()
+    draws  = reliable_stats["draws"].tolist()
+    losses = reliable_stats["losses"].tolist()
+    totals = reliable_stats["total"].tolist()
+    wrs    = reliable_stats["wr"].tolist()
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -200,9 +206,9 @@ def _render_opening_chart(stats: pd.DataFrame, title: str):
 
     # Annotations W% à droite des barres
     annotations = []
-    for i, (total, wr, reliable) in enumerate(zip(totals, wrs, stats["reliable"].tolist())):
+    for i, (total, wr) in enumerate(zip(totals, wrs)):
         color  = "#739552" if wr >= 55 else ("#d4a017" if wr >= 45 else "#c0392b")
-        suffix = "" if reliable else " ⚠"
+        suffix = ""
         annotations.append(dict(
             x=total + 0.3, y=i,
             text=f"<b>{wr:.0f}%{suffix}</b>",
@@ -224,7 +230,7 @@ def _render_opening_chart(stats: pd.DataFrame, title: str):
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         annotations=annotations,
-        showlegend=True,
+        showlegend=False,
     )
     st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
@@ -262,14 +268,13 @@ def _render_forces_faiblesses(stats: pd.DataFrame):
 
 def _render_openings_section(df: pd.DataFrame):
     """Section complète ouvertures avec onglets Blancs/Noirs et niveau de détail."""
-    detail_col, _ = st.columns([2, 3])
-    with detail_col:
-        detail = st.segmented_control(
-            "Niveau de détail",
-            options=["Famille ECO", "Ouverture exacte"],
-            default="Famille ECO",
-            key="opening_detail_level",
-        )
+    detail = st.segmented_control(
+        "Niveau de détail",
+        options=["Famille ECO", "Ouverture exacte"],
+        default="Famille ECO",
+        key="opening_detail_level",
+    )
+    
     group_by = "eco_family" if detail == "Famille ECO" else "eco_name"
 
     tab_all, tab_white, tab_black = st.tabs(["Toutes", "⬜ Blancs", "⬛ Noirs"])
@@ -280,7 +285,7 @@ def _render_openings_section(df: pd.DataFrame):
             st.caption("Pas de données d'ouvertures disponibles.")
         else:
             _render_forces_faiblesses(stats_all)
-            st.divider()
+            st.space()
             _render_opening_chart(stats_all, "Bilan par ouverture — Toutes couleurs")
 
     with tab_white:
@@ -290,7 +295,7 @@ def _render_openings_section(df: pd.DataFrame):
             st.caption("Pas de parties avec les Blancs sur cette période.")
         else:
             _render_forces_faiblesses(stats_w)
-            st.divider()
+            st.space()
             _render_opening_chart(stats_w, "Bilan par ouverture — Blancs")
 
     with tab_black:
@@ -300,7 +305,7 @@ def _render_openings_section(df: pd.DataFrame):
             st.caption("Pas de parties avec les Noirs sur cette période.")
         else:
             _render_forces_faiblesses(stats_b)
-            st.divider()
+            st.space()
             _render_opening_chart(stats_b, "Bilan par ouverture — Noirs")
 
 # ---------------------------------------------------------------------------
@@ -362,6 +367,8 @@ def _render_metrics(df: pd.DataFrame):
     losses = (df["user_result"] == "loss").sum()
     render_games_bar(total, wins, draws, losses, "all")
 
+    st.space()
+
     # Barres de statistiques pour les Blancs
     df_w = df[df["user_color"] == "white"]
     wins_w = (df_w["user_result"] == "win").sum()
@@ -369,6 +376,8 @@ def _render_metrics(df: pd.DataFrame):
     losses_w = (df_w["user_result"] == "loss").sum()
     render_games_bar(len(df_w), wins_w, draws_w, losses_w, "white")   
     
+    st.space()
+
     # Barres de statistiques pour les Noirs
     df_b = df[df["user_color"] == "black"]
     wins_b = (df_b["user_result"] == "win").sum()
@@ -491,11 +500,11 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
 
     col_size = [1, 0.9, 0.9, 2.5, 0.5, 3, 0.6]
 
-    with st.container(border=True):
-        st.subheader("Parties récentes (20)", anchor=False)
+    st.subheader("Parties récentes (20)", anchor=False)
+    with st.container(border=True,height=500):
 
         h = st.columns(col_size, vertical_alignment="center")
-        for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Analyser"]):
+        for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Analyse"]):
             col.caption(f"**{label}**")
 
         for _, row in df.head(20).iterrows():
@@ -519,10 +528,10 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
             if pgn:
                 c[6].button(
                     "",
-                    icon=":material/bolt:" if is_cached else ":material/monitoring:",
+                    icon=":material/search:" if is_cached else ":material/monitoring:",
                     key=f"analyze_{gid}",
-                    type="secondary",
-                    help="⚡ En cache — chargement instantané" if is_cached else "Analyser avec Stockfish",
+                    type="primary" if is_cached else "secondary",
+                    help="Afficher l'analyse" if is_cached else "Analyser avec Stockfish",
                     on_click=_analyze_game,
                     args=(pgn,),
                 )
@@ -565,19 +574,23 @@ def render_dashboard(analysis_callbacks):
 
 
     # ── Corps principal ───────────────────────────────────────────────────────
-    col_left, col_right = st.columns([3, 2], gap="large")
+    col_main, col_side = st.columns([0.4,0.6], gap="medium")
 
-    with col_left:
+    with col_main:
         # ── Métriques ─────────────────────────────────────────────────────────────
-        _render_metrics(df)
+
         st.subheader("Ouvertures", anchor=False)
         _render_openings_section(df)
 
-    with col_right:
-        _render_elo_chart(df)
-        _render_rolling_winrate(df)
-
+    with col_side:
+        col_left,col_right = st.columns(2)
+        with col_left:
+            _render_metrics(df)
+        
+        with col_right:
+            _render_elo_chart(df)
+            _render_rolling_winrate(df)
+    
     st.divider()
-
-    # ── Parties récentes (discret) ────────────────────────────────────────────
     _render_recent_games(df, analysis_callbacks)
+
