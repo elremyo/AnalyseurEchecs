@@ -478,26 +478,55 @@ def _render_rolling_winrate(df: pd.DataFrame):
     st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
-def _render_recent_games_expander(df: pd.DataFrame):
-    with st.expander("Parties récentes", expanded=False, icon=":material/table:"):
-        display = df.copy()
-        display["Date"]       = display["date_parsed"].dt.strftime("%d/%m/%Y")
-        display["Couleur"]    = display["user_color"].map({"white": "⬜", "black": "⬛"})
-        display["Résultat"]   = display["user_result"].map({"win": "✅", "loss": "❌", "draw": "🟰"})
-        display["Adversaire"] = display["opponent"] + " (" + display["opponent_elo"].astype(str) + ")"
-        display["ELO"]        = display["user_elo"]
-        display["Ouverture"]  = display["eco"].apply(lambda x: get_opening_name(x) if x else "—")
-        st.dataframe(
-            display[["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture"]],
-            width='stretch', hide_index=True, height=320,
-        )
+def _render_recent_games_expander(df: pd.DataFrame, analysis_callbacks) -> None:
+
+    def _analyze_game(pgn: str) -> None:
+        st.session_state.pgn_text_input = pgn
+        analysis_callbacks.on_analyze_click()
+
+    with st.container(border=True):
+        st.subheader("Parties récentes (20)",anchor=False)
+        
+        col_size = [1, 0.9, 0.9, 2.5, 0.5, 3, 0.6]
+
+        # En-tête
+        h = st.columns(col_size, vertical_alignment="center")
+        for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Analyser"]):
+            col.caption(f"**{label}**")
+
+        # Lignes
+        for _, row in df.head(20).iterrows():
+            date_str     = row["date_parsed"].strftime("%d/%m/%Y") if pd.notna(row["date_parsed"]) else "—"
+            color_icon   = "⬜" if row["user_color"] == "white" else "⬛"
+            result_icon  = {"win": "✅", "loss": "❌", "draw": "🟰"}.get(row["user_result"], "?")
+            opponent_str = f"{row['opponent']} ({row['opponent_elo']})"
+            elo_str      = str(int(row["user_elo"])) if row["user_elo"] > 0 else "—"
+            opening_str  = get_opening_name(row["eco"]) if row["eco"] else "—"
+            pgn          = row.get("pgn", "")
+            c = st.columns(col_size, vertical_alignment="center")
+            c[0].markdown(date_str)
+            c[1].markdown(color_icon)
+            c[2].markdown(result_icon)
+            c[3].markdown(opponent_str)
+            c[4].markdown(elo_str)
+            c[5].markdown(opening_str)
+            if pgn:
+                c[6].button(
+                    "",
+                    icon=":material/monitoring:",
+                    key=f"analyze_{row['game_id']}",
+                    type="secondary",
+                    help="Analyser cette partie",
+                    on_click=_analyze_game,
+                    args=(pgn,),
+                )
 
 
 # ---------------------------------------------------------------------------
 # Point d'entrée
 # ---------------------------------------------------------------------------
 
-def render_dashboard():
+def render_dashboard(analysis_callbacks):
     username = st.session_state.get("username", "Joueur")
     init_db()
 
@@ -545,4 +574,4 @@ def render_dashboard():
     st.divider()
 
     # ── Parties récentes (discret) ────────────────────────────────────────────
-    _render_recent_games_expander(df)
+    _render_recent_games_expander(df, analysis_callbacks)

@@ -59,7 +59,7 @@ if st.session_state.get("redirect_to_analysis", False):
 
 # Affichage en fonction du mode
 if st.session_state.view_mode == "dashboard":
-    render_page_dashboard()
+    render_page_dashboard(analysis_callbacks)
     
 elif st.session_state.view_mode == "analysis" and st.session_state.analysis_result and st.session_state.analysis_result.analysis:
     render_page_analysis()
