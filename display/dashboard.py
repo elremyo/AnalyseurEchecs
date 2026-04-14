@@ -226,7 +226,7 @@ def _render_opening_chart(stats: pd.DataFrame, title: str):
         annotations=annotations,
         showlegend=True,
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
 def _render_forces_faiblesses(stats: pd.DataFrame):
@@ -421,7 +421,7 @@ def _render_elo_chart(df: pd.DataFrame):
                    showline=False, range=[min_elo - 20, max_elo + 20]),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
 def _render_rolling_winrate(df: pd.DataFrame):
@@ -475,7 +475,7 @@ def _render_rolling_winrate(df: pd.DataFrame):
         yaxis=dict(showgrid=False, range=[df_plot["rolling_wr"].min()-5, df_plot["rolling_wr"].max()+5], ticksuffix="%", tickfont=dict(size=10)),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
 def _render_recent_games_expander(df: pd.DataFrame):
