@@ -18,28 +18,35 @@ from constants import (
 )
 
 def display_players_name_for_board(color: str = "white", height: int = 30) -> None:
-
     analysis_result = st.session_state.analysis_result
+    if not analysis_result or not analysis_result.analysis:
+        return
+
     white_name = analysis_result.white_name
     black_name = analysis_result.black_name
-    
-    # Utiliser les métadonnées PGN depuis analysis_result
-    pgn_meta = analysis_result.pgn_meta
-    white_elo = pgn_meta.white_elo
-    black_elo = pgn_meta.black_elo
+    pgn_meta   = analysis_result.pgn_meta
+    white_elo  = pgn_meta.white_elo
+    black_elo  = pgn_meta.black_elo
 
+    def _acc_badge(accuracy: Optional[float]) -> str:
+        if accuracy is None:
+            return ""
+        if accuracy >= 90:
+            color_code = "green"
+        elif accuracy >= 75:
+            color_code = "orange"
+        else:
+            color_code = "red"
+        return f" :{color_code}-badge[{accuracy:.1f}%]"
 
-    if not st.session_state.analysis_result or not st.session_state.analysis_result.analysis:
-        return
     if color == "white":
-        with st.container(border=False,height=height):
-            #nom et elo du joueur blanc
-            st.markdown(f"⬜ **{escape_html(white_name)}**  :gray[:small[{white_elo}]]")
+        acc = _acc_badge(analysis_result.accuracy_white)
+        with st.container(border=False, height=height):
+            st.markdown(f"⬜ **{escape_html(white_name)}** :gray[:small[{white_elo}]]{acc}")
     elif color == "black":
-        with st.container(border=False,height=height):
-            #nom et elo du joueur noir
-            st.markdown(f"⬛ **{escape_html(black_name)}** :gray[:small[{black_elo}]]")
-
+        acc = _acc_badge(analysis_result.accuracy_black)
+        with st.container(border=False, height=height):
+            st.markdown(f"⬛ **{escape_html(black_name)}** :gray[:small[{black_elo}]]{acc}")
     else:
         st.error("Couleur non reconnue. Utilisez 'white' ou 'black'.")
     

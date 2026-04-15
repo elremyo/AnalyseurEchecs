@@ -488,23 +488,23 @@ def _render_rolling_winrate(df: pd.DataFrame):
 
 
 def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
-
-    from utils.chesscom_cache import get_analyzed_game_ids
+    from utils.chesscom_cache import get_analyses_meta_batch
 
     def _analyze_game(pgn: str) -> None:
         st.session_state.pgn_text_input = pgn
         analysis_callbacks.on_analyze_click()
 
-    game_ids      = df.head(20)["game_id"].astype(str).tolist()
-    analyzed_ids  = get_analyzed_game_ids(game_ids)
+    game_ids     = df.head(20)["game_id"].astype(str).tolist()
+    analyses_meta = get_analyses_meta_batch(game_ids)   # un seul aller-retour SQLite
 
-    col_size = [1, 0.9, 0.9, 2.5, 0.5, 3, 0.6]
+    # Largeurs : date / couleur / résultat / adversaire / elo / ouverture / accuracy / analyser
+    col_size = [1, 0.6, 0.6, 2.5, 0.5, 2.5, 0.8, 0.6]
 
     st.subheader("Parties récentes (20)", anchor=False)
     with st.container(border=True,height=500):
 
         h = st.columns(col_size, vertical_alignment="center")
-        for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Analyse"]):
+        for col, label in zip(h, ["Date", "Couleur", "Résultat", "Adversaire", "ELO", "Ouverture", "Précision", "Analyse"]):
             col.caption(f"**{label}**")
 
         for _, row in df.head(20).iterrows():
@@ -516,7 +516,23 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
             opening_str  = get_opening_name(row["eco"]) if row["eco"] else "—"
             pgn          = row.get("pgn", "")
             gid          = str(row.get("game_id", ""))
-            is_cached    = gid in analyzed_ids
+            meta         = analyses_meta.get(gid)
+            is_cached    = meta is not None
+
+            # Accuracy du joueur sur cette partie
+            if meta:
+                acc_val = meta["accuracy_white"] if row["user_color"] == "white" else meta["accuracy_black"]
+                if acc_val is not None:
+                    if acc_val >= 90:
+                        acc_str = f":green[**{acc_val:.1f}%**]"
+                    elif acc_val >= 75:
+                        acc_str = f":orange[**{acc_val:.1f}%**]"
+                    else:
+                        acc_str = f":red[**{acc_val:.1f}%**]"
+                else:
+                    acc_str = "—"
+            else:
+                acc_str = ":gray[—]"
 
             c = st.columns(col_size, vertical_alignment="center")
             c[0].markdown(date_str)
@@ -525,8 +541,9 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
             c[3].markdown(opponent_str)
             c[4].markdown(elo_str)
             c[5].markdown(opening_str)
+            c[6].markdown(acc_str)
             if pgn:
-                c[6].button(
+                c[7].button(
                     "",
                     icon=":material/search:" if is_cached else ":material/monitoring:",
                     key=f"analyze_{gid}",

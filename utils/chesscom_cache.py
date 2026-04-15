@@ -247,3 +247,16 @@ def get_analyzed_game_ids(game_ids: List[str]) -> set:
             game_ids,
         ).fetchall()
         return {row["game_id"] for row in rows}
+
+def get_analyses_meta_batch(game_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Retourne {game_id: {accuracy_white, accuracy_black, depth}} pour les IDs analysés."""
+    if not game_ids:
+        return {}
+    placeholders = ",".join("?" for _ in game_ids)
+    with _connect() as conn:
+        rows = conn.execute(
+            f"SELECT game_id, accuracy_white, accuracy_black, depth "
+            f"FROM analyses WHERE game_id IN ({placeholders})",
+            game_ids,
+        ).fetchall()
+        return {row["game_id"]: dict(row) for row in rows}
