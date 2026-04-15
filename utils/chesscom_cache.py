@@ -142,6 +142,19 @@ def get_cached_games(username: str) -> List[Dict[str, Any]]:
         return [dict(row) for row in rows]
 
 
+def get_unanalyzed_games(username: str, limit: int) -> List[Dict[str, Any]]:
+    """Retourne les N dernières parties non encore analysées (analyzed_at IS NULL)."""
+    with _connect() as conn:
+        rows = conn.execute("""
+            SELECT g.* FROM games g
+            LEFT JOIN analyses a ON g.game_id = a.game_id
+            WHERE g.username = ? AND a.game_id IS NULL
+            ORDER BY g.date DESC
+            LIMIT ?
+        """, (username, limit)).fetchall()
+        return [dict(row) for row in rows]
+
+
 # ---------------------------------------------------------------------------
 # analyses + moves tables
 # ---------------------------------------------------------------------------

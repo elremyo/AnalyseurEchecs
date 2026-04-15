@@ -250,3 +250,67 @@ class GameAnalysisService:
             accuracy_black=meta.get("accuracy_black"),
             game_id=game_id,
         ), None
+
+    def analyze_batch(
+        self,
+        username: str,
+        limit: int,
+        user_depth: int,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    ) -> Tuple[int, int, List[str]]:
+        """
+        Analyse batch des N dernières parties non analysées.
+        
+        Args:
+            username: Nom d'utilisateur Chess.com
+            limit: Nombre maximum de parties à analyser
+            user_depth: Profondeur d'analyse Stockfish
+            progress_callback: Callback pour la progression (current, total, message)
+            
+        Returns:
+            Tuple: (succès, échecs, liste des game_id analysés)
+        """
+        from utils.chesscom_cache import get_unanalyzed_games
+        
+        # Récupérer les parties non analysées
+        unanalyzed_games = get_unanalyzed_games(username, limit)
+        
+        if not unanalyzed_games:
+            return 0, 0, []
+        
+        success_count = 0
+        error_count = 0
+        analyzed_game_ids = []
+        total_games = len(unanalyzed_games)
+        
+        for i, game in enumerate(unanalyzed_games, 1):
+            game_id = game["game_id"]
+            pgn = game.get("pgn", "")
+            
+            if progress_callback:
+                progress_callback(i, total_games, f"Analyse de la partie {i}/{total_games}...")
+            
+            try:
+                result, error = self.analyze_game(
+                    pgn=pgn,
+                    user_depth=user_depth,
+                    username=username,
+                    compute_threats=False,
+                    key_moments_threshold=500,
+                    min_gap_between_moments=2,
+                )
+                
+                if result:
+                    success_count += 1
+                    analyzed_game_ids.append(game_id)
+                else:
+                    error_count += 1
+                    if progress_callback:
+                        progress_callback(i, total_games, f"Erreur : {error.message if error else 'Erreur inconnue'}")
+                        
+            except Exception as e:
+                error_count += 1
+                if progress_callback:
+                    progress_callback(i, total_games, f"Exception : {str(e)}")
+        
+        return success_count, error_count, analyzed_game_ids

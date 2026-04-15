@@ -307,12 +307,10 @@ def _render_openings_section(df: pd.DataFrame):
             _render_forces_faiblesses(stats_b)
             st.space()
             _render_opening_chart(stats_b, "Bilan par ouverture — Noirs")
-
-# ---------------------------------------------------------------------------
 # Composants existants
 # ---------------------------------------------------------------------------
 
-def _render_header(username: str):
+def _render_header(username: str, analysis_callbacks):
     with st.container(horizontal = True, vertical_alignment = "center"):
 
         if st.button("Rafraîchir", type="tertiary", width="content", icon=":material/refresh:", key="dashboard_refresh"):
@@ -325,6 +323,34 @@ def _render_header(username: str):
             else:
                 st.toast(f"{new_count} nouvelle(s) partie(s) importée(s).", icon="✅")
             st.rerun()
+
+        # Bouton d'analyse batch
+        from utils.chesscom_cache import get_unanalyzed_games
+        unanalyzed_count = len(get_unanalyzed_games(username, 1000))  # Compte toutes les parties non analysées
+        
+        if unanalyzed_count > 0:
+            with st.popover("Analyse batch", icon=":material/play_arrow:", help="Analyser plusieurs parties en séquence"):
+                st.markdown(f"**{unanalyzed_count}** partie(s) non analysée(s) disponible(s)")
+                
+                col_limit, col_button = st.columns([1, 1])
+                with col_limit:
+                    limit = st.number_input(
+                        "Nombre de parties",
+                        min_value=1,
+                        max_value=min(unanalyzed_count, 50),
+                        value=min(unanalyzed_count, 10),
+                        key="batch_analysis_limit"
+                    )
+                with col_button:
+                    st.markdown("<br>", unsafe_allow_html=True)  # Espacement
+                    if st.button(
+                        "Lancer l'analyse",
+                        type="primary",
+                        icon=":material/rocket_launch:",
+                        key="batch_analyze_button",
+                        use_container_width=True
+                    ):
+                        analysis_callbacks.on_batch_analyze_click(limit)
 
         last_sync = get_last_sync(username)
         if last_sync:
@@ -562,7 +588,7 @@ def render_dashboard(analysis_callbacks):
     username = st.session_state.get("username", "Joueur")
     init_db()
 
-    _render_header(username)
+    _render_header(username, analysis_callbacks)
 
     games = get_cached_games(username)
     if not games:

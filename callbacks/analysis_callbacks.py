@@ -89,6 +89,45 @@ class AnalysisCallbacks:
             "redirect_to_analysis": True,
         })
 
+    def on_batch_analyze_click(self, limit: int) -> None:
+        """Callback pour l'analyse batch depuis le dashboard."""
+        username = st.session_state.username
+        
+        # Créer la barre de progression et le message de statut
+        progress_bar = st.progress(0, text="Préparation de l'analyse batch...")
+        status_text = st.empty()
+        
+        def progress_callback(current: int, total: int, message: str):
+            if total > 0:
+                progress_bar.progress(current / total, text=f"Analyse batch : {current}/{total}")
+                status_text.caption(message)
+            if current >= total:
+                progress_bar.empty()
+                status_text.empty()
+        
+        try:
+            success_count, error_count, analyzed_game_ids = self.service.analyze_batch(
+                username=username,
+                limit=limit,
+                user_depth=st.session_state.user_depth,
+                progress_callback=progress_callback,
+            )
+            
+            # Afficher le résumé
+            if success_count > 0:
+                st.toast(f"Analyse batch terminée : {success_count} parties analysées avec succès", icon=":material/check_circle:")
+            if error_count > 0:
+                st.toast(f"{error_count} parties ont généré des erreurs", icon=":material/error:")
+            
+            # Forcer le rafraîchissement du dashboard
+            if success_count > 0:
+                st.rerun()
+                
+        except Exception as e:
+            st.error(f"Erreur lors de l'analyse batch : {str(e)}")
+            progress_bar.empty()
+            status_text.empty()
+
     def display_error_if_any(self) -> None:
         """Affiche l'erreur s'il y en a une."""
         error = st.session_state.get("analyze_error")
