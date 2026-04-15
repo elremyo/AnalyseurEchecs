@@ -73,6 +73,36 @@ def _apply_filters(df: pd.DataFrame, period_days: Optional[int], game_type: Opti
         df = df[df["game_type"] == game_type]
     return df.reset_index(drop=True)
 
+
+def _render_accuracy_sparkline(df_accuracy: pd.DataFrame):
+    """Affiche une sparkline de l'évolution de l'accuracy dans le temps."""
+    if df_accuracy.empty or len(df_accuracy) < 2:
+        return
+    
+    min_acc, max_acc = df_accuracy["accuracy"].min(), df_accuracy["accuracy"].max()
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df_accuracy["date"], y=df_accuracy["accuracy"],
+        mode="lines+markers",
+        marker=dict(size=4, color="#739552"),
+        line=dict(color="#739552", width=2),
+        fill="tozeroy", fillcolor="rgba(115, 149, 82, 0.2)",
+        hovertemplate="%{x|%d/%m/%Y}<br>Précision : %{y:.1f}%<extra></extra>",
+    ))
+    
+    fig.update_layout(
+        height=120, margin=dict(l=0, r=0, t=0, b=0),
+        xaxis=dict(showgrid=False, showline=False, showticklabels=False),
+        yaxis=dict(
+            showgrid=True, gridcolor="rgba(255,255,255,0.08)",
+            showline=False, range=[max(0, min_acc - 5), min(100, max_acc + 5)],
+            ticksuffix="%", tickfont=dict(size=9), tickangle=0
+        ),
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+
 def render_games_bar(total: int, wins: int, draws: int, losses: int, color_filter: str = "all") -> None:
     """Affiche le résumé des parties jouées avec des barres horizontales. 
     Args:
@@ -412,6 +442,93 @@ def _render_metrics(df: pd.DataFrame):
     render_games_bar(len(df_b), wins_b, draws_b, losses_b, "black")
 
 
+def _render_accuracy_section(df: pd.DataFrame):
+    """Affiche la section complète de l'accuracy : moyenne et sparkline d'évolution temporelle."""
+    from utils.chesscom_cache import get_analyses_meta_batch
+    
+    if df.empty:
+        st.caption("Précision moyenne non disponible (aucune partie sur cette période).")
+        return
+    
+    # Récupérer les analyses pour les parties de la période
+    game_ids = df["game_id"].astype(str).tolist()
+    analyses_meta = get_analyses_meta_batch(game_ids)
+    
+    if not analyses_meta:
+        st.caption("Précision moyenne non disponible (aucune partie analysée sur cette période).")
+        return
+    
+    # Construire le DataFrame avec les accuracy
+    accuracy_data = []
+    for _, row in df.iterrows():
+        game_id = str(row["game_id"])
+        meta = analyses_meta.get(game_id)
+        if meta:
+            # Récupérer l'accuracy selon la couleur du joueur
+            if row["user_color"] == "white":
+                accuracy = meta.get("accuracy_white")
+            else:
+                accuracy = meta.get("accuracy_black")
+            
+            if accuracy is not None:
+                accuracy_data.append({
+                    "date": row["date_parsed"],
+                    "accuracy": accuracy,
+                    "game_id": game_id,
+                    "user_color": row["user_color"]
+                })
+    
+    if not accuracy_data:
+        st.caption("Précision moyenne non disponible (aucune partie analysée sur cette période).")
+        return
+    
+    df_accuracy = pd.DataFrame(accuracy_data).sort_values("date")
+    
+    # Calculer l'accuracy moyenne
+    avg_accuracy = df_accuracy["accuracy"].mean()
+    
+    # Affichage de l'accuracy moyenne avec style selon la qualité
+    if avg_accuracy >= 90:
+        accuracy_text = f"**:green-badge[{avg_accuracy:.1f}%]**"
+    elif avg_accuracy >= 75:
+        accuracy_text = f"**:orange-badge[{avg_accuracy:.1f}%]**"
+    else:
+        accuracy_text = f"**:red-badge[{avg_accuracy:.1f}%]**"
+    
+    with st.container(horizontal=True, width="content", vertical_alignment="center"):
+        st.subheader("Précision moyenne", anchor=False)
+        st.markdown(accuracy_text)
+    
+    # Préparer les données pour l'évolution temporelle (regroupées par jour)
+    df_daily = df_accuracy.groupby("date").agg({
+        "accuracy": "mean"
+    }).reset_index()
+    
+    # Sparkline d'évolution temporelle
+    if not df_daily.empty and len(df_daily) > 1:
+        min_acc, max_acc = df_daily["accuracy"].min(), df_daily["accuracy"].max()
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=df_daily["date"], y=df_daily["accuracy"],
+            mode="lines+markers",
+            marker=dict(size=4, color="#739552"),
+            line=dict(color="#739552", width=2),
+            fill="tozeroy", fillcolor="rgba(115, 149, 82, 0.2)",
+            hovertemplate="%{x|%d/%m/%Y}<br>Précision : %{y:.1f}%<extra></extra>",
+        ))
+
+        fig.update_layout(
+            height=120, margin=dict(l=0, r=0, t=0, b=0),
+            xaxis=dict(showgrid=False, showline=False, showticklabels=False),
+            yaxis=dict(
+                showgrid=True, gridcolor="rgba(255,255,255,0.08)",
+                showline=False, range=[max(0, min_acc - 5), min(100, max_acc + 5)],
+                ticksuffix="%", tickfont=dict(size=9), tickangle=0
+            ),
+            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        )
+        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
 
 
 def _render_elo_chart(df: pd.DataFrame):
@@ -632,7 +749,9 @@ def render_dashboard(analysis_callbacks):
         
         with col_right:
             _render_elo_chart(df)
+            _render_accuracy_section(df)
             _render_rolling_winrate(df)
+
     
     st.divider()
     _render_recent_games(df, analysis_callbacks)
