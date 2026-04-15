@@ -27,12 +27,9 @@ def display_game_result():
     else:
         winner_color = "❓"
 
-    with st.container(border=False):
-        # Afficher l'ouverture avec le code ECO
-        if eco:
-            st.markdown(f"📋 **{opening_name}** ({eco})")
-        else:
-            st.markdown(f"📋 **{opening_name}**")
+    with st.container(horizontal = True, width="content"):
+        # Afficher l'ouverture
+        st.markdown(f":material/book: **{opening_name}**")
         
         termination_escaped = escape_html(termination)
         if link:
