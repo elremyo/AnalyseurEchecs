@@ -272,12 +272,15 @@ def _render_forces_faiblesses(stats: pd.DataFrame):
         st.caption(f"⚠️ Aucune ouverture avec {_MIN_GAMES_RELIABLE}+ parties sur cette période.")
         return
 
-    best  = reliable.nlargest(2, "wr")
-    worst = reliable.nsmallest(2, "wr")
+    # Forces : win rate ≥ 55%
+    best = reliable[reliable["wr"] >= 55].nlargest(2, "wr")
+    
+    # Faiblesses : win rate ≤ 45%
+    worst = reliable[reliable["wr"] <= 45].nsmallest(2, "wr")
 
     col_b, col_w = st.columns(2)
     with col_b:
-        st.markdown("💪 **Forces**")
+        st.markdown("💪 **Forces**", help="Ouvertures avec un taux de victoire supérieur à 55%")
         for _, row in best.iterrows():
             color = "#739552"
             st.markdown(
@@ -286,7 +289,7 @@ def _render_forces_faiblesses(stats: pd.DataFrame):
                 unsafe_allow_html=True,
             )
     with col_w:
-        st.markdown("⚠️ **À travailler**")
+        st.markdown("⚠️ **À travailler**", help="Ouvertures avec un taux de victoire inférieur à 45%")
         for _, row in worst.iterrows():
             color = "#c0392b"
             st.markdown(
