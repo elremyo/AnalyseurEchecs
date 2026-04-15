@@ -123,27 +123,27 @@ MATE_VALUE = 1200
 
 # Seuils pour l'évaluation des coups (en centipawns)
 EVAL_THRESHOLDS = {
-    "BRILLIANT": 300,
-    "CRITICAL": 200,
-    "EXCELLENT": 150,
-    "GOOD": 100,
-    "INACCURACY": 40,
-    "MISTAKE": 100,
-    "BLUNDER": 300,
-    "BEST_MOVE": 10,
-    "EXCELLENT_MOVE": 40,
-    "GOOD_MOVE": 80,
-    "INACCURATE_MOVE": 200,
-    "MISTAKE_MOVE": 400,
-    "WINNING_THRESHOLD": 600,
-    "LOSING_THRESHOLD": -600,
-    "MATE_IN_NEGATIVE": -2,
-    "MATE_IN_NEGATIVE_BIG": -5,
-    "MATE_IN_POSITIVE": -4,
-    "MATE_IN_SAME": 2,
-    "GOOD_CP_THRESHOLD": 400,
-    "GOOD_CP_LOWER": 150,
-    "ERROR_CP_UPPER": -100
+    # --- Transitions CP → CP ---
+    "BEST_MOVE": 15,           # Meilleur coup (delta < 8)
+    "EXCELLENT_MOVE": 50,      # Coup excellent (delta < 50) 
+    "GOOD_MOVE": 100,          # Bon coup (delta < 100)
+    "INACCURATE_MOVE": 250,    # Imprécision (delta < 300)
+    "MISTAKE_MOVE": 400,       # Erreur (delta < 500)
+    
+    # --- Seuils de position ---
+    "WINNING_THRESHOLD": 600,  # Position gagnante
+    "LOSING_THRESHOLD": -600,  # Position perdante
+    
+    # --- Transitions Mate → CP ---
+    "GOOD_CP_THRESHOLD": 400,  # Bonne position après mat
+    "GOOD_CP_LOWER": 150,      # Seuil inférieur bon
+    "ERROR_CP_UPPER": -100,    # Seuil supérieur erreur
+    
+    # --- Transitions Mate → Mate ---
+    "MATE_IN_NEGATIVE": -2,     # Mat négatif proche
+    "MATE_IN_NEGATIVE_BIG": -5, # Gros mat négatif
+    "MATE_IN_POSITIVE": -4,     # Mat positif proche
+    "MATE_IN_SAME": 2,          # Mat similaire
 }
 
 # Plage de valeurs CP pour le calcul des chances de victoire

@@ -32,7 +32,7 @@ class AnalysisCallbacks:
         segment = link.rstrip("/").split("/")[-1]
         return segment or None
 
-    def on_analyze_click(self) -> None:
+    def on_analyze_click(self, force_reanalyze: bool = False) -> None:
         """Callback pour le bouton Analyser."""
         pgn = st.session_state.pgn_text_input
         if not pgn or not pgn.strip():
@@ -41,7 +41,7 @@ class AnalysisCallbacks:
         game_id = self._extract_game_id(pgn)
 
         # ── Tentative de chargement depuis le cache ────────────────────────
-        if game_id:
+        if game_id and not force_reanalyze:
             from utils.chesscom_cache import get_analysis_meta
             meta = get_analysis_meta(game_id)
             if meta:
@@ -66,6 +66,9 @@ class AnalysisCallbacks:
                     # Cache corrompu → fall-through vers Stockfish
 
         # ── Analyse Stockfish ──────────────────────────────────────────────
+        if force_reanalyze:
+            st.toast("Forçage d'une nouvelle analyse...", icon=":material/refresh:")
+        
         progress_callback = self._create_progress_callback()
         result, error = self.service.analyze_game(
             pgn=pgn,

@@ -79,12 +79,10 @@ def _quality_cp_to_cp(delta: int, prev_cp: int, curr_cp: int, prev_eval: dict, c
 
 def get_quality(delta: int, is_best: bool, is_theoretical: bool, prev_eval: Dict[str, Any], curr_eval: Dict[str, Any], prev_cp: int, curr_cp: int) -> str:
     """Dispatch principal qui délègue aux fonctions spécialisées selon le type de transition."""
-    if is_best and not is_theoretical:
-        return "Meilleur"
     if is_theoretical:
         return "Théorique"
     
-    # Dispatch selon le type de transition
+    # Dispatch selon le type de transition (même pour les coups is_best)
     if prev_eval["type"] == "cp" and curr_eval["type"] == "mate":
         return _quality_cp_to_mate(curr_eval)
     elif prev_eval["type"] == "mate" and curr_eval["type"] == "cp":

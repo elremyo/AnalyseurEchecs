@@ -29,12 +29,25 @@ def render_sidebar_input(analysis_callbacks: AnalysisCallbacks, open_parameters_
         key="pgn_text_input",
     )
 
-    st.button("Analyser",
-                 disabled=not (pgn_text and pgn_text.strip()),
-                 type="primary",
-                 icon=":material/monitoring:",
-                 width='stretch',
-                 on_click=analysis_callbacks.on_analyze_click)
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.button("Analyser",
+                     disabled=not (pgn_text and pgn_text.strip()),
+                     type="primary",
+                     icon=":material/monitoring:",
+                     width='stretch',
+                     on_click=analysis_callbacks.on_analyze_click)
+    
+    with col2:
+        st.button("Forcer",
+                     disabled=not (pgn_text and pgn_text.strip()),
+                     type="secondary",
+                     icon=":material/refresh:",
+                     width='stretch',
+                     on_click=analysis_callbacks.on_analyze_click,
+                     args=(True,),
+                     help="Forcer une nouvelle analyse (ignore le cache)")
 
     with st.expander("Comment copier un PGN ?", expanded=False, icon=":material/help:"):
         st.markdown(
