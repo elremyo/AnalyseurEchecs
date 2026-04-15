@@ -101,7 +101,7 @@ def _render_accuracy_sparkline(df_accuracy: pd.DataFrame):
         ),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key="accuracy_sparkline")
 
 def render_games_bar(total: int, wins: int, draws: int, losses: int, color_filter: str = "all") -> None:
     """Affiche le résumé des parties jouées avec des barres horizontales. 
@@ -262,7 +262,7 @@ def _render_opening_chart(stats: pd.DataFrame, title: str):
         annotations=annotations,
         showlegend=False,
     )
-    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key=f"opening_chart_{title.replace(' ', '_').lower()}")
 
 
 def _render_forces_faiblesses(stats: pd.DataFrame):
@@ -528,7 +528,7 @@ def _render_accuracy_section(df: pd.DataFrame):
             ),
             plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
         )
-        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key="accuracy_evolution_chart")
 
 
 def _render_elo_chart(df: pd.DataFrame):
@@ -573,7 +573,7 @@ def _render_elo_chart(df: pd.DataFrame):
                    showline=False, range=[min_elo - 20, max_elo + 20]),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key="elo_evolution_chart")
 
 
 def _render_rolling_winrate(df: pd.DataFrame):
@@ -627,7 +627,7 @@ def _render_rolling_winrate(df: pd.DataFrame):
         yaxis=dict(showgrid=False, range=[df_plot["rolling_wr"].min()-5, df_plot["rolling_wr"].max()+5], ticksuffix="%", tickfont=dict(size=10)),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+    st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key="rolling_winrate_chart")
 
 
 def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
