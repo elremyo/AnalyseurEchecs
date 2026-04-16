@@ -155,6 +155,34 @@ def get_unanalyzed_games(username: str, limit: int) -> List[Dict[str, Any]]:
         return [dict(row) for row in rows]
 
 
+def get_adjacent_games(
+    game_id: str, username: str
+) -> tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    """Retourne (partie_précédente, partie_suivante) pour la navigation série.
+
+    L'ordre est chronologique décroissant (la plus récente en tête de liste).
+    - partie_précédente : plus ancienne (idx + 1 dans la liste triée DESC)
+    - partie_suivante   : plus récente (idx - 1)
+    Retourne None à chaque extrémité.
+    """
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT game_id, pgn, date FROM games WHERE username = ? ORDER BY date DESC",
+            (username,),
+        ).fetchall()
+
+    rows_list = [dict(r) for r in rows]
+    ids = [r["game_id"] for r in rows_list]
+
+    if game_id not in ids:
+        return None, None
+
+    idx = ids.index(game_id)
+    prev_game = rows_list[idx + 1] if idx + 1 < len(rows_list) else None
+    next_game = rows_list[idx - 1] if idx > 0 else None
+    return prev_game, next_game
+
+
 # ---------------------------------------------------------------------------
 # analyses + moves tables
 # ---------------------------------------------------------------------------
@@ -260,6 +288,7 @@ def get_analyzed_game_ids(game_ids: List[str]) -> set:
             game_ids,
         ).fetchall()
         return {row["game_id"] for row in rows}
+
 
 def get_analyses_meta_batch(game_ids: List[str]) -> Dict[str, Dict[str, Any]]:
     """Retourne {game_id: {accuracy_white, accuracy_black, depth}} pour les IDs analysés."""

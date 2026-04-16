@@ -62,6 +62,6 @@ if st.session_state.view_mode == "dashboard":
     render_page_dashboard(analysis_callbacks)
     
 elif st.session_state.view_mode == "analysis" and st.session_state.analysis_result and st.session_state.analysis_result.analysis:
-    render_page_analysis()
+    render_page_analysis(analysis_callbacks)
 else:
     render_no_analysis_message()

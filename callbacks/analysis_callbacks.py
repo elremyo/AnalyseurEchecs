@@ -58,10 +58,6 @@ class AnalysisCallbacks:
                             "analyze_error":       None,
                             "redirect_to_analysis": True,
                         })
-                        st.toast(
-                            f"⚡ Chargé depuis le cache (profondeur {cached_depth}).",
-                            icon="⚡"
-                        )
                         return
                     # Cache corrompu → fall-through vers Stockfish
 
@@ -88,6 +84,19 @@ class AnalysisCallbacks:
             "analyze_error":        None,
             "redirect_to_analysis": True,
         })
+
+    def on_navigate_to_game(self, pgn: str, game_id: str) -> None:
+        """Charge la partie adjacente depuis le cache ou via Stockfish.
+
+        Réinitialise move_index à 0 pour repartir du début de la nouvelle partie.
+        Réutilise on_analyze_click pour bénéficier de la logique cache/fraîche.
+        """
+        if not pgn or not pgn.strip():
+            return
+        st.session_state.pgn_text_input = pgn
+        st.session_state.move_index = 0
+        st.session_state.move_index_slider = 1
+        self.on_analyze_click()
 
     def on_batch_analyze_click(self, limit: int) -> None:
         """Callback pour l'analyse batch depuis le dashboard."""
