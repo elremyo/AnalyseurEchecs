@@ -357,34 +357,6 @@ def _render_header(username: str, analysis_callbacks):
                 st.toast(f"{new_count} nouvelle(s) partie(s) importée(s).", icon="✅")
             st.rerun()
 
-        # Bouton d'analyse batch
-        from utils.chesscom_cache import get_unanalyzed_games
-        unanalyzed_count = len(get_unanalyzed_games(username, 1000))  # Compte toutes les parties non analysées
-        
-        if unanalyzed_count > 0:
-            with st.popover("Analyse batch", icon=":material/play_arrow:", help="Analyser plusieurs parties en séquence"):
-                st.markdown(f"**{unanalyzed_count}** partie(s) non analysée(s) disponible(s)")
-                
-                col_limit, col_button = st.columns([1, 1])
-                with col_limit:
-                    limit = st.number_input(
-                        "Nombre de parties",
-                        min_value=1,
-                        max_value=min(unanalyzed_count, 50),
-                        value=min(unanalyzed_count, 10),
-                        key="batch_analysis_limit"
-                    )
-                with col_button:
-                    st.markdown("<br>", unsafe_allow_html=True)  # Espacement
-                    if st.button(
-                        "Lancer l'analyse",
-                        type="primary",
-                        icon=":material/rocket_launch:",
-                        key="batch_analyze_button",
-                        use_container_width=True
-                    ):
-                        analysis_callbacks.on_batch_analyze_click(limit)
-
         last_sync = get_last_sync(username)
         if last_sync:
             dt = datetime.fromisoformat(last_sync)
@@ -633,7 +605,7 @@ def _render_rolling_winrate(df: pd.DataFrame):
     st.plotly_chart(fig, width='stretch', config={"displayModeBar": False}, key="rolling_winrate_chart")
 
 
-def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
+def _render_recent_games(df: pd.DataFrame, analysis_callbacks, username: str) -> None:
     from utils.chesscom_cache import get_analyses_meta_batch
 
     def _analyze_game(pgn: str) -> None:
@@ -646,7 +618,36 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks) -> None:
     # Largeurs : date / couleur / résultat / adversaire / elo / ouverture / accuracy / analyser
     col_size = [1, 0.6, 0.6, 2.5, 0.5, 2.5, 0.8, 0.6]
 
-    st.subheader("Parties récentes (20)", anchor=False)
+    with st.container(horizontal=True, width="content", vertical_alignment="bottom"):
+        st.subheader("Parties récentes (20)", anchor=False)
+        # Bouton d'analyse batch
+        from utils.chesscom_cache import get_unanalyzed_games
+        unanalyzed_count = len(get_unanalyzed_games(username, 1000))  # Compte toutes les parties non analysées
+        
+        if unanalyzed_count > 0:
+            with st.popover("Analyser en masse", help="Analyser plusieurs parties en séquence"):
+                st.markdown(f"**{unanalyzed_count}** partie(s) non analysée(s) disponible(s)")
+            
+                with st.container(horizontal=True, vertical_alignment="bottom"):
+                    limit = st.number_input(
+                        "Nombre de parties à analyser",
+                        min_value=1,
+                        max_value=min(unanalyzed_count, 50),
+                        value=min(unanalyzed_count, 10),
+                        key="batch_analysis_limit"
+                    )
+                    st.markdown("<br>", unsafe_allow_html=True)  # Espacement
+                    if st.button(
+                        "Analyser",
+                        type="primary",
+                        icon=":material/rocket_launch:",
+                        key="batch_analyze_button",
+                        use_container_width=True
+                    ):
+                        analysis_callbacks.on_batch_analyze_click(limit)
+
+
+
     with st.container(border=True,height=500):
 
         h = st.columns(col_size, vertical_alignment="center")
@@ -757,5 +758,5 @@ def render_dashboard(analysis_callbacks):
 
     
     st.divider()
-    _render_recent_games(df, analysis_callbacks)
+    _render_recent_games(df, analysis_callbacks, username)
 
