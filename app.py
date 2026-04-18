@@ -11,8 +11,8 @@ from display.page_analysis import render_page_analysis
 from display.page_dashboard import render_page_dashboard, render_no_analysis_message
 
 # Initialisation
-init_session_state()
 load_dotenv()
+init_session_state()
 set_page_style()
 
 # Initialisation des services
