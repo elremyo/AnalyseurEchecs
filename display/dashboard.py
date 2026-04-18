@@ -346,7 +346,7 @@ def _render_openings_section(df: pd.DataFrame):
 def _render_header(username: str, analysis_callbacks):
     with st.container(horizontal = True, vertical_alignment = "center"):
 
-        if st.button("Rafraîchir", type="tertiary", width="content", icon=":material/refresh:", key="dashboard_refresh"):
+        if st.button("Récupérer depuis Chess.com", type="secondary", width="content", icon=":material/arrow_downward_alt:", key="dashboard_refresh"):
             with st.spinner("Récupération des parties Chess.com…"):
                 new_count, error = _sync(username)
             if error:
