@@ -145,7 +145,7 @@ def get_last_sync(username: str) -> Optional[str]:
 def get_cached_games(username: str) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT * FROM games WHERE username = ? ORDER BY COALESCE(end_time, 0) DESC", (username,)
+            "SELECT * FROM games WHERE username = ? ORDER BY end_time DESC", (username,)
         ).fetchall()
         return [dict(row) for row in rows]
 
@@ -157,7 +157,7 @@ def get_unanalyzed_games(username: str, limit: int) -> List[Dict[str, Any]]:
             SELECT g.* FROM games g
             LEFT JOIN analyses a ON g.game_id = a.game_id
             WHERE g.username = ? AND a.game_id IS NULL
-            ORDER BY COALESCE(g.end_time, 0) DESC
+            ORDER BY g.end_time DESC
             LIMIT ?
         """, (username, limit)).fetchall()
         return [dict(row) for row in rows]
@@ -175,7 +175,7 @@ def get_adjacent_games(
     """
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT game_id, pgn, date FROM games WHERE username = ? ORDER BY COALESCE(end_time, 0) DESC",
+            "SELECT game_id, pgn, date FROM games WHERE username = ? ORDER BY end_time DESC",
             (username,),
         ).fetchall()
 

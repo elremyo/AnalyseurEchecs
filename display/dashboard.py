@@ -56,17 +56,7 @@ def _to_df(games: List[Dict[str, Any]]) -> pd.DataFrame:
     df["opponent_elo"] = df.apply(
         lambda r: r["black_elo"] if r["user_color"] == "white" else r["white_elo"], axis=1
     )
-    if "end_time" in df.columns and df["end_time"].gt(0).any():
-        df["date_parsed"] = pd.to_datetime(
-            df["end_time"].where(df["end_time"] > 0), unit="s", utc=True
-        ).dt.tz_localize(None)
-        # Fallback sur le tag Date pour les lignes sans end_time
-        mask = df["end_time"].isna() | df["end_time"].eq(0)
-        df.loc[mask, "date_parsed"] = pd.to_datetime(
-            df.loc[mask, "date"], format="%Y.%m.%d", errors="coerce"
-        )
-    else:
-        df["date_parsed"] = pd.to_datetime(df["date"], format="%Y.%m.%d", errors="coerce")
+    df["date_parsed"] = pd.to_datetime(df["end_time"], unit="s", utc=True).dt.tz_localize(None)
     df["eco_family"]  = df["eco"].apply(get_opening_family)
     df["eco_name"]    = df["eco"].apply(lambda x: get_opening_name(x) if x else "")
     df["game_type"]   = df["time_control"].apply(classify_time_control)
