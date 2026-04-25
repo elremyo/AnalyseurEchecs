@@ -657,7 +657,7 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks, username: str) ->
         for _, row in df.head(20).iterrows():
             date_str     = row["date_parsed"].strftime("%d/%m/%Y") if pd.notna(row["date_parsed"]) else "—"
             color_icon   = "⬜" if row["user_color"] == "white" else "⬛"
-            result_icon  = {"win": "✅", "loss": "❌", "draw": "🟰"}.get(row["user_result"], "?")
+            result_icon  = {"win": ":green-badge[:material/add:]", "loss": ":red-badge[:material/remove:]", "draw": ":grey-badge[:material/equal:]"}.get(row["user_result"], "?")
             opponent_str = f"{row['opponent']} ({row['opponent_elo']})"
             elo_str      = str(int(row["user_elo"])) if row["user_elo"] > 0 else "—"
             opening_str  = get_opening_name(row["eco"]) if row["eco"] else "—"
