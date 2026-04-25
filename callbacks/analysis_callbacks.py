@@ -52,10 +52,17 @@ class AnalysisCallbacks:
                         game_id, pgn, st.session_state.username
                     )
                     if result:
+                        # Déterminer l'orientation initiale de l'échiquier
+                        if result.white_name.lower() == st.session_state.username.lower():
+                            board_flipped = False
+                        else:
+                            board_flipped = True
+                            
                         st.session_state.update({
                             "analysis_result":     result,
                             "pgn_last_analyzed":   pgn,
                             "analyze_error":       None,
+                            "board_flipped":       board_flipped,
                             "redirect_to_analysis": True,
                         })
                         return
@@ -78,10 +85,19 @@ class AnalysisCallbacks:
             st.session_state.analyze_error = error.message
             return
 
+        # Déterminer l'orientation initiale de l'échiquier
+        # Si le username correspond au joueur des Blancs, on ne retourne pas l'échiquier
+        # Sinon, on le retourne pour que l'utilisateur soit toujours en bas
+        if result.white_name.lower() == st.session_state.username.lower():
+            board_flipped = False
+        else:
+            board_flipped = True
+            
         st.session_state.update({
-            "analysis_result":      result,
-            "pgn_last_analyzed":    pgn,
-            "analyze_error":        None,
+            "analysis_result":     result,
+            "pgn_last_analyzed":   pgn,
+            "analyze_error":       None,
+            "board_flipped":       board_flipped,
             "redirect_to_analysis": True,
         })
 
