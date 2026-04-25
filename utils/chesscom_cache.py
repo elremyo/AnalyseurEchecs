@@ -39,9 +39,16 @@ def init_db() -> None:
                 black_elo    INTEGER,
                 time_control TEXT,
                 termination  TEXT,
+                end_time     INTEGER,
                 pgn          TEXT
             )
         """)
+        # Migration pour les bases existantes
+        try:
+            conn.execute("ALTER TABLE games ADD COLUMN end_time INTEGER")
+            conn.commit()
+        except Exception:
+            pass  # colonne déjà présente
         conn.execute("""
             CREATE TABLE IF NOT EXISTS sync_log (
                 username  TEXT PRIMARY KEY,
@@ -106,12 +113,13 @@ def upsert_games(games: List[Dict[str, Any]]) -> int:
         return 0
     with _connect() as conn:
         cursor = conn.executemany("""
-            INSERT OR IGNORE INTO games
+            INSERT INTO games
                 (game_id, username, date, white, black, user_color, result, user_result,
-                 eco, opening, white_elo, black_elo, time_control, termination, pgn)
+                 eco, opening, white_elo, black_elo, time_control, termination, end_time, pgn)
             VALUES
                 (:game_id, :username, :date, :white, :black, :user_color, :result, :user_result,
-                 :eco, :opening, :white_elo, :black_elo, :time_control, :termination, :pgn)
+                 :eco, :opening, :white_elo, :black_elo, :time_control, :termination, :end_time, :pgn)
+            ON CONFLICT(game_id) DO UPDATE SET end_time = excluded.end_time
         """, games)
         count = cursor.rowcount
         conn.commit()
@@ -137,7 +145,7 @@ def get_last_sync(username: str) -> Optional[str]:
 def get_cached_games(username: str) -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT * FROM games WHERE username = ? ORDER BY date DESC", (username,)
+            "SELECT * FROM games WHERE username = ? ORDER BY COALESCE(end_time, 0) DESC", (username,)
         ).fetchall()
         return [dict(row) for row in rows]
 
@@ -149,7 +157,7 @@ def get_unanalyzed_games(username: str, limit: int) -> List[Dict[str, Any]]:
             SELECT g.* FROM games g
             LEFT JOIN analyses a ON g.game_id = a.game_id
             WHERE g.username = ? AND a.game_id IS NULL
-            ORDER BY g.date DESC
+            ORDER BY COALESCE(g.end_time, 0) DESC
             LIMIT ?
         """, (username, limit)).fetchall()
         return [dict(row) for row in rows]
@@ -167,7 +175,7 @@ def get_adjacent_games(
     """
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT game_id, pgn, date FROM games WHERE username = ? ORDER BY date DESC",
+            "SELECT game_id, pgn, date FROM games WHERE username = ? ORDER BY COALESCE(end_time, 0) DESC",
             (username,),
         ).fetchall()
 

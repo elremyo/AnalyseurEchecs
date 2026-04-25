@@ -59,6 +59,7 @@ def _parse_game(game: dict, username: str) -> Optional[Dict[str, Any]]:
         "game_id": game_id,
         "username": username,
         "date": _parse_pgn_tag(pgn, "Date") or "",
+        "end_time": game.get("end_time", 0),
         "white": white_username,
         "black": black_username,
         "user_color": user_color,

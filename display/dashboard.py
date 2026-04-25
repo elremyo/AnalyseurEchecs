@@ -56,7 +56,17 @@ def _to_df(games: List[Dict[str, Any]]) -> pd.DataFrame:
     df["opponent_elo"] = df.apply(
         lambda r: r["black_elo"] if r["user_color"] == "white" else r["white_elo"], axis=1
     )
-    df["date_parsed"] = pd.to_datetime(df["date"], format="%Y.%m.%d", errors="coerce")
+    if "end_time" in df.columns and df["end_time"].gt(0).any():
+        df["date_parsed"] = pd.to_datetime(
+            df["end_time"].where(df["end_time"] > 0), unit="s", utc=True
+        ).dt.tz_localize(None)
+        # Fallback sur le tag Date pour les lignes sans end_time
+        mask = df["end_time"].isna() | df["end_time"].eq(0)
+        df.loc[mask, "date_parsed"] = pd.to_datetime(
+            df.loc[mask, "date"], format="%Y.%m.%d", errors="coerce"
+        )
+    else:
+        df["date_parsed"] = pd.to_datetime(df["date"], format="%Y.%m.%d", errors="coerce")
     df["eco_family"]  = df["eco"].apply(get_opening_family)
     df["eco_name"]    = df["eco"].apply(lambda x: get_opening_name(x) if x else "")
     df["game_type"]   = df["time_control"].apply(classify_time_control)
@@ -655,7 +665,13 @@ def _render_recent_games(df: pd.DataFrame, analysis_callbacks, username: str) ->
             col.caption(f"**{label}**")
 
         for _, row in df.head(20).iterrows():
-            date_str     = row["date_parsed"].strftime("%d/%m/%Y") if pd.notna(row["date_parsed"]) else "—"
+            # Date et heure : utiliser end_time si disponible, sinon date_parsed
+            if pd.notna(row.get("end_time")) and row["end_time"] > 0:
+                date_str = pd.to_datetime(row["end_time"], unit="s", utc=True).tz_localize(None).strftime("%d/%m/%Y %H:%M")
+            elif pd.notna(row["date_parsed"]):
+                date_str = row["date_parsed"].strftime("%d/%m/%Y %H:%M")
+            else:
+                date_str = "—"
             color_icon   = "⬜" if row["user_color"] == "white" else "⬛"
             result_icon  = {"win": ":green-badge[:material/add:]", "loss": ":red-badge[:material/remove:]", "draw": ":grey-badge[:material/equal:]"}.get(row["user_result"], "?")
             opponent_str = f"{row['opponent']} ({row['opponent_elo']})"
